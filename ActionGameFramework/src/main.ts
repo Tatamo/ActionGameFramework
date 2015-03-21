@@ -1,0 +1,60 @@
+﻿/// <reference path="surface.ts"/>
+/// <reference path="input.ts"/>
+/// <reference path="loader.ts"/>
+/// <reference path="statemachine.ts"/>
+/// <reference path="state.ts"/>
+module Game {
+    var SCREEN_WIDTH = 512;
+    var SCREEN_HEIGHT = 320;
+    export class Game {
+        element: HTMLElement;
+        screen: Surface;
+        statemachine: StateMachine;
+        gamekey: GameKey;
+        loader: Loader;
+        //config:Config;
+
+        private timerToken: number;
+
+        constructor() {
+            this.screen = new Surface(SCREEN_WIDTH, SCREEN_HEIGHT);
+            this.statemachine = new StateMachine();
+            this.gamekey = new GameKey();
+            this.loader = new Loader();
+            //this.config = new Config(map, image, config);
+        }
+        // 指定した要素の子要素としてゲーム画面を追加します
+        public setparent(el: HTMLElement) {
+            this.element = el;
+            this.element.innerHTML += "test"; // DEBUG
+            this.element.appendChild(this.screen.container);
+            this.screen.container.tabIndex = 1; // ゲーム画面をフォーカス可能にする
+            this.gamekey.setEvent(this.screen.container);　// 画面に対してキー入力を受け付けるように
+        }
+        // ゲームループの開始
+        public start() {
+            console.log("app start"); // DEBUG
+            // this.statemachine.push(最初のState)
+
+
+            this.statemachine.push(new States.Title("title",this.statemachine));
+
+            /*this.statemachine.regist(new Preload("preload", this.statemachine));
+            this.statemachine.start("preload");*/
+
+            //this.timerToken = setInterval(() => this.statemachine.update(), 100);
+            this.timerToken = setInterval(() => this.loop(), 100);
+        }
+        // 使うの?
+        public stop() {
+            clearTimeout(this.timerToken);
+        }
+        // ゲームループ
+        // UNDONE: イベントハンドラ扱いにしたい
+        loop() {
+            this.gamekey.update(); // まずキー入力情報を更新
+            this.statemachine.update(); // ステートマシンを動かす
+            //this.screen.canvas.getContext("2d").fillRect(this.counter, this.counter, this.counter, this.counter); //DEBUG
+        }
+    }
+}
