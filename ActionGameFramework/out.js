@@ -114,7 +114,7 @@ var Game;
     var Loader = (function () {
         function Loader() {
             this._unloadeds = [];
-            this._asset = [];
+            this._asset = new Assets();
             this._isloading = false;
         }
         Object.defineProperty(Loader.prototype, "state", {
@@ -135,7 +135,7 @@ var Game;
         });
 
         Object.defineProperty(Loader.prototype, "count", {
-            // ロードするべき画像総数
+            // ロードするべき総数
             get: function () {
                 if (this.state == 0 /* UNLOAD */)
                     return this._unloadeds.length;
@@ -168,10 +168,10 @@ var Game;
             this._unloadeds.push({ label: l, path: p, callback: cb });
         };
 
-        // 追加された画像をすべて読み込みます
+        // キューに追加された画像をすべて読み込みます
         Loader.prototype.load = function () {
             if (this.state == 1 /* LOADING */)
-                throw new Error("preloading is now processing");
+                throw new Error("loading is now processing");
             this._count = this._unloadeds.length;
             this._isloading = true;
             this._load();
@@ -183,7 +183,7 @@ var Game;
             var tmp = this._unloadeds.shift();
             var img = new Image();
             img.onload = function () {
-                _this._asset.push({ label: tmp.label, type: "image", file: img });
+                _this._asset.add(tmp.label, img, 1 /* IMAGE */);
                 if (tmp.callback)
                     tmp.callback(img, tmp.label);
                 if (_this._unloadeds.length > 0) {
@@ -194,9 +194,63 @@ var Game;
                 }
             };
         };
+
+        // 読み込んだリソースの取得
+        Loader.prototype.getAsset = function (label, type) {
+            if (typeof type === "undefined") { type = 0 /* ANY */; }
+        };
         return Loader;
     })();
     Game.Loader = Loader;
+    (function (ResourceType) {
+        ResourceType[ResourceType["ANY"] = 0] = "ANY";
+        ResourceType[ResourceType["IMAGE"] = 1] = "IMAGE";
+        ResourceType[ResourceType["AUDIO"] = 2] = "AUDIO";
+    })(Game.ResourceType || (Game.ResourceType = {}));
+    var ResourceType = Game.ResourceType;
+
+    // ロードしたデータの保持
+    var Assets = (function () {
+        function Assets() {
+            this._assets = new Array();
+        }
+        Object.defineProperty(Assets.prototype, "length", {
+            get: function () {
+                return this._assets.length;
+            },
+            enumerable: true,
+            configurable: true
+        });
+
+        // リソースを追加します
+        Assets.prototype.add = function (l, f, t) {
+            if (typeof t === "undefined") { t = 0 /* ANY */; }
+            if (this.check(l))
+                throw new Error("resource name \"" + l + "\" is already registered");
+            this._assets.push({ label: l, type: t, file: f });
+        };
+
+        // ラベル(とファイルタイプ)を指定してデータ取得
+        Assets.prototype.get = function (label, type) {
+            if (typeof type === "undefined") { type = 0 /* ANY */; }
+            var f = (type != 0 /* ANY */);
+            for (var i = 0; i < this._assets.length; i++) {
+                if (f || this._assets[i].type != type)
+                    continue;
+                if (this._assets[i].label == label) {
+                    return this._assets[i].file;
+                }
+            }
+            return null;
+        };
+
+        // 指定したリソースが登録されているかどうかの判別
+        Assets.prototype.check = function (label, type) {
+            if (typeof type === "undefined") { type = 0 /* ANY */; }
+            return this.get(label, type) != null;
+        };
+        return Assets;
+    })();
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
@@ -340,10 +394,38 @@ var Game;
     })();
     Game.StateMachine = StateMachine;
 })(Game || (Game = {}));
+var Game;
+(function (Game) {
+    (function (States) {
+        var Title = (function () {
+            function Title(name, sm) {
+                this.name = name;
+                this.sm = sm;
+                //this.game = sm.game;
+            }
+            Title.prototype.enter = function () {
+                //this.titleimg = this.game.images.get("title");
+            };
+            Title.prototype.update = function () {
+                this.game.screen.context.drawImage(this.titleimg, 0, 0);
+                if (this.game.gamekey.isOnDown(90)) {
+                    //this.sm.push(new State());
+                }
+                console.log("title");
+            };
+            Title.prototype.exit = function () {
+            };
+            return Title;
+        })();
+        States.Title = Title;
+    })(Game.States || (Game.States = {}));
+    var States = Game.States;
+})(Game || (Game = {}));
 /// <reference path="surface.ts"/>
 /// <reference path="input.ts"/>
 /// <reference path="loader.ts"/>
 /// <reference path="statemachine.ts"/>
+/// <reference path="state.ts"/>
 var Game;
 (function (_Game) {
     var SCREEN_WIDTH = 512;
@@ -361,7 +443,7 @@ var Game;
             this.element = el;
             this.element.innerHTML += "test"; // DEBUG
             this.element.appendChild(this.screen.container);
-            this.screen.container.tabIndex = 1; // フォーカス可能にする
+            this.screen.container.tabIndex = 1; // ゲーム画面をフォーカス可能にする
             this.gamekey.setEvent(this.screen.container); // 画面に対してキー入力を受け付けるように
         };
 
@@ -371,6 +453,8 @@ var Game;
             console.log("app start"); // DEBUG
 
             // this.statemachine.push(最初のState)
+            this.statemachine.push(new _Game.States.Title("title", this.statemachine));
+
             /*this.statemachine.regist(new Preload("preload", this.statemachine));
             this.statemachine.start("preload");*/
             //this.timerToken = setInterval(() => this.statemachine.update(), 100);
