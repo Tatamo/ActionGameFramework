@@ -183,6 +183,7 @@ var Game;
             var tmp = this._unloadeds.shift();
             var img = new Image();
             img.onload = function () {
+                console.log(img);
                 _this._asset.add(tmp.label, img, 1 /* IMAGE */);
                 if (tmp.callback)
                     tmp.callback(img, tmp.label);
@@ -190,14 +191,16 @@ var Game;
                     _this._load();
                 } else {
                     // 読み込み完了
-                    _this._isloading = true;
+                    _this._isloading = false;
                 }
             };
+            img.src = tmp.path;
         };
 
         // 読み込んだリソースの取得
         Loader.prototype.getAsset = function (label, type) {
             if (typeof type === "undefined") { type = 0 /* ANY */; }
+            return this._asset.get(label, type);
         };
         return Loader;
     })();
@@ -235,7 +238,7 @@ var Game;
             if (typeof type === "undefined") { type = 0 /* ANY */; }
             var f = (type != 0 /* ANY */);
             for (var i = 0; i < this._assets.length; i++) {
-                if (f || this._assets[i].type != type)
+                if (f && this._assets[i].type != type)
                     continue;
                 if (this._assets[i].label == label) {
                     return this._assets[i].file;
@@ -325,26 +328,28 @@ var Game;
 var Game;
 (function (Game) {
     var StateMachine = (function () {
-        function StateMachine() {
+        function StateMachine(game, parent) {
+            if (typeof parent === "undefined") { parent = null; }
             this.current_state = null;
             this.global_state = null;
             this.root_state = null;
-            this.is_started = false;
+
+            /*this.is_started = false;*/
             this._states = new Array();
+
+            this.game = game;
+            this.parent = parent;
         }
         StateMachine.prototype.update = function () {
-            if (this.is_started) {
-                // グローバルステートが存在すれば実行
-                if (this.global_state)
-                    this.global_state.update();
+            /*if (this.is_started) {*/
+            // グローバルステートが存在すれば実行
+            if (this.global_state)
+                this.global_state.update();
 
-                // 現在のステートの処理
-                if (this.current_state)
-                    this.current_state.update();
-            }
-        };
-        StateMachine.prototype.start = function (state) {
-            this.is_started = true;
+            // 現在のステートの処理
+            if (this.current_state)
+                this.current_state.update();
+            /*}*/
         };
 
         // スタックに新しいStateを積み、そのStateに遷移する
@@ -354,23 +359,32 @@ var Game;
             if (this._states.length == 0)
                 this.root_state = state;
 
+            if (this.current_state)
+                this.current_state.exit();
             this._states.push(state);
-            var prev = this.current_state;
             this.current_state = state;
-            if (prev)
-                prev.exit();
             this.current_state.enter();
         };
 
         // 現在のステートを終了し、前のステートに遷移する
         // UNDONE:戻り値未定義
         StateMachine.prototype.pop = function () {
-            // rootならばpopはできない
-            if (this.current_state == this.root_state)
-                return;
-
+            /*// rootならばpopはできない
+            if (this.current_state == this.root_state) return;*/
             this._states.pop().exit();
             this.current_state = this._states[this._states.length - 2];
+            if (this.current_state)
+                this.current_state.enter();
+        };
+
+        // 現在のステートを新しいステートに入れ替え、遷移処理を行う
+        StateMachine.prototype.replace = function (state) {
+            // 現在のステートがrootならば、新しいステートをrootとする
+            if (this.root_state = this.current_state)
+                this.root_state = state;
+            this._states.pop().exit();
+            this._states.push(state);
+            this.current_state = state;
             this.current_state.enter();
         };
 
@@ -397,6 +411,28 @@ var Game;
 var Game;
 (function (Game) {
     (function (States) {
+        var Preload = (function () {
+            function Preload(name, sm) {
+                this.name = name;
+                this.sm = sm;
+            }
+            Preload.prototype.enter = function () {
+                var loader = this.sm.game.loader;
+
+                loader.push("title", "/title.gif");
+                loader.load();
+            };
+            Preload.prototype.update = function () {
+                var loader = this.sm.game.loader;
+                if (loader.state == 2 /* LOADED */) {
+                    this.sm.push(new Title("title", this.sm));
+                }
+            };
+            Preload.prototype.exit = function () {
+            };
+            return Preload;
+        })();
+        States.Preload = Preload;
         var Title = (function () {
             function Title(name, sm) {
                 this.name = name;
@@ -404,14 +440,14 @@ var Game;
                 //this.game = sm.game;
             }
             Title.prototype.enter = function () {
-                //this.titleimg = this.game.images.get("title");
+                this.titleimg = this.sm.game.loader.getAsset("title");
             };
             Title.prototype.update = function () {
-                this.game.screen.context.drawImage(this.titleimg, 0, 0);
-                if (this.game.gamekey.isOnDown(90)) {
+                this.sm.game.screen.context.drawImage(this.titleimg, 0, 0);
+                if (this.sm.game.gamekey.isOnDown(90)) {
                     //this.sm.push(new State());
                 }
-                console.log("title");
+                //console.log("title");
             };
             Title.prototype.exit = function () {
             };
@@ -433,7 +469,7 @@ var Game;
     var Game = (function () {
         function Game() {
             this.screen = new _Game.Surface(SCREEN_WIDTH, SCREEN_HEIGHT);
-            this.statemachine = new _Game.StateMachine();
+            this.statemachine = new _Game.StateMachine(this);
             this.gamekey = new _Game.GameKey();
             this.loader = new _Game.Loader();
             //this.config = new Config(map, image, config);
@@ -452,8 +488,8 @@ var Game;
             var _this = this;
             console.log("app start"); // DEBUG
 
-            // this.statemachine.push(最初のState)
-            this.statemachine.push(new _Game.States.Title("title", this.statemachine));
+            // this.statemachine.push(最初のState);
+            this.statemachine.push(new _Game.States.Preload("preload", this.statemachine));
 
             /*this.statemachine.regist(new Preload("preload", this.statemachine));
             this.statemachine.start("preload");*/

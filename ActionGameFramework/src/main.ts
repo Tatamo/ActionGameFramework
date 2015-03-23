@@ -18,7 +18,7 @@ module Game {
 
         constructor() {
             this.screen = new Surface(SCREEN_WIDTH, SCREEN_HEIGHT);
-            this.statemachine = new StateMachine();
+            this.statemachine = new StateMachine(this);
             this.gamekey = new GameKey();
             this.loader = new Loader();
             //this.config = new Config(map, image, config);
@@ -34,10 +34,9 @@ module Game {
         // ゲームループの開始
         public start() {
             console.log("app start"); // DEBUG
-            // this.statemachine.push(最初のState)
 
-
-            this.statemachine.push(new States.Title("title",this.statemachine));
+            // this.statemachine.push(最初のState);
+            this.statemachine.push(new States.Preload("preload", this.statemachine));
 
             /*this.statemachine.regist(new Preload("preload", this.statemachine));
             this.statemachine.start("preload");*/

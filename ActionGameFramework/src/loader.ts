@@ -59,6 +59,7 @@
             var tmp = this._unloadeds.shift();
             var img = new Image();
             img.onload = () => {
+                console.log(img);
                 this._asset.add(tmp.label, img, ResourceType.IMAGE);
                 if (tmp.callback) tmp.callback(img, tmp.label);
                 if (this._unloadeds.length > 0) {
@@ -66,12 +67,14 @@
                 }
                 else {
                     // 読み込み完了
-                    this._isloading = true;
+                    this._isloading = false;
                 }
             }
+            img.src = tmp.path;
         }
         // 読み込んだリソースの取得
         public getAsset(label: string, type: ResourceType = ResourceType.ANY) {
+            return this._asset.get(label, type);
         }
     }
     export enum ResourceType {
@@ -97,7 +100,7 @@
         public get(label: string, type: ResourceType = ResourceType.ANY) {
             var f = (type != ResourceType.ANY); // ANY以外ならTrue
             for (var i = 0; i < this._assets.length; i++) {
-                if (f || this._assets[i].type != type) continue;
+                if (f && this._assets[i].type != type) continue;
                 if (this._assets[i].label == label) {
                     return this._assets[i].file;
                 }
