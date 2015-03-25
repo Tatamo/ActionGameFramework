@@ -1,4 +1,4 @@
-﻿var Greeter = (function () {
+var Greeter = (function () {
     function Greeter(element) {
         this.element = element;
         this.element.innerHTML += "The time is: ";
@@ -8,27 +8,504 @@
     }
     Greeter.prototype.start = function () {
         var _this = this;
-        this.timerToken = setInterval(function () {
-            return _this.span.innerHTML = new Date().toUTCString();
-        }, 500);
+        this.timerToken = setInterval(function () { return _this.span.innerHTML = new Date().toUTCString(); }, 500);
     };
-
     Greeter.prototype.stop = function () {
         clearTimeout(this.timerToken);
     };
     return Greeter;
 })();
-
 var game;
 window.onload = function () {
     var el = document.getElementById('content');
-
     /*var greeter = new Greeter(el);
     greeter.start();*/
     game = new Game.Game();
     game.setparent(el);
     game.start();
 };
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+var Game;
+(function (Game) {
+    // WeakMap同様の操作が可能で、numberとstringのキーを持つデータ構造です
+    var Dictionary = (function () {
+        function Dictionary() {
+            this.datalist = {};
+        }
+        // 中身を初期化しますよ
+        Dictionary.prototype.clear = function () {
+            this.datalist = {};
+        };
+        Dictionary.prototype.set = function (key, value) {
+            var args = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
+            }
+            this.checkType(key);
+            /*if (this.datalist[key] != undefined) {
+                throw new Error("State \"" + key + "\"is already defined.");
+            }*/
+            this.datalist[key] = value;
+            return this;
+        };
+        Dictionary.prototype.delete = function (key) {
+            this.checkType(key);
+            return delete this.datalist[key];
+        };
+        Dictionary.prototype.get = function (key) {
+            this.checkType(key);
+            return this.datalist[key];
+        };
+        // オブジェクトが存在する場合、登録されているキーを返します
+        Dictionary.prototype.getkey = function (value) {
+            var result;
+            for (var key in this.datalist) {
+                if (this.datalist[key] == value) {
+                    result = key;
+                    break;
+                }
+            }
+            return result;
+        };
+        Dictionary.prototype.has = function (key) {
+            this.checkType(key);
+            if (this.datalist[key] != undefined)
+                return true;
+            else
+                return false;
+        };
+        Dictionary.prototype.checkType = function (key) {
+            if (typeof key != "number" && typeof key != "string") {
+                throw new Error("key is neither string nor number");
+            }
+        };
+        return Dictionary;
+    })();
+    Game.Dictionary = Dictionary;
+    // 一度登録すると値を変えられないDictionaryです(削除は可能)
+    var Registrar = (function (_super) {
+        __extends(Registrar, _super);
+        function Registrar() {
+            _super.apply(this, arguments);
+        }
+        Registrar.prototype.set = function (key, value) {
+            if (this.has(key)) {
+                throw new Error("\"" + key + "\"is already defined.");
+            }
+            _super.prototype.set.call(this, key, value);
+        };
+        return Registrar;
+    })(Dictionary);
+    Game.Registrar = Registrar;
+    // 順番を持つデータ構造です
+    var AbstractDataGroup = (function () {
+        function AbstractDataGroup() {
+            this.datalist = new Array();
+        }
+        // 中身を初期化しますよ
+        AbstractDataGroup.prototype.clear = function () {
+            this.datalist = new Array();
+        };
+        // 登録されているSpriteのリストを得ます
+        AbstractDataGroup.prototype.getArray = function () {
+            return this.datalist.slice(0);
+        };
+        // Spriteの個数を取得します
+        AbstractDataGroup.prototype.getCount = function () {
+            return this.datalist.length;
+        };
+        // Spriteを新しく追加します
+        AbstractDataGroup.prototype.add = function (value) {
+            this.datalist.push(value);
+            this.sort();
+        };
+        // Spriteを並び替えます
+        AbstractDataGroup.prototype.sort = function () {
+            if (this.sortmethod)
+                this.datalist.sort(this.sortmethod);
+        };
+        // Spriteを消去します
+        AbstractDataGroup.prototype.del = function (value) {
+            var index = 0;
+            var flag = false;
+            for (index = 0; index < this.datalist.length; index += 1) {
+                if (this.datalist[index] == value) {
+                    break;
+                }
+            }
+            if (!flag)
+                throw new Error("the object to be deleted not found.");
+            this.datalist.splice(index, 1);
+        };
+        return AbstractDataGroup;
+    })();
+    Game.AbstractDataGroup = AbstractDataGroup;
+})(Game || (Game = {}));
+/// <reference path="datadictionary.ts"/>
+var Game;
+(function (Game) {
+    // アセットの取り扱いと重い依存性を一手に引き受けるクラス
+    var AssetsManagerManager = (function () {
+        function AssetsManagerManager() {
+            this.image = new ImageManager();
+            this.loader = new AssetsLoader([this.image.loader]);
+        }
+        /*// ロードする画像の登録
+        public regist_image(label: string, path: string) {
+            this.image.regist_image(label, path);
+        }
+        // ロードするパターン画像の登録
+        public regist_pattern(label: string, path: string, c_width: number, c_height: number) {
+            this.image.regist_pattern(label, path,c_width,c_height);
+        }*/
+        // すべてロードする
+        // 撤廃してloader.load()を呼ばせればいいか?
+        AssetsManagerManager.prototype.load = function () {
+            this.loader.load();
+        };
+        return AssetsManagerManager;
+    })();
+    Game.AssetsManagerManager = AssetsManagerManager;
+    (function (PreloadStates) {
+        PreloadStates[PreloadStates["UNLOAD"] = 0] = "UNLOAD";
+        PreloadStates[PreloadStates["LOADING"] = 1] = "LOADING";
+        PreloadStates[PreloadStates["NOTHING2LOAD"] = 2] = "NOTHING2LOAD";
+    })(Game.PreloadStates || (Game.PreloadStates = {}));
+    var PreloadStates = Game.PreloadStates;
+    // 複数のLoaderを束ねたかのように振舞うローダー ただしアセットの登録は行えない
+    // Loaderインターフェースに定義されたメソッドのみを持つ
+    var AssetsLoader = (function () {
+        function AssetsLoader(list) {
+            this.loaders = list;
+        }
+        Object.defineProperty(AssetsLoader.prototype, "state", {
+            get: function () {
+                var f = false;
+                for (var i = 0; i < this.loaders.length; i++) {
+                    if (this.loaders[i].state == 1 /* LOADING */)
+                        return 1 /* LOADING */;
+                    if (this.loaders[i].state == 0 /* UNLOAD */)
+                        f = true;
+                }
+                if (f)
+                    return 0 /* UNLOAD */;
+                else
+                    return 2 /* NOTHING2LOAD */;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AssetsLoader.prototype, "count", {
+            get: function () {
+                var c = 0;
+                for (var i = 0; i < this.loaders.length; i++) {
+                    c += this.loaders[i].count;
+                }
+                return c;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AssetsLoader.prototype, "count_loadeds", {
+            get: function () {
+                var c = 0;
+                for (var i = 0; i < this.loaders.length; i++) {
+                    c += this.loaders[i].count_loadeds;
+                }
+                return c;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        AssetsLoader.prototype.load = function (cb) {
+            var _this = this;
+            if (this.state == 2 /* NOTHING2LOAD */) {
+                cb();
+                return;
+            }
+            if (this.state == 1 /* LOADING */)
+                throw new Error("loading is now processing");
+            var i = 0;
+            var callback = function () {
+                if (++i < _this.loaders.length) {
+                    _this.loaders[i].load(callback);
+                }
+                else {
+                    cb();
+                }
+            };
+            if (i < this.loaders.length) {
+                this.loaders[i].load(callback);
+            }
+            else
+                cb();
+        };
+        return AssetsLoader;
+    })();
+    Game.AssetsLoader = AssetsLoader;
+    // UNDONE:画像以外のロード
+    var AbstractLoader = (function () {
+        function AbstractLoader() {
+            this._unloadeds = [];
+            this._isloading = false;
+            this._count = 0;
+        }
+        Object.defineProperty(AbstractLoader.prototype, "state", {
+            get: function () {
+                if (this._unloadeds.length == 0) {
+                    return 2 /* NOTHING2LOAD */;
+                }
+                if (this._isloading)
+                    return 1 /* LOADING */;
+                return 0 /* UNLOAD */;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AbstractLoader.prototype, "count", {
+            // ロードするべき総数
+            get: function () {
+                if (this.state == 0 /* UNLOAD */)
+                    return this._unloadeds.length;
+                else
+                    return this._count;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AbstractLoader.prototype, "count_loadeds", {
+            // いくつロード完了しているか
+            get: function () {
+                if (this.state == 0 /* UNLOAD */)
+                    return 0;
+                else if (this.state == 1 /* LOADING */)
+                    return this.count - this._unloadeds.length;
+                else
+                    return this.count;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        // 画像の名前とパスをキューに追加します
+        // push(label,path,callback?)
+        AbstractLoader.prototype.push = function (l, p, cb) {
+            //push(l: string, p: string) {
+            // UNDONE:重複keyの検出
+            //if(this.has(key)) throw new Error("\"" + key + "\"is already defined.");
+            this._unloadeds.push({ label: l, path: p, callback: cb });
+        };
+        // TODO: 1-(unloadeds.length/count)の取得
+        // キューに追加された画像をすべて読み込みます
+        AbstractLoader.prototype.load = function (cb) {
+            //if (this.state == PreloadStates.NOTHING2LOAD) throw new Error("there is nothing to load");
+            if (this.state == 2 /* NOTHING2LOAD */) {
+                cb();
+                return;
+            }
+            if (this.state == 1 /* LOADING */)
+                throw new Error("loading is now processing");
+            this._count = this._unloadeds.length;
+            this._isloading = true;
+            this.__load(cb);
+        };
+        // 再帰的 そとからよぶな ぶちころがすぞ
+        AbstractLoader.prototype.__load = function (cb) {
+            if (this._unloadeds.length > 0) {
+                this._load();
+            }
+            else {
+                // 読み込み完了
+                this._isloading = false;
+                if (cb)
+                    cb();
+            }
+        };
+        // 再帰的 そとからよぶな ぶちころがすぞ
+        // to be overridden
+        // 処理終了時にthis.__load(cb)を呼ぶこと
+        AbstractLoader.prototype._load = function (cb) {
+            /*var tmp = this._unloadeds.shift();
+
+            var img = new Image();
+            img.onload = () => {
+                console.log(img);
+                //this._asset.add(tmp.label, img, ResourceType.IMAGE); 下のコールバックで追加させる
+                this.__load(cb);
+            }
+            img.src = tmp.path;*/
+        };
+        return AbstractLoader;
+    })();
+    Game.AbstractLoader = AbstractLoader;
+    var ImageLoader = (function (_super) {
+        __extends(ImageLoader, _super);
+        function ImageLoader() {
+            _super.apply(this, arguments);
+        }
+        ImageLoader.prototype._load = function (cb) {
+            var _this = this;
+            var tmp = this._unloadeds.shift();
+            var img = new Image();
+            img.onload = function () {
+                console.log(img);
+                //this._asset.add(tmp.label, img, ResourceType.IMAGE); 下のコールバックで追加させる
+                if (tmp.callback)
+                    tmp.callback(img, tmp.label);
+                _this.__load(cb);
+            };
+            img.src = tmp.path;
+        };
+        return ImageLoader;
+    })(AbstractLoader);
+    Game.ImageLoader = ImageLoader;
+    // ロードした画像の取得
+    // TODO:良い名前に変える
+    var ImageManager = (function () {
+        function ImageManager() {
+            this.images = new Game.Registrar();
+            this._loader = new ImageLoader();
+            this.loader = this._loader;
+        }
+        ImageManager.prototype.get = function (name, a, b) {
+            var generator = this.images.get(name);
+            if (generator == undefined)
+                throw new Error("no image with such a name");
+            if (a == undefined)
+                a = 0; // 引数1つ
+            if (b == undefined) {
+                return generator.get(a);
+            }
+            else {
+                // (x,y)を取得する
+                return generator.get(a, b);
+            }
+        };
+        ImageManager.prototype.getwide = function (name, a, b, c, d) {
+            var generator = this.images.get(name);
+            if (d == undefined) {
+                // code
+                return generator.getwide(a, b, c);
+            }
+            else {
+                // (x,y)
+                return generator.getwide(a, b, c, d);
+            }
+        };
+        ImageManager.prototype.set = function (name, img, chipwidth, chipheight) {
+            if (chipwidth === void 0) { chipwidth = 0; }
+            if (chipheight === void 0) { chipheight = 0; }
+            var generator = new PatternImageGenerator(img, chipwidth, chipheight);
+            this.images.set(name, generator);
+        };
+        // ロードする画像の登録
+        ImageManager.prototype.regist_image = function (label, path) {
+            var _this = this;
+            var cb = function (file, label) {
+                _this.set(label, file, file.width, file.height);
+            };
+            this._loader.push(label, path, cb);
+        };
+        // ロードするパターン画像の登録
+        ImageManager.prototype.regist_pattern = function (label, path, c_width, c_height) {
+            var _this = this;
+            var cb = function (file, label) {
+                _this.set(label, file, c_width, c_height);
+            };
+            this._loader.push(label, path, cb);
+        };
+        ImageManager.prototype.load = function () {
+            this._loader.load();
+        };
+        return ImageManager;
+    })();
+    Game.ImageManager = ImageManager;
+    // 一つの元画像を持ち、そこから画像を切り出して取得できる
+    var PatternImageGenerator = (function () {
+        function PatternImageGenerator(img, _chipwidth, _chipheight) {
+            if (_chipwidth === void 0) { _chipwidth = 0; }
+            if (_chipheight === void 0) { _chipheight = 0; }
+            this._chipwidth = _chipwidth;
+            this._chipheight = _chipheight;
+            this.baseimg = img;
+            if (_chipwidth > 0 && _chipheight > 0) {
+                // 分割画像
+                this._countx = Math.ceil(img.width / _chipwidth); // 端数切り上げ
+                this._county = Math.ceil(img.height / _chipheight); // 端数切り上げ
+            }
+            else {
+                // 第二または第三引数が0以下ならば一枚画像である
+                // 一枚画像
+                this._countx = 1;
+                this._county = 1;
+                this._chipwidth = img.width;
+                this._chipheight = img.height;
+            }
+        }
+        Object.defineProperty(PatternImageGenerator.prototype, "chipwidth", {
+            get: function () {
+                return this._chipwidth;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(PatternImageGenerator.prototype, "chipheight", {
+            get: function () {
+                return this._chipheight;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(PatternImageGenerator.prototype, "countx", {
+            get: function () {
+                return this._countx;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(PatternImageGenerator.prototype, "county", {
+            get: function () {
+                return this._county;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        // (x,y)→code
+        PatternImageGenerator.prototype.xy2code = function (x, y) {
+            return this._countx * y + x;
+        };
+        PatternImageGenerator.prototype.get = function (a, b) {
+            if (a == undefined)
+                return this.get(0); // 引数なし→0
+            else if (b != undefined)
+                return this.get(this.xy2code(a, b)); // 引数2つ (x,y)→code
+            else {
+                return this.getwide(a, 1, 1);
+            }
+        };
+        PatternImageGenerator.prototype.getwide = function (a, b, c, d) {
+            if (d != undefined)
+                return this.getwide(this.xy2code(a, b), c, d); // 引数4つ (x,y)→code
+            else {
+                // 新しいcanvasを作ってそこに切り出された画像を描画
+                // TODO:canvasではなくimageに
+                // TODO:一度生成したものを保持して使いまわし可能に
+                var canvas = document.createElement("canvas");
+                canvas.width = this.chipwidth * b;
+                canvas.height = this.chipheight * c;
+                var sx = (a % this.countx) * this.chipwidth;
+                var sy = Math.floor(a / this.countx) * this.chipheight;
+                canvas.getContext("2d").drawImage(this.baseimg, sx, sy, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+                return canvas;
+            }
+        };
+        return PatternImageGenerator;
+    })();
+})(Game || (Game = {}));
 var Game;
 (function (Game) {
     var GameKey = (function () {
@@ -75,21 +552,18 @@ var Game;
             }
             this.releasedkeys[key] = 0;
         };
-
         // 押されているかどうかの判定をします
         GameKey.prototype.isDown = function (key) {
             if (key in this.keys)
                 return true;
             return false;
         };
-
         // 押された瞬間かどうかの判定をします
         GameKey.prototype.isOnDown = function (key) {
             if (key in this.keys && this.keys[key] == 1)
                 return true;
             return false;
         };
-
         // 押された時間を取得します 押されていない場合は-1
         GameKey.prototype.getCount = function (key) {
             if (key in this.keys) {
@@ -103,160 +577,6 @@ var Game;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
-    (function (PreloadStates) {
-        PreloadStates[PreloadStates["UNLOAD"] = 0] = "UNLOAD";
-        PreloadStates[PreloadStates["LOADING"] = 1] = "LOADING";
-        PreloadStates[PreloadStates["LOADED"] = 2] = "LOADED";
-    })(Game.PreloadStates || (Game.PreloadStates = {}));
-    var PreloadStates = Game.PreloadStates;
-
-    // UNDONE:画像以外のロード
-    var Loader = (function () {
-        function Loader() {
-            this._unloadeds = [];
-            this._asset = new Assets();
-            this._isloading = false;
-        }
-        Object.defineProperty(Loader.prototype, "state", {
-            // get state() { return this._state; }
-            get: function () {
-                if (this._unloadeds == null || this._unloadeds.length == 0) {
-                    if (this._asset == null || this._asset.length == 0) {
-                        return 0 /* UNLOAD */;
-                    }
-                    return 2 /* LOADED */;
-                }
-                if (this._isloading)
-                    return 1 /* LOADING */;
-                return 0 /* UNLOAD */;
-            },
-            enumerable: true,
-            configurable: true
-        });
-
-        Object.defineProperty(Loader.prototype, "count", {
-            // ロードするべき総数
-            get: function () {
-                if (this.state == 0 /* UNLOAD */)
-                    return this._unloadeds.length;
-                else
-                    return this._count;
-            },
-            enumerable: true,
-            configurable: true
-        });
-
-        Object.defineProperty(Loader.prototype, "count_loadedimgs", {
-            // いくつロード完了しているか
-            get: function () {
-                if (this.state == 0 /* UNLOAD */)
-                    return 0;
-                else if (this.state == 1 /* LOADING */)
-                    return this.count - this._unloadeds.length;
-                else
-                    return this.count;
-            },
-            enumerable: true,
-            configurable: true
-        });
-
-        // 画像の名前とパスをキューに追加します
-        // push(label,path,callback?)
-        Loader.prototype.push = function (l, p, cb) {
-            // UNDONE:重複keyの検出
-            //if(this.has(key)) throw new Error("\"" + key + "\"is already defined.");
-            this._unloadeds.push({ label: l, path: p, callback: cb });
-        };
-
-        // キューに追加された画像をすべて読み込みます
-        Loader.prototype.load = function () {
-            if (this.state == 1 /* LOADING */)
-                throw new Error("loading is now processing");
-            this._count = this._unloadeds.length;
-            this._isloading = true;
-            this._load();
-        };
-
-        // 再帰的 そとからよぶな ぶちころがすぞ
-        Loader.prototype._load = function () {
-            var _this = this;
-            var tmp = this._unloadeds.shift();
-            var img = new Image();
-            img.onload = function () {
-                console.log(img);
-                _this._asset.add(tmp.label, img, 1 /* IMAGE */);
-                if (tmp.callback)
-                    tmp.callback(img, tmp.label);
-                if (_this._unloadeds.length > 0) {
-                    _this._load();
-                } else {
-                    // 読み込み完了
-                    _this._isloading = false;
-                }
-            };
-            img.src = tmp.path;
-        };
-
-        // 読み込んだリソースの取得
-        Loader.prototype.getAsset = function (label, type) {
-            if (typeof type === "undefined") { type = 0 /* ANY */; }
-            return this._asset.get(label, type);
-        };
-        return Loader;
-    })();
-    Game.Loader = Loader;
-    (function (ResourceType) {
-        ResourceType[ResourceType["ANY"] = 0] = "ANY";
-        ResourceType[ResourceType["IMAGE"] = 1] = "IMAGE";
-        ResourceType[ResourceType["AUDIO"] = 2] = "AUDIO";
-    })(Game.ResourceType || (Game.ResourceType = {}));
-    var ResourceType = Game.ResourceType;
-
-    // ロードしたデータの保持
-    var Assets = (function () {
-        function Assets() {
-            this._assets = new Array();
-        }
-        Object.defineProperty(Assets.prototype, "length", {
-            get: function () {
-                return this._assets.length;
-            },
-            enumerable: true,
-            configurable: true
-        });
-
-        // リソースを追加します
-        Assets.prototype.add = function (l, f, t) {
-            if (typeof t === "undefined") { t = 0 /* ANY */; }
-            if (this.check(l))
-                throw new Error("resource name \"" + l + "\" is already registered");
-            this._assets.push({ label: l, type: t, file: f });
-        };
-
-        // ラベル(とファイルタイプ)を指定してデータ取得
-        Assets.prototype.get = function (label, type) {
-            if (typeof type === "undefined") { type = 0 /* ANY */; }
-            var f = (type != 0 /* ANY */);
-            for (var i = 0; i < this._assets.length; i++) {
-                if (f && this._assets[i].type != type)
-                    continue;
-                if (this._assets[i].label == label) {
-                    return this._assets[i].file;
-                }
-            }
-            return null;
-        };
-
-        // 指定したリソースが登録されているかどうかの判別
-        Assets.prototype.check = function (label, type) {
-            if (typeof type === "undefined") { type = 0 /* ANY */; }
-            return this.get(label, type) != null;
-        };
-        return Assets;
-    })();
-})(Game || (Game = {}));
-var Game;
-(function (Game) {
     // TODO:
     // Surfaceのサブクラスとして、メインスクリーン専用のDisplayクラスの追加を検討
     // ダブルバッファリング等々の機能追加
@@ -267,25 +587,21 @@ var Game;
         // TODO:
         // ラベルを渡すことでロードした画像を持つSurfaceを生成
         function Surface(width, height, parent) {
-            if (typeof parent === "undefined") { parent = null; }
+            if (parent === void 0) { parent = null; }
             this.x = 0;
             this.y = 0;
             this.width = width;
             this.height = height;
-
             //this.is_use_buffer = is_use_buffer;
             // 要素作成
             this.container = document.createElement("div");
             this.canvas = document.createElement("canvas");
             this.context = this.canvas.getContext("2d");
-
             //this.canvas_buffer = document.createElement("canvas");
             this.container.appendChild(this.canvas);
-
             // this.container.appendChild(this.canvas_buffer);
             this.setWidth(width);
             this.setHeight(height);
-
             this.canvas.style.position = "absolute";
             this.canvas.style.left = "0";
             this.canvas.style.top = "0";
@@ -297,12 +613,10 @@ var Game;
         Surface.prototype.setX = function (x) {
             this.x = x;
         };
-
         // Y座標を変更
         Surface.prototype.setY = function (y) {
             this.y = y;
         };
-
         // X,Y座標を変更
         Surface.prototype.setPosition = function (x, y) {
             this.x = x;
@@ -316,27 +630,115 @@ var Game;
             this.canvas.height = height;
             //this.canvas_buffer.height = height;
         };
-
         // 対象のSurfaceに自身を描画する
         Surface.prototype.Draw2Sufrace = function (target, x, y) {
             target.context.drawImage(this.canvas, x, y);
         };
         return Surface;
     })();
-    Game.Surface = Surface;
+    Game.Surface = Surface; /*
+    export class ImageManager {
+        private images: Registrar<PatternImageGenerator>;
+        constructor() {
+            this.images = new Registrar<PatternImageGenerator>();
+        }
+        get(name: string);
+        get(name: string, x: number, y: number);
+        get(name: string, code: number);
+        get(name: string, a?: number, b?: number): HTMLCanvasElement {
+            var generator = this.images.get(name);
+            if (generator == undefined) throw new Error("no image with such a name");
+            if (a == undefined) a = 0; // 引数1つ
+            if (b == undefined) { // 引数2つ code
+                return generator.get(a);
+            }
+            else {
+                // (x,y)を取得する
+                return generator.get(a, b);
+            }
+        }
+        // 複数枚同時取得
+        getwide(name: string, x: number, y: number, wx: number, wy: number);
+        getwide(name: string, code: number, wx: number, wy: number);
+        getwide(name: string, a: number, b: number, c: number, d?: number) {
+            var generator = this.images.get(name);
+            if (d == undefined) { // 引数3つ
+                // code
+                return generator.getwide(a, b, c);
+            }
+            else { // 引数4つ
+                // (x,y)
+                return generator.getwide(a, b, c, d);
+            }
+        }
+        set(name: string, img: HTMLImageElement, chipwidth: number= 0, chipheight: number= 0) {
+            var generator = new PatternImageGenerator(img, chipwidth, chipheight);
+            this.images.set(name, generator);
+        }
+    }
+    class PatternImageGenerator {
+        private baseimg: HTMLImageElement;
+        get chipwidth() { return this._chipwidth; }
+        get chipheight() { return this._chipheight }
+        private _countx: number;
+        private _county: number;
+        get countx() { return this._countx; }
+        get county() { return this._county; }
+        constructor(img: HTMLImageElement, private _chipwidth: number= 0, private _chipheight: number= 0) {
+            this.baseimg = img;
+            if (_chipwidth > 0 && _chipheight > 0) {
+                // 分割画像
+                this._countx = Math.ceil(img.width / _chipwidth) // 端数切り上げ
+                this._county = Math.ceil(img.height / _chipheight) // 端数切り上げ
+            }
+            else {
+                // 一枚画像
+                this._countx = 1;
+                this._county = 1;
+                this._chipwidth = img.width;
+                this._chipheight = img.height;
+            }
+        }
+        // (x,y)→code
+        private xy2code(x: number, y: number): number {
+            return this._countx * y + x;
+        }
+        get();
+        get(x: number, y: number);
+        get(code: number);
+        get(a?: number, b?: number): HTMLCanvasElement {
+            if (a == undefined) return this.get(0); // 引数なし→0
+            else if (b != undefined) return this.get(this.xy2code(a, b)); // 引数2つ (x,y)→code
+            else {
+                return this.getwide(a, 1, 1);
+            }
+        }
+        getwide(x: number, y: number, w: number, h: number);
+        getwide(code: number, w: number, h: number);
+        getwide(a: number, b: number, c: number, d?: number): HTMLCanvasElement {
+            if (d != undefined) return this.getwide(this.xy2code(a, b), c, d); // 引数4つ (x,y)→code
+            else {
+                var canvas = document.createElement("canvas");
+                canvas.width = this.chipwidth * b;
+                canvas.height = this.chipheight * c;
+                var sx = (a % this.countx) * this.chipwidth;
+                var sy = Math.floor(a / this.countx) * this.chipheight;
+                canvas.getContext("2d").drawImage(this.baseimg, sx, sy, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+                return canvas;
+            }
+        }
+    }*/
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
     var StateMachine = (function () {
         function StateMachine(game, parent) {
-            if (typeof parent === "undefined") { parent = null; }
+            if (parent === void 0) { parent = null; }
             this.current_state = null;
             this.global_state = null;
             this.root_state = null;
-
             /*this.is_started = false;*/
             this._states = new Array();
-
             this.game = game;
             this.parent = parent;
         }
@@ -345,27 +747,29 @@ var Game;
             // グローバルステートが存在すれば実行
             if (this.global_state)
                 this.global_state.update();
-
             // 現在のステートの処理
             if (this.current_state)
                 this.current_state.update();
             /*}*/
-        };
-
+        }; /*
+        start(state: string) {
+            this.is_started = true;
+        }
+        regist(state: State) {
+            this._states.set(state.name, state);
+        }*/
         // スタックに新しいStateを積み、そのStateに遷移する
         // UNDONE:戻り値未定義
         StateMachine.prototype.push = function (state) {
             // スタックに何もないならば、与えられたステートをrootとする
             if (this._states.length == 0)
                 this.root_state = state;
-
             if (this.current_state)
                 this.current_state.exit();
             this._states.push(state);
             this.current_state = state;
             this.current_state.enter();
         };
-
         // 現在のステートを終了し、前のステートに遷移する
         // UNDONE:戻り値未定義
         StateMachine.prototype.pop = function () {
@@ -376,7 +780,6 @@ var Game;
             if (this.current_state)
                 this.current_state.enter();
         };
-
         // 現在のステートを新しいステートに入れ替え、遷移処理を行う
         StateMachine.prototype.replace = function (state) {
             // 現在のステートがrootならば、新しいステートをrootとする
@@ -387,13 +790,11 @@ var Game;
             this.current_state = state;
             this.current_state.enter();
         };
-
         // 初期化用
         StateMachine.prototype.setGlobalState = function (state) {
             this.global_state = state;
             this.global_state.enter();
         };
-
         // アクセサ
         StateMachine.prototype.CurrentState = function () {
             return this.current_state;
@@ -410,6 +811,7 @@ var Game;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
+    var States;
     (function (States) {
         var Preload = (function () {
             function Preload(name, sm) {
@@ -417,14 +819,13 @@ var Game;
                 this.sm = sm;
             }
             Preload.prototype.enter = function () {
-                var loader = this.sm.game.loader;
-
-                loader.push("title", "/title.gif");
-                loader.load();
+                var assets = this.sm.game.assets;
+                assets.image.regist_image("title", "title.gif");
+                assets.load();
             };
             Preload.prototype.update = function () {
-                var loader = this.sm.game.loader;
-                if (loader.state == 2 /* LOADED */) {
+                var loader = this.sm.game.assets.loader;
+                if (loader.state == 2 /* NOTHING2LOAD */) {
                     this.sm.push(new Title("title", this.sm));
                 }
             };
@@ -437,29 +838,45 @@ var Game;
             function Title(name, sm) {
                 this.name = name;
                 this.sm = sm;
-                //this.game = sm.game;
             }
             Title.prototype.enter = function () {
-                this.titleimg = this.sm.game.loader.getAsset("title");
+                this.titleimg = this.sm.game.assets.image.get("title");
             };
             Title.prototype.update = function () {
                 this.sm.game.screen.context.drawImage(this.titleimg, 0, 0);
                 if (this.sm.game.gamekey.isOnDown(90)) {
-                    //this.sm.push(new State());
+                    this.sm.push(new Stage("stage", this.sm));
                 }
-                //console.log("title");
             };
             Title.prototype.exit = function () {
             };
             return Title;
         })();
         States.Title = Title;
-    })(Game.States || (Game.States = {}));
-    var States = Game.States;
+        var Stage = (function () {
+            function Stage(name, sm) {
+                this.name = name;
+                this.sm = sm;
+            }
+            Stage.prototype.enter = function () {
+                this.titleimg = this.sm.game.assets.image.get("title");
+            };
+            Stage.prototype.update = function () {
+                this.sm.game.screen.context.drawImage(this.titleimg, 0, 0);
+                if (this.sm.game.gamekey.isOnDown(90)) {
+                }
+                //console.log("title");
+            };
+            Stage.prototype.exit = function () {
+            };
+            return Stage;
+        })();
+        States.Stage = Stage;
+    })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
 /// <reference path="surface.ts"/>
 /// <reference path="input.ts"/>
-/// <reference path="loader.ts"/>
+/// <reference path="assets.ts"/>
 /// <reference path="statemachine.ts"/>
 /// <reference path="state.ts"/>
 var Game;
@@ -471,7 +888,7 @@ var Game;
             this.screen = new _Game.Surface(SCREEN_WIDTH, SCREEN_HEIGHT);
             this.statemachine = new _Game.StateMachine(this);
             this.gamekey = new _Game.GameKey();
-            this.loader = new _Game.Loader();
+            this.assets = new _Game.AssetsManagerManager();
             //this.config = new Config(map, image, config);
         }
         // 指定した要素の子要素としてゲーム画面を追加します
@@ -482,28 +899,21 @@ var Game;
             this.screen.container.tabIndex = 1; // ゲーム画面をフォーカス可能にする
             this.gamekey.setEvent(this.screen.container); // 画面に対してキー入力を受け付けるように
         };
-
         // ゲームループの開始
         Game.prototype.start = function () {
             var _this = this;
             console.log("app start"); // DEBUG
-
             // this.statemachine.push(最初のState);
             this.statemachine.push(new _Game.States.Preload("preload", this.statemachine));
-
             /*this.statemachine.regist(new Preload("preload", this.statemachine));
             this.statemachine.start("preload");*/
             //this.timerToken = setInterval(() => this.statemachine.update(), 100);
-            this.timerToken = setInterval(function () {
-                return _this.loop();
-            }, 100);
+            this.timerToken = setInterval(function () { return _this.loop(); }, 100);
         };
-
         // 使うの?
         Game.prototype.stop = function () {
             clearTimeout(this.timerToken);
         };
-
         // ゲームループ
         // UNDONE: イベントハンドラ扱いにしたい
         Game.prototype.loop = function () {

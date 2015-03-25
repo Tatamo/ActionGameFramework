@@ -10,20 +10,21 @@
                 this.sm = sm;
             }
             enter() {
-                var loader = this.sm.game.loader;
+                var assets = this.sm.game.assets;
 
-                loader.push("title", "/title.gif");
-                loader.load();
+                assets.image.regist_image("title", "title.gif");
+                assets.load();
 
             }
             update() {
-                var loader = this.sm.game.loader;
-                if (loader.state == PreloadStates.LOADED) {
+                var loader = this.sm.game.assets.loader;
+                if (loader.state == PreloadStates.NOTHING2LOAD) {
                     this.sm.push(new Title("title", this.sm));
                 }
             }
             exit() { }
         }
+
         export class Title implements State {
             parent: State;
             name: string;
@@ -32,10 +33,30 @@
             constructor(name: string, sm: StateMachine) {
                 this.name = name;
                 this.sm = sm;
-                //this.game = sm.game;
             }
             enter() {
-                this.titleimg = this.sm.game.loader.getAsset("title");
+                this.titleimg = this.sm.game.assets.image.get("title");
+            }
+            update() {
+                this.sm.game.screen.context.drawImage(this.titleimg, 0, 0);
+                if (this.sm.game.gamekey.isOnDown(90)) { // Z
+                    this.sm.push(new Stage("stage",this.sm));
+                }
+            }
+            exit() { }
+        }
+
+        export class Stage implements State {
+            parent: State;
+            name: string;
+            sm: StateMachine;
+            titleimg: HTMLCanvasElement;
+            constructor(name: string, sm: StateMachine) {
+                this.name = name;
+                this.sm = sm;
+            }
+            enter() {
+                this.titleimg = this.sm.game.assets.image.get("title");
             }
             update() {
                 this.sm.game.screen.context.drawImage(this.titleimg, 0, 0);

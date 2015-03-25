@@ -1,6 +1,6 @@
 ﻿/// <reference path="surface.ts"/>
 /// <reference path="input.ts"/>
-/// <reference path="loader.ts"/>
+/// <reference path="assets.ts"/>
 /// <reference path="statemachine.ts"/>
 /// <reference path="state.ts"/>
 module Game {
@@ -11,7 +11,7 @@ module Game {
         screen: Surface;
         statemachine: StateMachine;
         gamekey: GameKey;
-        loader: Loader;
+        assets: AssetsManagerManager;
         //config:Config;
 
         private timerToken: number;
@@ -20,7 +20,7 @@ module Game {
             this.screen = new Surface(SCREEN_WIDTH, SCREEN_HEIGHT);
             this.statemachine = new StateMachine(this);
             this.gamekey = new GameKey();
-            this.loader = new Loader();
+            this.assets = new AssetsManagerManager();
             //this.config = new Config(map, image, config);
         }
         // 指定した要素の子要素としてゲーム画面を追加します
