@@ -636,99 +636,104 @@ var Game;
         };
         return Surface;
     })();
-    Game.Surface = Surface; /*
-    export class ImageManager {
-        private images: Registrar<PatternImageGenerator>;
-        constructor() {
-            this.images = new Registrar<PatternImageGenerator>();
-        }
-        get(name: string);
-        get(name: string, x: number, y: number);
-        get(name: string, code: number);
-        get(name: string, a?: number, b?: number): HTMLCanvasElement {
-            var generator = this.images.get(name);
-            if (generator == undefined) throw new Error("no image with such a name");
-            if (a == undefined) a = 0; // 引数1つ
-            if (b == undefined) { // 引数2つ code
-                return generator.get(a);
-            }
-            else {
-                // (x,y)を取得する
-                return generator.get(a, b);
-            }
-        }
-        // 複数枚同時取得
-        getwide(name: string, x: number, y: number, wx: number, wy: number);
-        getwide(name: string, code: number, wx: number, wy: number);
-        getwide(name: string, a: number, b: number, c: number, d?: number) {
-            var generator = this.images.get(name);
-            if (d == undefined) { // 引数3つ
-                // code
-                return generator.getwide(a, b, c);
-            }
-            else { // 引数4つ
-                // (x,y)
-                return generator.getwide(a, b, c, d);
-            }
-        }
-        set(name: string, img: HTMLImageElement, chipwidth: number= 0, chipheight: number= 0) {
-            var generator = new PatternImageGenerator(img, chipwidth, chipheight);
-            this.images.set(name, generator);
-        }
-    }
-    class PatternImageGenerator {
-        private baseimg: HTMLImageElement;
-        get chipwidth() { return this._chipwidth; }
-        get chipheight() { return this._chipheight }
-        private _countx: number;
-        private _county: number;
-        get countx() { return this._countx; }
-        get county() { return this._county; }
-        constructor(img: HTMLImageElement, private _chipwidth: number= 0, private _chipheight: number= 0) {
-            this.baseimg = img;
-            if (_chipwidth > 0 && _chipheight > 0) {
-                // 分割画像
-                this._countx = Math.ceil(img.width / _chipwidth) // 端数切り上げ
-                this._county = Math.ceil(img.height / _chipheight) // 端数切り上げ
-            }
-            else {
-                // 一枚画像
-                this._countx = 1;
-                this._county = 1;
-                this._chipwidth = img.width;
-                this._chipheight = img.height;
-            }
-        }
-        // (x,y)→code
-        private xy2code(x: number, y: number): number {
-            return this._countx * y + x;
-        }
-        get();
-        get(x: number, y: number);
-        get(code: number);
-        get(a?: number, b?: number): HTMLCanvasElement {
-            if (a == undefined) return this.get(0); // 引数なし→0
-            else if (b != undefined) return this.get(this.xy2code(a, b)); // 引数2つ (x,y)→code
-            else {
-                return this.getwide(a, 1, 1);
-            }
-        }
-        getwide(x: number, y: number, w: number, h: number);
-        getwide(code: number, w: number, h: number);
-        getwide(a: number, b: number, c: number, d?: number): HTMLCanvasElement {
-            if (d != undefined) return this.getwide(this.xy2code(a, b), c, d); // 引数4つ (x,y)→code
-            else {
-                var canvas = document.createElement("canvas");
-                canvas.width = this.chipwidth * b;
-                canvas.height = this.chipheight * c;
-                var sx = (a % this.countx) * this.chipwidth;
-                var sy = Math.floor(a / this.countx) * this.chipheight;
-                canvas.getContext("2d").drawImage(this.baseimg, sx, sy, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-                return canvas;
-            }
-        }
-    }*/
+    Game.Surface = Surface;
 })(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var States;
+    (function (States) {
+        var AbstractState = (function () {
+            function AbstractState(name, sm) {
+                this.name = name;
+                this.sm = sm;
+            }
+            AbstractState.prototype.enter = function () {
+            };
+            AbstractState.prototype.update = function () {
+            };
+            AbstractState.prototype.exit = function () {
+            };
+            return AbstractState;
+        })();
+        States.AbstractState = AbstractState;
+        var Preload = (function (_super) {
+            __extends(Preload, _super);
+            function Preload() {
+                _super.apply(this, arguments);
+            }
+            Preload.prototype.enter = function () {
+                console.log(this.name);
+                var assets = this.sm.game.assets;
+                assets.image.regist_image("title", "title.gif");
+                assets.image.regist_pattern("pattern", "pattern.gif", 32, 32);
+                assets.load();
+            };
+            Preload.prototype.update = function () {
+                var loader = this.sm.game.assets.loader;
+                if (loader.state == 2 /* NOTHING2LOAD */) {
+                    this.sm.replace(new Title("title", this.sm));
+                }
+            };
+            return Preload;
+        })(AbstractState);
+        States.Preload = Preload;
+        var Title = (function (_super) {
+            __extends(Title, _super);
+            function Title() {
+                _super.apply(this, arguments);
+            }
+            Title.prototype.enter = function () {
+                console.log(this.name);
+                this.titleimg = this.sm.game.assets.image.get("title");
+            };
+            Title.prototype.update = function () {
+                this.sm.game.screen.context.drawImage(this.titleimg, 0, 0);
+                if (this.sm.game.gamekey.isOnDown(90)) {
+                    this.sm.push(new Stage("stage", this.sm));
+                }
+            };
+            return Title;
+        })(AbstractState);
+        States.Title = Title;
+        var Stage = (function (_super) {
+            __extends(Stage, _super);
+            function Stage() {
+                _super.apply(this, arguments);
+            }
+            Stage.prototype.enter = function () {
+                console.log(this.name);
+                this.image = this.sm.game.assets.image.get("pattern", 100);
+            };
+            Stage.prototype.update = function () {
+                this.sm.game.screen.context.drawImage(this.image, 0, 0);
+                if (this.sm.game.gamekey.isOnDown(80)) {
+                    this.sm.push(new Pause(this.name + "-pause", this.sm));
+                }
+            };
+            return Stage;
+        })(AbstractState);
+        States.Stage = Stage;
+        var Pause = (function (_super) {
+            __extends(Pause, _super);
+            function Pause() {
+                _super.apply(this, arguments);
+            }
+            Pause.prototype.enter = function () {
+                console.log(this.name);
+                this.image = this.sm.game.assets.image.get("pattern", 110);
+            };
+            Pause.prototype.update = function () {
+                this.sm.game.screen.context.drawImage(this.image, 224, 128);
+                if (this.sm.game.gamekey.isOnDown(80)) {
+                    this.sm.pop(); // ステージに戻る
+                }
+            };
+            return Pause;
+        })(AbstractState);
+        States.Pause = Pause;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+/// <reference path="state.ts"/>
 var Game;
 (function (Game) {
     var StateMachine = (function () {
@@ -776,7 +781,8 @@ var Game;
             /*// rootならばpopはできない
             if (this.current_state == this.root_state) return;*/
             this._states.pop().exit();
-            this.current_state = this._states[this._states.length - 2];
+            console.log(this._states);
+            this.current_state = this._states[this._states.length - 1];
             if (this.current_state)
                 this.current_state.enter();
         };
@@ -808,71 +814,6 @@ var Game;
         return StateMachine;
     })();
     Game.StateMachine = StateMachine;
-})(Game || (Game = {}));
-var Game;
-(function (Game) {
-    var States;
-    (function (States) {
-        var Preload = (function () {
-            function Preload(name, sm) {
-                this.name = name;
-                this.sm = sm;
-            }
-            Preload.prototype.enter = function () {
-                var assets = this.sm.game.assets;
-                assets.image.regist_image("title", "title.gif");
-                assets.load();
-            };
-            Preload.prototype.update = function () {
-                var loader = this.sm.game.assets.loader;
-                if (loader.state == 2 /* NOTHING2LOAD */) {
-                    this.sm.push(new Title("title", this.sm));
-                }
-            };
-            Preload.prototype.exit = function () {
-            };
-            return Preload;
-        })();
-        States.Preload = Preload;
-        var Title = (function () {
-            function Title(name, sm) {
-                this.name = name;
-                this.sm = sm;
-            }
-            Title.prototype.enter = function () {
-                this.titleimg = this.sm.game.assets.image.get("title");
-            };
-            Title.prototype.update = function () {
-                this.sm.game.screen.context.drawImage(this.titleimg, 0, 0);
-                if (this.sm.game.gamekey.isOnDown(90)) {
-                    this.sm.push(new Stage("stage", this.sm));
-                }
-            };
-            Title.prototype.exit = function () {
-            };
-            return Title;
-        })();
-        States.Title = Title;
-        var Stage = (function () {
-            function Stage(name, sm) {
-                this.name = name;
-                this.sm = sm;
-            }
-            Stage.prototype.enter = function () {
-                this.titleimg = this.sm.game.assets.image.get("title");
-            };
-            Stage.prototype.update = function () {
-                this.sm.game.screen.context.drawImage(this.titleimg, 0, 0);
-                if (this.sm.game.gamekey.isOnDown(90)) {
-                }
-                //console.log("title");
-            };
-            Stage.prototype.exit = function () {
-            };
-            return Stage;
-        })();
-        States.Stage = Stage;
-    })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
 /// <reference path="surface.ts"/>
 /// <reference path="input.ts"/>

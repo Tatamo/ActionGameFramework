@@ -1,11 +1,5 @@
-﻿module Game {
-    export interface State {
-        parent: State;
-        enter();
-        update();
-        exit();
-    }
-
+﻿/// <reference path="state.ts"/>
+module Game {
     export class StateMachine {
         private current_state: State;
         private global_state: State;
@@ -57,7 +51,8 @@
             if (this.current_state == this.root_state) return;*/
 
             this._states.pop().exit();
-            this.current_state = this._states[this._states.length - 2];
+            console.log(this._states);
+            this.current_state = this._states[this._states.length - 1];
             if (this.current_state) this.current_state.enter();
         }
         // 現在のステートを新しいステートに入れ替え、遷移処理を行う
