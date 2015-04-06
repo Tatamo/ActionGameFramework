@@ -51,7 +51,7 @@
                     this.sm.push(new Stage("stage",this.sm));
                 }
             }
-        }
+        }/*
         export class Stage extends AbstractState {
             image: HTMLCanvasElement;
             x: number = 0;
@@ -77,6 +77,42 @@
 
                 if (this.sm.game.gamekey.isOnDown(80)) { // Pキー
                     this.sm.push(new Pause(this.name+"-pause", this.sm)); // ポーズ
+                }
+                if (this.sm.game.gamekey.isOnDown(84)) { // T
+                    this.sm.pop(); // タイトルに戻る
+                }
+            }
+        }*/
+        export class Stage extends AbstractState {
+            player: Sprite;
+            sprites: Group;
+            x: number = 0;
+            enter() {
+                console.log(this.name);
+                this.player = new Sprite(224, 120);
+                this.player.surface = new Surface(32, 32);
+                this.player.surface.context.drawImage(this.sm.game.assets.image.get("pattern", 100), 0, 0);
+                this.sprites = new Group(this.sm.game.screen);
+                this.sprites.add(this.player);
+            }
+            update() {
+                // 背景色で埋めてみる
+                this.sm.game.screen.context.fillStyle = "rgb(0,255,255)";
+                this.sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
+
+                this.sprites.draw();
+                this.sm.game.screen.context.drawImage(this.player.surface.canvas,0,0);
+
+                // うごく
+                if (this.sm.game.gamekey.isDown(39)) {
+                    this.player.x += 8;
+                }
+                if (this.sm.game.gamekey.isDown(37)) {
+                    this.player.x -= 8;
+                }
+
+                if (this.sm.game.gamekey.isOnDown(80)) { // Pキー
+                    this.sm.push(new Pause(this.name + "-pause", this.sm)); // ポーズ
                 }
                 if (this.sm.game.gamekey.isOnDown(84)) { // T
                     this.sm.pop(); // タイトルに戻る

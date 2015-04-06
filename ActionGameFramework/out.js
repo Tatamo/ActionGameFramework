@@ -153,7 +153,7 @@ var Game;
     var AssetsManagerManager = (function () {
         function AssetsManagerManager() {
             this.image = new ImageManager();
-            this.loader = new AssetsLoader([this.image.loader]);
+            this.loader = new Loader([this.image.loader]);
         }
         /*// ロードする画像の登録
         public regist_image(label: string, path: string) {
@@ -179,11 +179,11 @@ var Game;
     var PreloadStates = Game.PreloadStates;
     // 複数のLoaderを束ねたかのように振舞うローダー ただしアセットの登録は行えない
     // Loaderインターフェースに定義されたメソッドのみを持つ
-    var AssetsLoader = (function () {
-        function AssetsLoader(list) {
+    var Loader = (function () {
+        function Loader(list) {
             this.loaders = list;
         }
-        Object.defineProperty(AssetsLoader.prototype, "state", {
+        Object.defineProperty(Loader.prototype, "state", {
             get: function () {
                 var f = false;
                 for (var i = 0; i < this.loaders.length; i++) {
@@ -200,7 +200,7 @@ var Game;
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(AssetsLoader.prototype, "count", {
+        Object.defineProperty(Loader.prototype, "count", {
             get: function () {
                 var c = 0;
                 for (var i = 0; i < this.loaders.length; i++) {
@@ -211,7 +211,7 @@ var Game;
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(AssetsLoader.prototype, "count_loadeds", {
+        Object.defineProperty(Loader.prototype, "count_loadeds", {
             get: function () {
                 var c = 0;
                 for (var i = 0; i < this.loaders.length; i++) {
@@ -222,7 +222,7 @@ var Game;
             enumerable: true,
             configurable: true
         });
-        AssetsLoader.prototype.load = function (cb) {
+        Loader.prototype.load = function (cb) {
             var _this = this;
             if (this.state == 2 /* NOTHING2LOAD */) {
                 cb();
@@ -245,9 +245,9 @@ var Game;
             else
                 cb();
         };
-        return AssetsLoader;
+        return Loader;
     })();
-    Game.AssetsLoader = AssetsLoader;
+    Game.Loader = Loader;
     // UNDONE:画像以外のロード
     var AbstractLoader = (function () {
         function AbstractLoader() {
@@ -365,6 +365,7 @@ var Game;
     Game.ImageLoader = ImageLoader;
     // ロードした画像の取得
     // TODO:良い名前に変える
+    // TODO:切り出した画像のキャッシュ
     var ImageManager = (function () {
         function ImageManager() {
             this.images = new Game.Registrar();
@@ -583,13 +584,11 @@ var Game;
     // 今はSurface#containerを対象にとっているが、display#containerをGameKeyのイベントハンドラ登録対象に限定してもよいと思われる
     var Surface = (function () {
         // TODO:
-        // getおよびsetを利用してcenterx/y,top/bottom,left/rightなどを実装
+        // getおよびsetを利用してcenterx/yなどを実装
         // TODO:
         // ラベルを渡すことでロードした画像を持つSurfaceを生成
         function Surface(width, height, parent) {
             if (parent === void 0) { parent = null; }
-            this.x = 0;
-            this.y = 0;
             this.width = width;
             this.height = height;
             //this.is_use_buffer = is_use_buffer;
@@ -609,19 +608,6 @@ var Game;
             this.canvas_buffer.style.left = "0";
             this.canvas_buffer.style.top = "0";*/
         }
-        // X座標を変更
-        Surface.prototype.setX = function (x) {
-            this.x = x;
-        };
-        // Y座標を変更
-        Surface.prototype.setY = function (y) {
-            this.y = y;
-        };
-        // X,Y座標を変更
-        Surface.prototype.setPosition = function (x, y) {
-            this.x = x;
-            this.y = y;
-        };
         Surface.prototype.setWidth = function (width) {
             this.canvas.width = width;
             //this.canvas_buffer.width = width;
@@ -630,9 +616,8 @@ var Game;
             this.canvas.height = height;
             //this.canvas_buffer.height = height;
         };
-        // 対象のSurfaceに自身を描画する
-        Surface.prototype.Draw2Sufrace = function (target, x, y) {
-            target.context.drawImage(this.canvas, x, y);
+        Surface.prototype.drawSurface = function (source, dest_x, dest_y) {
+            this.context.drawImage(source.canvas, dest_x, dest_y);
         };
         return Surface;
     })();
@@ -694,7 +679,38 @@ var Game;
             };
             return Title;
         })(AbstractState);
-        States.Title = Title;
+        States.Title = Title; /*
+        export class Stage extends AbstractState {
+            image: HTMLCanvasElement;
+            x: number = 0;
+            enter() {
+                console.log(this.name);
+                this.image = this.sm.game.assets.image.get("pattern", 100);
+            }
+            update() {
+                // 背景色で埋めてみる
+                this.sm.game.screen.context.fillStyle = "rgb(0,255,255)";
+                this.sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
+
+                this.sm.game.screen.context.drawImage(this.image, 224+this.x, 128);
+
+
+                // うごく
+                if (this.sm.game.gamekey.isDown(39)) {
+                    this.x += 8;
+                }
+                if (this.sm.game.gamekey.isDown(37)) {
+                    this.x -= 8;
+                }
+
+                if (this.sm.game.gamekey.isOnDown(80)) { // Pキー
+                    this.sm.push(new Pause(this.name+"-pause", this.sm)); // ポーズ
+                }
+                if (this.sm.game.gamekey.isOnDown(84)) { // T
+                    this.sm.pop(); // タイトルに戻る
+                }
+            }
+        }*/
         var Stage = (function (_super) {
             __extends(Stage, _super);
             function Stage() {
@@ -703,19 +719,24 @@ var Game;
             }
             Stage.prototype.enter = function () {
                 console.log(this.name);
-                this.image = this.sm.game.assets.image.get("pattern", 100);
+                this.player = new Game.Sprite(224, 120);
+                this.player.surface = new Game.Surface(32, 32);
+                this.player.surface.context.drawImage(this.sm.game.assets.image.get("pattern", 100), 0, 0);
+                this.sprites = new Game.Group(this.sm.game.screen);
+                this.sprites.add(this.player);
             };
             Stage.prototype.update = function () {
                 // 背景色で埋めてみる
                 this.sm.game.screen.context.fillStyle = "rgb(0,255,255)";
                 this.sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
-                this.sm.game.screen.context.drawImage(this.image, 224 + this.x, 128);
+                this.sprites.draw();
+                this.sm.game.screen.context.drawImage(this.player.surface.canvas, 0, 0);
                 // うごく
                 if (this.sm.game.gamekey.isDown(39)) {
-                    this.x += 8;
+                    this.player.x += 8;
                 }
                 if (this.sm.game.gamekey.isDown(37)) {
-                    this.x -= 8;
+                    this.player.x -= 8;
                 }
                 if (this.sm.game.gamekey.isOnDown(80)) {
                     this.sm.push(new Pause(this.name + "-pause", this.sm)); // ポーズ
@@ -891,5 +912,86 @@ var Game;
         return Game;
     })();
     _Game.Game = Game;
+})(Game || (Game = {}));
+/// <reference path="surface.ts"/>
+var Game;
+(function (Game) {
+    // UNDONE: 自分の所属しているgroup名の取得
+    var Sprite = (function () {
+        function Sprite(x, y) {
+            this._groups = new Array();
+            this.x = x;
+            this.y = y;
+            this.z = 0;
+        }
+        /*// Surfaceの初期化
+        setsurface(screen: Surface) {
+        }*/
+        // 自身をグループに追加する
+        Sprite.prototype.add = function (group) {
+            // グループへの追加はSpriteSystemを経由して行う
+            //this.ss.regist(group, this);
+            this._groups.push(group);
+        };
+        Sprite.prototype.remove = function (group) {
+            var f = false;
+            for (var i = this._groups.length - 1; i >= 0; i--) {
+                if (this._groups[i] == group) {
+                    this._groups.splice(i, 1);
+                    f = true;
+                }
+            }
+            if (f)
+                group.remove(this); // 相互に参照を破棄
+        };
+        Sprite.prototype.update = function () {
+        };
+        // 所属しているすべてのグループとの参照を破棄します
+        Sprite.prototype.kill = function () {
+            for (var i = this._groups.length - 1; i >= 0; i--) {
+                this.remove(this._groups[i]);
+            }
+        };
+        return Sprite;
+    })();
+    Game.Sprite = Sprite;
+    // TODO: sort
+    var Group = (function () {
+        function Group(screen) {
+            this._sprites = new Array();
+            this.screen = screen;
+        }
+        Group.prototype.add = function (sprite) {
+            this._sprites.push(sprite);
+        };
+        Group.prototype.remove = function (sprite) {
+            var f = false;
+            for (var i = this._sprites.length - 1; i >= 0; i--) {
+                if (this._sprites[i] == sprite) {
+                    this._sprites.splice(i, 1);
+                    f = true;
+                }
+            }
+            if (f)
+                sprite.remove(this); // 相互に参照を破棄
+        };
+        Group.prototype.remove_all = function () {
+            for (var i = this._sprites.length - 1; i >= 0; i--) {
+                this.remove(this._sprites[i]);
+            }
+        };
+        Group.prototype.update = function () {
+            for (var i = 0; i < this._sprites.length; i++) {
+                this._sprites[i].update();
+            }
+        };
+        Group.prototype.draw = function () {
+            for (var i = 0; i < this._sprites.length; i++) {
+                this.screen.drawSurface(this._sprites[i].surface, this._sprites[i].x, this._sprites[i].y);
+            }
+        };
+        return Group;
+    })();
+    Game.Group = Group;
 })(Game || (Game = {}));
 //# sourceMappingURL=out.js.map

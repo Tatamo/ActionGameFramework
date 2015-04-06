@@ -9,16 +9,14 @@
 		context: CanvasRenderingContext2D;
 		parent: Surface;
 		//is_use_buffer: boolean;
-		x: number;
-		y: number;
 		width: number;
         height: number;
         // TODO:
-        // getおよびsetを利用してcenterx/y,top/bottom,left/rightなどを実装
+        // getおよびsetを利用してcenterx/yなどを実装
         // TODO:
         // ラベルを渡すことでロードした画像を持つSurfaceを生成
 		constructor(width: number, height: number, parent: Surface= null) {
-			this.x = 0; this.y = 0; this.width = width; this.height = height;
+			this.width = width; this.height = height;
 			//this.is_use_buffer = is_use_buffer;
 			// 要素作成
 			this.container = document.createElement("div");
@@ -37,19 +35,6 @@
 			this.canvas_buffer.style.left = "0";
 			this.canvas_buffer.style.top = "0";*/
 		}
-		// X座標を変更
-		setX(x: number) {
-			this.x = x;
-		}
-		// Y座標を変更
-		setY(y: number) {
-			this.y = y;
-		}
-		// X,Y座標を変更
-		setPosition(x: number, y: number) {
-			this.x = x;
-			this.y = y;
-		}
 		setWidth(width: number) {
 			this.canvas.width = width;
 			//this.canvas_buffer.width = width;
@@ -57,11 +42,14 @@
 		setHeight(height: number) {
 			this.canvas.height = height;
 			//this.canvas_buffer.height = height;
-		}
-		// 対象のSurfaceに自身を描画する
+        }
+        drawSurface(source: Surface, dest_x: number, dest_y: number) {
+            this.context.drawImage(source.canvas, dest_x, dest_y);
+        }
+		/*// 対象のSurfaceに自身を描画する
 		Draw2Sufrace(target: Surface, x: number, y: number) {
 			target.context.drawImage(this.canvas, x, y);
-		}
+		}*/
 
 		// 表面canvasと裏面canvasを入れ替える
 		/*flipBuffer() {

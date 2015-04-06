@@ -2,11 +2,11 @@
 module Game {
     // アセットの取り扱いと重い依存性を一手に引き受けるクラス
     export class AssetsManagerManager {
-        public loader: AssetsLoader;
+        public loader: Loader;
         public image: ImageManager;
         constructor() {
             this.image = new ImageManager();
-            this.loader = new AssetsLoader([this.image.loader]);
+            this.loader = new Loader([this.image.loader]);
         }
         /*// ロードする画像の登録
         public regist_image(label: string, path: string) {
@@ -28,7 +28,7 @@ module Game {
         LOADING = 1,
         NOTHING2LOAD = 2,
     }
-    export interface Loader{
+    export interface ILoader{
         state: PreloadStates;
         count: number;
         count_loadeds: number;
@@ -36,9 +36,9 @@ module Game {
     }
     // 複数のLoaderを束ねたかのように振舞うローダー ただしアセットの登録は行えない
     // Loaderインターフェースに定義されたメソッドのみを持つ
-    export class AssetsLoader implements Loader{
-        private loaders: Array<Loader>;
-        constructor(list: Array<Loader>) {
+    export class Loader implements ILoader{
+        private loaders: Array<ILoader>;
+        constructor(list: Array<ILoader>) {
             this.loaders = list;
         }
         get state() {
@@ -86,7 +86,7 @@ module Game {
         }
     }
     // UNDONE:画像以外のロード
-    export class AbstractLoader implements Loader {
+    export class AbstractLoader implements ILoader {
         protected _unloadeds: Array<{ label: string; path: string; callback?: (file: any, label: string) => void; }>; // ロードするべきリソース
         protected _isloading: boolean;
         get state() {
@@ -181,9 +181,10 @@ module Game {
     }
     // ロードした画像の取得
     // TODO:良い名前に変える
+    // TODO:切り出した画像のキャッシュ
     export class ImageManager {
         private images: Registrar<PatternImageGenerator>;
-        public loader: Loader; // 外側にはLoaderインターフェースのみを出す
+        public loader: ILoader; // 外側にはLoaderインターフェースのみを出す
         private _loader: ImageLoader;
         constructor() {
             this.images = new Registrar<PatternImageGenerator>();
