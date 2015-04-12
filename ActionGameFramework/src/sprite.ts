@@ -17,12 +17,20 @@ module Game {
         z: number; // マップ座標
         surface: Surface;
         private _groups: Array<Group>;
-        constructor(x: number, y: number) {
+        get width(): number {
+            return this.surface.width;
+        }
+        get height(): number {
+            return this.surface.height;
+        }
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {
             this._groups = new Array<Group>();
 
             this.x = x;
             this.y = y;
             this.z = 0;
+
+            this.surface = new PatternSurface(imagemanager,label,code,dx,dy);
         }
         /*// Surfaceの初期化
         setsurface(screen: Surface) {
@@ -87,8 +95,10 @@ module Game {
             }
         }
         update() {
-            for (var i = 0; i < this._sprites.length; i++) {
-                this._sprites[i].update();
+            // 処理中にthis._spritesの要素が変化する可能性があるため、配列のコピーを回す
+            var sps = this._sprites.slice(0);
+            for (var i = 0; i < sps.length; i++) {
+                sps[i].update();
             }
         }
         draw() {

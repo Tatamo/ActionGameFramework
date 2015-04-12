@@ -587,8 +587,7 @@ var Game;
         // getおよびsetを利用してcenterx/yなどを実装
         // TODO:
         // ラベルを渡すことでロードした画像を持つSurfaceを生成
-        function Surface(width, height, parent) {
-            if (parent === void 0) { parent = null; }
+        function Surface(width, height) {
             this.width = width;
             this.height = height;
             //this.is_use_buffer = is_use_buffer;
@@ -622,6 +621,36 @@ var Game;
         return Surface;
     })();
     Game.Surface = Surface;
+    var PatternSurface = (function (_super) {
+        __extends(PatternSurface, _super);
+        function PatternSurface(imagemanager, label, code, dx, dy) {
+            if (code === void 0) { code = 0; }
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            this._im = imagemanager;
+            this._label = label;
+            this._code = code;
+            this._dx = dx;
+            this._dy = dy;
+            var i = this._im.getwide(label, code, dx, dy);
+            _super.call(this, i.width, i.height);
+            this.canvas.getContext("2d").drawImage(i, 0, 0, i.width, i.height, 0, 0, i.width, i.height);
+        }
+        Object.defineProperty(PatternSurface.prototype, "code", {
+            get: function () {
+                return this._code;
+            },
+            set: function (c) {
+                this._code = c;
+                var i = this._im.getwide(this._label, this._code, this._dx, this._dy);
+                this.canvas.getContext("2d").drawImage(i, 0, 0, i.width, i.height, 0, 0, i.width, i.height);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return PatternSurface;
+    })(Surface);
+    Game.PatternSurface = PatternSurface;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
@@ -713,24 +742,21 @@ var Game;
         }*/
         var Stage = (function (_super) {
             __extends(Stage, _super);
-            function Stage() {
-                _super.apply(this, arguments);
+            function Stage(name, sm) {
+                _super.call(this, name, sm);
                 this.x = 0;
+                this.player = new Game.Sprite(224, 120, this.sm.game.assets.image, "pattern", 100);
+                this.sprites = new Game.Group(this.sm.game.screen);
+                this.sprites.add(this.player);
             }
             Stage.prototype.enter = function () {
                 console.log(this.name);
-                this.player = new Game.Sprite(224, 120);
-                this.player.surface = new Game.Surface(32, 32);
-                this.player.surface.context.drawImage(this.sm.game.assets.image.get("pattern", 100), 0, 0);
-                this.sprites = new Game.Group(this.sm.game.screen);
-                this.sprites.add(this.player);
             };
             Stage.prototype.update = function () {
                 // 背景色で埋めてみる
                 this.sm.game.screen.context.fillStyle = "rgb(0,255,255)";
                 this.sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
                 this.sprites.draw();
-                this.sm.game.screen.context.drawImage(this.player.surface.canvas, 0, 0);
                 // うごく
                 if (this.sm.game.gamekey.isDown(39)) {
                     this.player.x += 8;
@@ -892,7 +918,8 @@ var Game;
             var _this = this;
             console.log("app start"); // DEBUG
             // this.statemachine.push(最初のState);
-            this.statemachine.push(new _Game.States.Preload("preload", this.statemachine));
+            if (!this.statemachine.CurrentState())
+                this.statemachine.push(new _Game.States.Preload("preload", this.statemachine));
             /*this.statemachine.regist(new Preload("preload", this.statemachine));
             this.statemachine.start("preload");*/
             //this.timerToken = setInterval(() => this.statemachine.update(), 100);
@@ -918,12 +945,30 @@ var Game;
 (function (Game) {
     // UNDONE: 自分の所属しているgroup名の取得
     var Sprite = (function () {
-        function Sprite(x, y) {
+        function Sprite(x, y, imagemanager, label, code, dx, dy) {
+            if (code === void 0) { code = 0; }
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
             this._groups = new Array();
             this.x = x;
             this.y = y;
             this.z = 0;
+            this.surface = new Game.PatternSurface(imagemanager, label, code, dx, dy);
         }
+        Object.defineProperty(Sprite.prototype, "width", {
+            get: function () {
+                return this.surface.width;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Sprite.prototype, "height", {
+            get: function () {
+                return this.surface.height;
+            },
+            enumerable: true,
+            configurable: true
+        });
         /*// Surfaceの初期化
         setsurface(screen: Surface) {
         }*/
@@ -981,8 +1026,10 @@ var Game;
             }
         };
         Group.prototype.update = function () {
-            for (var i = 0; i < this._sprites.length; i++) {
-                this._sprites[i].update();
+            // 処理中にthis._spritesの要素が変化する可能性があるため、配列のコピーを回す
+            var sps = this._sprites.slice(0);
+            for (var i = 0; i < sps.length; i++) {
+                sps[i].update();
             }
         };
         Group.prototype.draw = function () {

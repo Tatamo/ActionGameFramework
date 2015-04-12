@@ -34,9 +34,8 @@ module Game {
         // ゲームループの開始
         public start() {
             console.log("app start"); // DEBUG
-
             // this.statemachine.push(最初のState);
-            this.statemachine.push(new States.Preload("preload", this.statemachine));
+            if(!this.statemachine.CurrentState()) this.statemachine.push(new States.Preload("preload", this.statemachine));
 
             /*this.statemachine.regist(new Preload("preload", this.statemachine));
             this.statemachine.start("preload");*/

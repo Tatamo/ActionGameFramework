@@ -87,13 +87,14 @@
             player: Sprite;
             sprites: Group;
             x: number = 0;
-            enter() {
-                console.log(this.name);
-                this.player = new Sprite(224, 120);
-                this.player.surface = new Surface(32, 32);
-                this.player.surface.context.drawImage(this.sm.game.assets.image.get("pattern", 100), 0, 0);
+            constructor(name: string, sm: StateMachine) {
+                super(name, sm);
+                this.player = new Sprite(224,120,this.sm.game.assets.image,"pattern",100);
                 this.sprites = new Group(this.sm.game.screen);
                 this.sprites.add(this.player);
+            }
+            enter() {
+                console.log(this.name);
             }
             update() {
                 // 背景色で埋めてみる
@@ -101,7 +102,6 @@
                 this.sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
 
                 this.sprites.draw();
-                this.sm.game.screen.context.drawImage(this.player.surface.canvas,0,0);
 
                 // うごく
                 if (this.sm.game.gamekey.isDown(39)) {
