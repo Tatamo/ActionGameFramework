@@ -23,6 +23,7 @@ module Game {
         get height(): number {
             return this.surface.height;
         }
+        static default_groups: Array<Group> = [];
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {
             this._groups = new Array<Group>();
 

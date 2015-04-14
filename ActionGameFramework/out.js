@@ -652,6 +652,109 @@ var Game;
     })(Surface);
     Game.PatternSurface = PatternSurface;
 })(Game || (Game = {}));
+/// <reference path="surface.ts"/>
+var Game;
+(function (Game) {
+    // UNDONE: 自分の所属しているgroup名の取得
+    var Sprite = (function () {
+        function Sprite(x, y, imagemanager, label, code, dx, dy) {
+            if (code === void 0) { code = 0; }
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            this._groups = new Array();
+            this.x = x;
+            this.y = y;
+            this.z = 0;
+            this.surface = new Game.PatternSurface(imagemanager, label, code, dx, dy);
+        }
+        Object.defineProperty(Sprite.prototype, "width", {
+            get: function () {
+                return this.surface.width;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Sprite.prototype, "height", {
+            get: function () {
+                return this.surface.height;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /*// Surfaceの初期化
+        setsurface(screen: Surface) {
+        }*/
+        // 自身をグループに追加する
+        Sprite.prototype.add = function (group) {
+            // グループへの追加はSpriteSystemを経由して行う
+            //this.ss.regist(group, this);
+            this._groups.push(group);
+        };
+        Sprite.prototype.remove = function (group) {
+            var f = false;
+            for (var i = this._groups.length - 1; i >= 0; i--) {
+                if (this._groups[i] == group) {
+                    this._groups.splice(i, 1);
+                    f = true;
+                }
+            }
+            if (f)
+                group.remove(this); // 相互に参照を破棄
+        };
+        Sprite.prototype.update = function () {
+        };
+        // 所属しているすべてのグループとの参照を破棄します
+        Sprite.prototype.kill = function () {
+            for (var i = this._groups.length - 1; i >= 0; i--) {
+                this.remove(this._groups[i]);
+            }
+        };
+        Sprite.default_groups = [];
+        return Sprite;
+    })();
+    Game.Sprite = Sprite;
+    // TODO: sort
+    var Group = (function () {
+        function Group(screen) {
+            this._sprites = new Array();
+            this.screen = screen;
+        }
+        Group.prototype.add = function (sprite) {
+            this._sprites.push(sprite);
+        };
+        Group.prototype.remove = function (sprite) {
+            var f = false;
+            for (var i = this._sprites.length - 1; i >= 0; i--) {
+                if (this._sprites[i] == sprite) {
+                    this._sprites.splice(i, 1);
+                    f = true;
+                }
+            }
+            if (f)
+                sprite.remove(this); // 相互に参照を破棄
+        };
+        Group.prototype.remove_all = function () {
+            for (var i = this._sprites.length - 1; i >= 0; i--) {
+                this.remove(this._sprites[i]);
+            }
+        };
+        Group.prototype.update = function () {
+            // 処理中にthis._spritesの要素が変化する可能性があるため、配列のコピーを回す
+            var sps = this._sprites.slice(0);
+            for (var i = 0; i < sps.length; i++) {
+                sps[i].update();
+            }
+        };
+        Group.prototype.draw = function () {
+            for (var i = 0; i < this._sprites.length; i++) {
+                this.screen.drawSurface(this._sprites[i].surface, this._sprites[i].x, this._sprites[i].y);
+            }
+        };
+        return Group;
+    })();
+    Game.Group = Group;
+})(Game || (Game = {}));
+/// <reference path="sprite.ts"/>
 var Game;
 (function (Game) {
     var States;
@@ -740,12 +843,23 @@ var Game;
                 }
             }
         }*/
+        var Player = (function (_super) {
+            __extends(Player, _super);
+            function Player(x, y, imagemanager, label, code, dx, dy) {
+                if (code === void 0) { code = 0; }
+                if (dx === void 0) { dx = 1; }
+                if (dy === void 0) { dy = 1; }
+                _super.call(this, x, y, imagemanager, label, code, dx, dy);
+            }
+            return Player;
+        })(Game.Sprite);
+        States.Player = Player;
         var Stage = (function (_super) {
             __extends(Stage, _super);
             function Stage(name, sm) {
                 _super.call(this, name, sm);
                 this.x = 0;
-                this.player = new Game.Sprite(224, 120, this.sm.game.assets.image, "pattern", 100);
+                this.player = new Player(224, 120, this.sm.game.assets.image, "pattern", 100);
                 this.sprites = new Game.Group(this.sm.game.screen);
                 this.sprites.add(this.player);
             }
@@ -939,106 +1053,5 @@ var Game;
         return Game;
     })();
     _Game.Game = Game;
-})(Game || (Game = {}));
-/// <reference path="surface.ts"/>
-var Game;
-(function (Game) {
-    // UNDONE: 自分の所属しているgroup名の取得
-    var Sprite = (function () {
-        function Sprite(x, y, imagemanager, label, code, dx, dy) {
-            if (code === void 0) { code = 0; }
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            this._groups = new Array();
-            this.x = x;
-            this.y = y;
-            this.z = 0;
-            this.surface = new Game.PatternSurface(imagemanager, label, code, dx, dy);
-        }
-        Object.defineProperty(Sprite.prototype, "width", {
-            get: function () {
-                return this.surface.width;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Sprite.prototype, "height", {
-            get: function () {
-                return this.surface.height;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /*// Surfaceの初期化
-        setsurface(screen: Surface) {
-        }*/
-        // 自身をグループに追加する
-        Sprite.prototype.add = function (group) {
-            // グループへの追加はSpriteSystemを経由して行う
-            //this.ss.regist(group, this);
-            this._groups.push(group);
-        };
-        Sprite.prototype.remove = function (group) {
-            var f = false;
-            for (var i = this._groups.length - 1; i >= 0; i--) {
-                if (this._groups[i] == group) {
-                    this._groups.splice(i, 1);
-                    f = true;
-                }
-            }
-            if (f)
-                group.remove(this); // 相互に参照を破棄
-        };
-        Sprite.prototype.update = function () {
-        };
-        // 所属しているすべてのグループとの参照を破棄します
-        Sprite.prototype.kill = function () {
-            for (var i = this._groups.length - 1; i >= 0; i--) {
-                this.remove(this._groups[i]);
-            }
-        };
-        return Sprite;
-    })();
-    Game.Sprite = Sprite;
-    // TODO: sort
-    var Group = (function () {
-        function Group(screen) {
-            this._sprites = new Array();
-            this.screen = screen;
-        }
-        Group.prototype.add = function (sprite) {
-            this._sprites.push(sprite);
-        };
-        Group.prototype.remove = function (sprite) {
-            var f = false;
-            for (var i = this._sprites.length - 1; i >= 0; i--) {
-                if (this._sprites[i] == sprite) {
-                    this._sprites.splice(i, 1);
-                    f = true;
-                }
-            }
-            if (f)
-                sprite.remove(this); // 相互に参照を破棄
-        };
-        Group.prototype.remove_all = function () {
-            for (var i = this._sprites.length - 1; i >= 0; i--) {
-                this.remove(this._sprites[i]);
-            }
-        };
-        Group.prototype.update = function () {
-            // 処理中にthis._spritesの要素が変化する可能性があるため、配列のコピーを回す
-            var sps = this._sprites.slice(0);
-            for (var i = 0; i < sps.length; i++) {
-                sps[i].update();
-            }
-        };
-        Group.prototype.draw = function () {
-            for (var i = 0; i < this._sprites.length; i++) {
-                this.screen.drawSurface(this._sprites[i].surface, this._sprites[i].x, this._sprites[i].y);
-            }
-        };
-        return Group;
-    })();
-    Game.Group = Group;
 })(Game || (Game = {}));
 //# sourceMappingURL=out.js.map

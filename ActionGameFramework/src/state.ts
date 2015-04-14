@@ -1,4 +1,5 @@
-﻿module Game {
+﻿/// <reference path="sprite.ts"/>
+module Game {
     export interface State {
         parent: State;
         name: string;
@@ -83,13 +84,18 @@
                 }
             }
         }*/
+        export class Player extends Sprite {
+            constructor(x: number, y: number, imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {
+                super(x, y, imagemanager, label, code, dx, dy);
+            }
+        }
         export class Stage extends AbstractState {
-            player: Sprite;
+            player: Player;
             sprites: Group;
             x: number = 0;
             constructor(name: string, sm: StateMachine) {
                 super(name, sm);
-                this.player = new Sprite(224,120,this.sm.game.assets.image,"pattern",100);
+                this.player = new Player(224,120,this.sm.game.assets.image,"pattern",100);
                 this.sprites = new Group(this.sm.game.screen);
                 this.sprites.add(this.player);
             }
