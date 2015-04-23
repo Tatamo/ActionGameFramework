@@ -662,6 +662,11 @@ var Game;
             if (dx === void 0) { dx = 1; }
             if (dy === void 0) { dy = 1; }
             this._groups = new Array();
+            if (Sprite.default_groups) {
+                for (var i = 0; i < Sprite.default_groups.length; i++) {
+                    Sprite.default_groups[i].add(this);
+                }
+            }
             this.x = x;
             this.y = y;
             this.z = 0;
@@ -681,6 +686,12 @@ var Game;
             enumerable: true,
             configurable: true
         });
+        Sprite.getDefaultGroups = function () {
+            return Sprite.default_groups;
+        };
+        Sprite.setDefaultGroups = function (groups) {
+            Sprite.default_groups = groups;
+        };
         /*// Surfaceの初期化
         setsurface(screen: Surface) {
         }*/
@@ -845,23 +856,50 @@ var Game;
         }*/
         var Player = (function (_super) {
             __extends(Player, _super);
-            function Player(x, y, imagemanager, label, code, dx, dy) {
+            function Player(gamekey, x, y, imagemanager, label, code, dx, dy) {
                 if (code === void 0) { code = 0; }
                 if (dx === void 0) { dx = 1; }
                 if (dy === void 0) { dy = 1; }
                 _super.call(this, x, y, imagemanager, label, code, dx, dy);
+                this.gk = gamekey;
+                this.vx = 0;
             }
+            Player.prototype.update = function () {
+                // うごく
+                if (this.gk.isDown(39)) {
+                    this.vx = this.vx + 2 < 15 ? this.vx + 2 : 15;
+                }
+                if (this.gk.isDown(37)) {
+                    this.vx = this.vx - 2 > -15 ? this.vx - 2 : -15;
+                }
+                if (!this.gk.isDown(39) && !this.gk.isDown(37)) {
+                    if (this.vx > 0)
+                        this.vx = this.vx - 1 > 0 ? this.vx - 1 : 0;
+                    if (this.vx < 0)
+                        this.vx = this.vx + 1 < 0 ? this.vx + 1 : 0;
+                }
+                this.x += this.vx;
+            };
             return Player;
         })(Game.Sprite);
         States.Player = Player;
+        var Block = (function (_super) {
+            __extends(Block, _super);
+            function Block(x, y, imagemanager) {
+                _super.call(this, x, y, imagemanager, "pattern", 20);
+            }
+            return Block;
+        })(Game.Sprite);
+        States.Block = Block;
         var Stage = (function (_super) {
             __extends(Stage, _super);
             function Stage(name, sm) {
                 _super.call(this, name, sm);
                 this.x = 0;
-                this.player = new Player(224, 120, this.sm.game.assets.image, "pattern", 100);
                 this.sprites = new Game.Group(this.sm.game.screen);
-                this.sprites.add(this.player);
+                Game.Sprite.setDefaultGroups([this.sprites]);
+                this.player = new Player(this.sm.game.gamekey, 224, 128, this.sm.game.assets.image, "pattern", 100);
+                new Block(256, 160, this.sm.game.assets.image);
             }
             Stage.prototype.enter = function () {
                 console.log(this.name);
@@ -870,14 +908,8 @@ var Game;
                 // 背景色で埋めてみる
                 this.sm.game.screen.context.fillStyle = "rgb(0,255,255)";
                 this.sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
+                this.sprites.update();
                 this.sprites.draw();
-                // うごく
-                if (this.sm.game.gamekey.isDown(39)) {
-                    this.player.x += 8;
-                }
-                if (this.sm.game.gamekey.isDown(37)) {
-                    this.player.x -= 8;
-                }
                 if (this.sm.game.gamekey.isOnDown(80)) {
                     this.sm.push(new Pause(this.name + "-pause", this.sm)); // ポーズ
                 }

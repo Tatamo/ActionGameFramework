@@ -23,9 +23,20 @@ module Game {
         get height(): number {
             return this.surface.height;
         }
-        static default_groups: Array<Group> = [];
+        private static default_groups: Array<Group> = [];
+        static getDefaultGroups() {
+            return Sprite.default_groups;
+        }
+        static setDefaultGroups(groups: Array<Group>) {
+            Sprite.default_groups = groups;
+        }
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {
             this._groups = new Array<Group>();
+            if (Sprite.default_groups) {
+                for (var i = 0; i < Sprite.default_groups.length; i++) {
+                    Sprite.default_groups[i].add(this);
+                }
+            }
 
             this.x = x;
             this.y = y;

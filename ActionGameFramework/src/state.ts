@@ -85,8 +85,31 @@ module Game {
             }
         }*/
         export class Player extends Sprite {
-            constructor(x: number, y: number, imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {
+            private gk: GameKey;
+            private vx: number;
+            constructor(gamekey:GameKey,x: number, y: number, imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {
                 super(x, y, imagemanager, label, code, dx, dy);
+                this.gk = gamekey;
+                this.vx = 0;
+            }
+            update() {
+                // うごく
+                if (this.gk.isDown(39)) {
+                    this.vx = this.vx + 2 < 15 ? this.vx + 2 : 15;
+                }
+                if (this.gk.isDown(37)) {
+                    this.vx = this.vx - 2 > -15 ? this.vx - 2 : -15;
+                }
+                if (!this.gk.isDown(39) && !this.gk.isDown(37)) {
+                    if (this.vx > 0) this.vx = this.vx - 1 > 0 ? this.vx - 1 : 0;
+                    if (this.vx < 0) this.vx = this.vx + 1 < 0 ? this.vx + 1 : 0;
+                }
+                this.x += this.vx;
+            }
+        }
+        export class Block extends Sprite {
+            constructor(x: number, y: number, imagemanager: ImageManager) {
+                super(x, y, imagemanager, "pattern", 20);
             }
         }
         export class Stage extends AbstractState {
@@ -95,9 +118,10 @@ module Game {
             x: number = 0;
             constructor(name: string, sm: StateMachine) {
                 super(name, sm);
-                this.player = new Player(224,120,this.sm.game.assets.image,"pattern",100);
                 this.sprites = new Group(this.sm.game.screen);
-                this.sprites.add(this.player);
+                Sprite.setDefaultGroups([this.sprites]);
+                this.player = new Player(this.sm.game.gamekey, 224,128,this.sm.game.assets.image,"pattern",100);
+                new Block(256, 160,this.sm.game.assets.image);
             }
             enter() {
                 console.log(this.name);
@@ -107,15 +131,8 @@ module Game {
                 this.sm.game.screen.context.fillStyle = "rgb(0,255,255)";
                 this.sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
 
+                this.sprites.update();
                 this.sprites.draw();
-
-                // うごく
-                if (this.sm.game.gamekey.isDown(39)) {
-                    this.player.x += 8;
-                }
-                if (this.sm.game.gamekey.isDown(37)) {
-                    this.player.x -= 8;
-                }
 
                 if (this.sm.game.gamekey.isOnDown(80)) { // Pキー
                     this.sm.push(new Pause(this.name + "-pause", this.sm)); // ポーズ
