@@ -1,19 +1,15 @@
 ﻿module Game {
     export module States {
-        export class Preload extends AbstractState {
+        export class Title extends AbstractState {
+            titleimg: HTMLCanvasElement;
             enter() {
                 console.log(this.name);
-                var assets = this.sm.game.assets;
-
-                assets.image.regist_image("title", "title.gif");
-                assets.image.regist_pattern("pattern", "pattern.gif", 32, 32);
-                assets.load();
-
+                this.titleimg = this.sm.game.assets.image.get("title");
             }
             update() {
-                var loader = this.sm.game.assets.loader;
-                if (loader.state == PreloadStates.NOTHING2LOAD) {
-                    this.sm.replace(new Title("title", this.sm));
+                this.sm.game.screen.context.drawImage(this.titleimg, 0, 0);
+                if (this.sm.game.gamekey.isOnDown(90)) { // Z
+                    this.sm.push(new Stage("stage", this.sm));
                 }
             }
         }

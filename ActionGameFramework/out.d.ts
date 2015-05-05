@@ -1,0 +1,247 @@
+declare class Greeter {
+    element: HTMLElement;
+    span: HTMLElement;
+    timerToken: number;
+    constructor(element: HTMLElement);
+    start(): void;
+    stop(): void;
+}
+declare var game: Game.Game;
+declare module Game {
+    class Dictionary<T> implements WeakMap<any, T> {
+        private datalist;
+        constructor();
+        clear(): void;
+        set(key: number, value: T): any;
+        set(key: string, value: T): any;
+        delete(key: string): boolean;
+        delete(key: number): boolean;
+        get(key: string): T;
+        get(key: number): T;
+        getkey(value: T): string;
+        has(key: string): boolean;
+        has(key: number): boolean;
+        private checkType(key);
+    }
+    class Registrar<T> extends Dictionary<T> {
+        set(key: string, value: T): any;
+        set(key: number, value: T): any;
+    }
+    class AbstractDataGroup<T> {
+        private datalist;
+        sortmethod: (x: T, y: T) => number;
+        constructor();
+        clear(): void;
+        getArray(): T[];
+        getCount(): number;
+        add(value: T): void;
+        sort(): void;
+        del(value: T): void;
+    }
+}
+declare module Game {
+    class GameKey {
+        keys: {
+            [key: number]: number;
+        };
+        releasedkeys: {
+            [key: number]: number;
+        };
+        private keepreleasedtime;
+        constructor();
+        setEvent(el: HTMLElement): void;
+        init(): void;
+        update(): void;
+        KeyDown(key: number): void;
+        KeyUp(key: number): void;
+        isDown(key: number): boolean;
+        isOnDown(key: number): boolean;
+        getCount(key: number): number;
+    }
+}
+declare module Game {
+    class AssetsManagerManager {
+        loader: Loader;
+        image: ImageManager;
+        constructor();
+        load(): void;
+    }
+    enum PreloadStates {
+        UNLOAD = 0,
+        LOADING = 1,
+        NOTHING2LOAD = 2,
+    }
+    interface ILoader {
+        state: PreloadStates;
+        count: number;
+        count_loadeds: number;
+        load(cb?: () => void): any;
+    }
+    class Loader implements ILoader {
+        private loaders;
+        constructor(list: Array<ILoader>);
+        state: PreloadStates;
+        count: number;
+        count_loadeds: number;
+        load(cb?: () => void): void;
+    }
+    class AbstractLoader implements ILoader {
+        protected _unloadeds: Array<{
+            label: string;
+            path: string;
+            callback?: (file: any, label: string) => void;
+        }>;
+        protected _isloading: boolean;
+        state: PreloadStates;
+        private _count;
+        count: number;
+        count_loadeds: number;
+        constructor();
+        push(l: string, p: string, cb?: (file: any, label: string) => void): void;
+        load(cb?: () => void): void;
+        protected __load(cb: () => void): void;
+        protected _load(cb?: () => void): void;
+    }
+    class ImageLoader extends AbstractLoader {
+        _load(cb?: any): void;
+    }
+    class ImageManager {
+        private images;
+        loader: ILoader;
+        private _loader;
+        constructor();
+        get(name: string): any;
+        get(name: string, x: number, y: number): any;
+        get(name: string, code: number): any;
+        getwide(name: string, x: number, y: number, wx: number, wy: number): any;
+        getwide(name: string, code: number, wx: number, wy: number): any;
+        private set(name, img, chipwidth?, chipheight?);
+        regist_image(label: string, path: string): void;
+        regist_pattern(label: string, path: string, c_width: number, c_height: number): void;
+        load(): void;
+    }
+}
+declare module Game {
+    interface ISurface {
+    }
+    class Surface {
+        container: HTMLDivElement;
+        canvas: HTMLCanvasElement;
+        context: CanvasRenderingContext2D;
+        width: number;
+        height: number;
+        constructor(width: number, height: number);
+        setWidth(width: number): void;
+        setHeight(height: number): void;
+        drawSurface(source: Surface, dest_x: number, dest_y: number): void;
+    }
+    class PatternSurface extends Surface {
+        private _im;
+        private _label;
+        private _code;
+        private _dx;
+        private _dy;
+        code: number;
+        constructor(imagemanager: ImageManager, label: string, code?: number, dx?: number, dy?: number);
+    }
+}
+declare module Game {
+    interface ISprite {
+        x: number;
+        y: number;
+        z: number;
+        surface: Surface;
+        add(group: Group): any;
+        remove(group: Group): any;
+        update(): any;
+        kill(): any;
+    }
+    class Sprite implements ISprite {
+        x: number;
+        y: number;
+        z: number;
+        surface: Surface;
+        private _groups;
+        width: number;
+        height: number;
+        static default_groups: Array<Group>;
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string, code?: number, dx?: number, dy?: number);
+        add(group: Group): void;
+        remove(group: Group): void;
+        update(): void;
+        kill(): void;
+    }
+    interface IGroup {
+        screen: Surface;
+        add(sprite: Sprite): any;
+        remove(sprite: Sprite): any;
+        remove_all(): any;
+        update(): any;
+        draw(): any;
+    }
+    class Group implements IGroup {
+        screen: Surface;
+        private _sprites;
+        constructor(screen: Surface);
+        add(sprite: Sprite): void;
+        remove(sprite: Sprite): void;
+        remove_all(): void;
+        update(): void;
+        draw(): void;
+    }
+}
+declare module Game {
+    interface State {
+        parent: State;
+        name: string;
+        sm: StateMachine;
+        enter(): any;
+        update(): any;
+        exit(): any;
+    }
+    module States {
+        class AbstractState implements State {
+            parent: State;
+            name: string;
+            sm: StateMachine;
+            constructor(name: string, sm: StateMachine);
+            enter(): void;
+            update(): void;
+            exit(): void;
+        }
+    }
+}
+declare module Game {
+    class StateMachine {
+        private current_state;
+        private global_state;
+        private root_state;
+        private _states;
+        game: Game;
+        parent: any;
+        constructor(game: Game, parent?: any);
+        update(): void;
+        push(state: State): void;
+        pop(): void;
+        replace(state: State): void;
+        setGlobalState(state: State): void;
+        CurrentState(): State;
+        RootState(): State;
+        GlobalState(): State;
+    }
+}
+declare module Game {
+    class Game {
+        element: HTMLElement;
+        screen: Surface;
+        statemachine: StateMachine;
+        gamekey: GameKey;
+        assets: AssetsManagerManager;
+        private timerToken;
+        constructor();
+        setparent(el: HTMLElement): void;
+        start(state?: State): void;
+        stop(): void;
+        loop(): void;
+    }
+}

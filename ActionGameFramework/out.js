@@ -146,6 +146,75 @@ var Game;
     })();
     Game.AbstractDataGroup = AbstractDataGroup;
 })(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var GameKey = (function () {
+        function GameKey() {
+            this.keepreleasedtime = 64;
+            this.init();
+        }
+        // キー入力を受け付けるイベントハンドラを登録する
+        GameKey.prototype.setEvent = function (el) {
+            var _this = this;
+            console.log(el);
+            el.addEventListener("keydown", function (e) {
+                _this.KeyDown(e.keyCode);
+            });
+            el.addEventListener("keyup", function (e) {
+                _this.KeyUp(e.keyCode);
+            });
+        };
+        GameKey.prototype.init = function () {
+            this.keys = {};
+            this.releasedkeys = {};
+        };
+        GameKey.prototype.update = function () {
+            for (var key in this.keys) {
+                this.keys[key] += 1;
+            }
+            var rks = {};
+            for (var key in this.releasedkeys) {
+                if (this.releasedkeys[key] + 1 <= this.keepreleasedtime) {
+                    rks[key] = this.releasedkeys[key] + 1;
+                }
+            }
+            this.releasedkeys = rks;
+        };
+        GameKey.prototype.KeyDown = function (key) {
+            console.log(key);
+            if (!(key in this.keys)) {
+                this.keys[key] = 0;
+            }
+        };
+        GameKey.prototype.KeyUp = function (key) {
+            if (key in this.keys) {
+                delete this.keys[key];
+            }
+            this.releasedkeys[key] = 0;
+        };
+        // 押されているかどうかの判定をします
+        GameKey.prototype.isDown = function (key) {
+            if (key in this.keys)
+                return true;
+            return false;
+        };
+        // 押された瞬間かどうかの判定をします
+        GameKey.prototype.isOnDown = function (key) {
+            if (key in this.keys && this.keys[key] == 1)
+                return true;
+            return false;
+        };
+        // 押された時間を取得します 押されていない場合は-1
+        GameKey.prototype.getCount = function (key) {
+            if (key in this.keys) {
+                return this.keys[key];
+            }
+            return -1;
+        };
+        return GameKey;
+    })();
+    Game.GameKey = GameKey;
+})(Game || (Game = {}));
 /// <reference path="datadictionary.ts"/>
 var Game;
 (function (Game) {
@@ -506,75 +575,6 @@ var Game;
         };
         return PatternImageGenerator;
     })();
-})(Game || (Game = {}));
-var Game;
-(function (Game) {
-    var GameKey = (function () {
-        function GameKey() {
-            this.keepreleasedtime = 64;
-            this.init();
-        }
-        // キー入力を受け付けるイベントハンドラを登録する
-        GameKey.prototype.setEvent = function (el) {
-            var _this = this;
-            console.log(el);
-            el.addEventListener("keydown", function (e) {
-                _this.KeyDown(e.keyCode);
-            });
-            el.addEventListener("keyup", function (e) {
-                _this.KeyUp(e.keyCode);
-            });
-        };
-        GameKey.prototype.init = function () {
-            this.keys = {};
-            this.releasedkeys = {};
-        };
-        GameKey.prototype.update = function () {
-            for (var key in this.keys) {
-                this.keys[key] += 1;
-            }
-            var rks = {};
-            for (var key in this.releasedkeys) {
-                if (this.releasedkeys[key] + 1 <= this.keepreleasedtime) {
-                    rks[key] = this.releasedkeys[key] + 1;
-                }
-            }
-            this.releasedkeys = rks;
-        };
-        GameKey.prototype.KeyDown = function (key) {
-            console.log(key);
-            if (!(key in this.keys)) {
-                this.keys[key] = 0;
-            }
-        };
-        GameKey.prototype.KeyUp = function (key) {
-            if (key in this.keys) {
-                delete this.keys[key];
-            }
-            this.releasedkeys[key] = 0;
-        };
-        // 押されているかどうかの判定をします
-        GameKey.prototype.isDown = function (key) {
-            if (key in this.keys)
-                return true;
-            return false;
-        };
-        // 押された瞬間かどうかの判定をします
-        GameKey.prototype.isOnDown = function (key) {
-            if (key in this.keys && this.keys[key] == 1)
-                return true;
-            return false;
-        };
-        // 押された時間を取得します 押されていない場合は-1
-        GameKey.prototype.getCount = function (key) {
-            if (key in this.keys) {
-                return this.keys[key];
-            }
-            return -1;
-        };
-        return GameKey;
-    })();
-    Game.GameKey = GameKey;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
