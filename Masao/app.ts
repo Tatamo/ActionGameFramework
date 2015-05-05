@@ -1,0 +1,34 @@
+﻿/// <reference path="../ActionGameFramework/src/main.ts"/>
+/// <reference path="./src/states/preload.ts"/>
+
+class Greeter {
+    element: HTMLElement;
+    span: HTMLElement;
+    timerToken: number;
+
+    constructor(element: HTMLElement) {
+        this.element = element;
+        this.element.innerHTML += "The time is: ";
+        this.span = document.createElement('span');
+        this.element.appendChild(this.span);
+        this.span.innerText = new Date().toUTCString();
+    }
+
+    start() {
+        this.timerToken = setInterval(() => this.span.innerHTML = new Date().toUTCString(), 500);
+    }
+
+    stop() {
+        clearTimeout(this.timerToken);
+    }
+}
+
+var game: Game.Game;
+window.onload = () => {
+    var el = document.getElementById('content');
+    /*var greeter = new Greeter(el);
+    greeter.start();*/
+    game = new Game.Game();
+    game.setparent(el);
+    game.start(new Game.States.Preload("preload", game.statemachine));
+};

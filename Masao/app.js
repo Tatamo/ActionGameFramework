@@ -1,35 +1,256 @@
-var Greeter = (function () {
-    function Greeter(element) {
-        this.element = element;
-        this.element.innerHTML += "The time is: ";
-        this.span = document.createElement('span');
-        this.element.appendChild(this.span);
-        this.span.innerText = new Date().toUTCString();
-    }
-    Greeter.prototype.start = function () {
-        var _this = this;
-        this.timerToken = setInterval(function () { return _this.span.innerHTML = new Date().toUTCString(); }, 500);
-    };
-    Greeter.prototype.stop = function () {
-        clearTimeout(this.timerToken);
-    };
-    return Greeter;
-})();
-var game;
-window.onload = function () {
-    var el = document.getElementById('content');
-    /*var greeter = new Greeter(el);
-    greeter.start();*/
-    game = new Game.Game();
-    game.setparent(el);
-    game.start();
-};
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+var Game;
+(function (Game) {
+    // TODO:
+    // Surfaceのサブクラスとして、メインスクリーン専用のDisplayクラスの追加を検討
+    // ダブルバッファリング等々の機能追加
+    // 今はSurface#containerを対象にとっているが、display#containerをGameKeyのイベントハンドラ登録対象に限定してもよいと思われる
+    var Surface = (function () {
+        // TODO:
+        // getおよびsetを利用してcenterx/yなどを実装
+        // TODO:
+        // ラベルを渡すことでロードした画像を持つSurfaceを生成
+        function Surface(width, height) {
+            this.width = width;
+            this.height = height;
+            //this.is_use_buffer = is_use_buffer;
+            // 要素作成
+            this.container = document.createElement("div");
+            this.canvas = document.createElement("canvas");
+            this.context = this.canvas.getContext("2d");
+            //this.canvas_buffer = document.createElement("canvas");
+            this.container.appendChild(this.canvas);
+            // this.container.appendChild(this.canvas_buffer);
+            this.setWidth(width);
+            this.setHeight(height);
+            this.canvas.style.position = "absolute";
+            this.canvas.style.left = "0";
+            this.canvas.style.top = "0";
+            /*this.canvas_buffer.style.position = "absolute";
+            this.canvas_buffer.style.left = "0";
+            this.canvas_buffer.style.top = "0";*/
+        }
+        Surface.prototype.setWidth = function (width) {
+            this.canvas.width = width;
+            //this.canvas_buffer.width = width;
+        };
+        Surface.prototype.setHeight = function (height) {
+            this.canvas.height = height;
+            //this.canvas_buffer.height = height;
+        };
+        Surface.prototype.drawSurface = function (source, dest_x, dest_y) {
+            this.context.drawImage(source.canvas, dest_x, dest_y);
+        };
+        return Surface;
+    })();
+    Game.Surface = Surface;
+    var PatternSurface = (function (_super) {
+        __extends(PatternSurface, _super);
+        function PatternSurface(imagemanager, label, code, dx, dy) {
+            if (code === void 0) { code = 0; }
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            this._im = imagemanager;
+            this._label = label;
+            this._code = code;
+            this._dx = dx;
+            this._dy = dy;
+            var i = this._im.getwide(label, code, dx, dy);
+            _super.call(this, i.width, i.height);
+            this.canvas.getContext("2d").drawImage(i, 0, 0, i.width, i.height, 0, 0, i.width, i.height);
+        }
+        Object.defineProperty(PatternSurface.prototype, "code", {
+            get: function () {
+                return this._code;
+            },
+            set: function (c) {
+                this._code = c;
+                var i = this._im.getwide(this._label, this._code, this._dx, this._dy);
+                this.canvas.getContext("2d").drawImage(i, 0, 0, i.width, i.height, 0, 0, i.width, i.height);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return PatternSurface;
+    })(Surface);
+    Game.PatternSurface = PatternSurface;
+})(Game || (Game = {}));
+/// <reference path="surface.ts"/>
+var Game;
+(function (Game) {
+    // UNDONE: 自分の所属しているgroup名の取得
+    var Sprite = (function () {
+        function Sprite(x, y, imagemanager, label, code, dx, dy) {
+            if (code === void 0) { code = 0; }
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            this._groups = new Array();
+            this.x = x;
+            this.y = y;
+            this.z = 0;
+            this.surface = new Game.PatternSurface(imagemanager, label, code, dx, dy);
+        }
+        Object.defineProperty(Sprite.prototype, "width", {
+            get: function () {
+                return this.surface.width;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Sprite.prototype, "height", {
+            get: function () {
+                return this.surface.height;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /*// Surfaceの初期化
+        setsurface(screen: Surface) {
+        }*/
+        // 自身をグループに追加する
+        Sprite.prototype.add = function (group) {
+            // グループへの追加はSpriteSystemを経由して行う
+            //this.ss.regist(group, this);
+            this._groups.push(group);
+        };
+        Sprite.prototype.remove = function (group) {
+            var f = false;
+            for (var i = this._groups.length - 1; i >= 0; i--) {
+                if (this._groups[i] == group) {
+                    this._groups.splice(i, 1);
+                    f = true;
+                }
+            }
+            if (f)
+                group.remove(this); // 相互に参照を破棄
+        };
+        Sprite.prototype.update = function () {
+        };
+        // 所属しているすべてのグループとの参照を破棄します
+        Sprite.prototype.kill = function () {
+            for (var i = this._groups.length - 1; i >= 0; i--) {
+                this.remove(this._groups[i]);
+            }
+        };
+        Sprite.default_groups = [];
+        return Sprite;
+    })();
+    Game.Sprite = Sprite;
+    // TODO: sort
+    var Group = (function () {
+        function Group(screen) {
+            this._sprites = new Array();
+            this.screen = screen;
+        }
+        Group.prototype.add = function (sprite) {
+            this._sprites.push(sprite);
+        };
+        Group.prototype.remove = function (sprite) {
+            var f = false;
+            for (var i = this._sprites.length - 1; i >= 0; i--) {
+                if (this._sprites[i] == sprite) {
+                    this._sprites.splice(i, 1);
+                    f = true;
+                }
+            }
+            if (f)
+                sprite.remove(this); // 相互に参照を破棄
+        };
+        Group.prototype.remove_all = function () {
+            for (var i = this._sprites.length - 1; i >= 0; i--) {
+                this.remove(this._sprites[i]);
+            }
+        };
+        Group.prototype.update = function () {
+            // 処理中にthis._spritesの要素が変化する可能性があるため、配列のコピーを回す
+            var sps = this._sprites.slice(0);
+            for (var i = 0; i < sps.length; i++) {
+                sps[i].update();
+            }
+        };
+        Group.prototype.draw = function () {
+            for (var i = 0; i < this._sprites.length; i++) {
+                this.screen.drawSurface(this._sprites[i].surface, this._sprites[i].x, this._sprites[i].y);
+            }
+        };
+        return Group;
+    })();
+    Game.Group = Group;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var GameKey = (function () {
+        function GameKey() {
+            this.keepreleasedtime = 64;
+            this.init();
+        }
+        // キー入力を受け付けるイベントハンドラを登録する
+        GameKey.prototype.setEvent = function (el) {
+            var _this = this;
+            console.log(el);
+            el.addEventListener("keydown", function (e) {
+                _this.KeyDown(e.keyCode);
+            });
+            el.addEventListener("keyup", function (e) {
+                _this.KeyUp(e.keyCode);
+            });
+        };
+        GameKey.prototype.init = function () {
+            this.keys = {};
+            this.releasedkeys = {};
+        };
+        GameKey.prototype.update = function () {
+            for (var key in this.keys) {
+                this.keys[key] += 1;
+            }
+            var rks = {};
+            for (var key in this.releasedkeys) {
+                if (this.releasedkeys[key] + 1 <= this.keepreleasedtime) {
+                    rks[key] = this.releasedkeys[key] + 1;
+                }
+            }
+            this.releasedkeys = rks;
+        };
+        GameKey.prototype.KeyDown = function (key) {
+            console.log(key);
+            if (!(key in this.keys)) {
+                this.keys[key] = 0;
+            }
+        };
+        GameKey.prototype.KeyUp = function (key) {
+            if (key in this.keys) {
+                delete this.keys[key];
+            }
+            this.releasedkeys[key] = 0;
+        };
+        // 押されているかどうかの判定をします
+        GameKey.prototype.isDown = function (key) {
+            if (key in this.keys)
+                return true;
+            return false;
+        };
+        // 押された瞬間かどうかの判定をします
+        GameKey.prototype.isOnDown = function (key) {
+            if (key in this.keys && this.keys[key] == 1)
+                return true;
+            return false;
+        };
+        // 押された時間を取得します 押されていない場合は-1
+        GameKey.prototype.getCount = function (key) {
+            if (key in this.keys) {
+                return this.keys[key];
+            }
+            return -1;
+        };
+        return GameKey;
+    })();
+    Game.GameKey = GameKey;
+})(Game || (Game = {}));
 var Game;
 (function (Game) {
     // WeakMap同様の操作が可能で、numberとstringのキーを持つデータ構造です
@@ -509,253 +730,6 @@ var Game;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
-    var GameKey = (function () {
-        function GameKey() {
-            this.keepreleasedtime = 64;
-            this.init();
-        }
-        // キー入力を受け付けるイベントハンドラを登録する
-        GameKey.prototype.setEvent = function (el) {
-            var _this = this;
-            console.log(el);
-            el.addEventListener("keydown", function (e) {
-                _this.KeyDown(e.keyCode);
-            });
-            el.addEventListener("keyup", function (e) {
-                _this.KeyUp(e.keyCode);
-            });
-        };
-        GameKey.prototype.init = function () {
-            this.keys = {};
-            this.releasedkeys = {};
-        };
-        GameKey.prototype.update = function () {
-            for (var key in this.keys) {
-                this.keys[key] += 1;
-            }
-            var rks = {};
-            for (var key in this.releasedkeys) {
-                if (this.releasedkeys[key] + 1 <= this.keepreleasedtime) {
-                    rks[key] = this.releasedkeys[key] + 1;
-                }
-            }
-            this.releasedkeys = rks;
-        };
-        GameKey.prototype.KeyDown = function (key) {
-            console.log(key);
-            if (!(key in this.keys)) {
-                this.keys[key] = 0;
-            }
-        };
-        GameKey.prototype.KeyUp = function (key) {
-            if (key in this.keys) {
-                delete this.keys[key];
-            }
-            this.releasedkeys[key] = 0;
-        };
-        // 押されているかどうかの判定をします
-        GameKey.prototype.isDown = function (key) {
-            if (key in this.keys)
-                return true;
-            return false;
-        };
-        // 押された瞬間かどうかの判定をします
-        GameKey.prototype.isOnDown = function (key) {
-            if (key in this.keys && this.keys[key] == 1)
-                return true;
-            return false;
-        };
-        // 押された時間を取得します 押されていない場合は-1
-        GameKey.prototype.getCount = function (key) {
-            if (key in this.keys) {
-                return this.keys[key];
-            }
-            return -1;
-        };
-        return GameKey;
-    })();
-    Game.GameKey = GameKey;
-})(Game || (Game = {}));
-var Game;
-(function (Game) {
-    // TODO:
-    // Surfaceのサブクラスとして、メインスクリーン専用のDisplayクラスの追加を検討
-    // ダブルバッファリング等々の機能追加
-    // 今はSurface#containerを対象にとっているが、display#containerをGameKeyのイベントハンドラ登録対象に限定してもよいと思われる
-    var Surface = (function () {
-        // TODO:
-        // getおよびsetを利用してcenterx/yなどを実装
-        // TODO:
-        // ラベルを渡すことでロードした画像を持つSurfaceを生成
-        function Surface(width, height) {
-            this.width = width;
-            this.height = height;
-            //this.is_use_buffer = is_use_buffer;
-            // 要素作成
-            this.container = document.createElement("div");
-            this.canvas = document.createElement("canvas");
-            this.context = this.canvas.getContext("2d");
-            //this.canvas_buffer = document.createElement("canvas");
-            this.container.appendChild(this.canvas);
-            // this.container.appendChild(this.canvas_buffer);
-            this.setWidth(width);
-            this.setHeight(height);
-            this.canvas.style.position = "absolute";
-            this.canvas.style.left = "0";
-            this.canvas.style.top = "0";
-            /*this.canvas_buffer.style.position = "absolute";
-            this.canvas_buffer.style.left = "0";
-            this.canvas_buffer.style.top = "0";*/
-        }
-        Surface.prototype.setWidth = function (width) {
-            this.canvas.width = width;
-            //this.canvas_buffer.width = width;
-        };
-        Surface.prototype.setHeight = function (height) {
-            this.canvas.height = height;
-            //this.canvas_buffer.height = height;
-        };
-        Surface.prototype.drawSurface = function (source, dest_x, dest_y) {
-            this.context.drawImage(source.canvas, dest_x, dest_y);
-        };
-        return Surface;
-    })();
-    Game.Surface = Surface;
-    var PatternSurface = (function (_super) {
-        __extends(PatternSurface, _super);
-        function PatternSurface(imagemanager, label, code, dx, dy) {
-            if (code === void 0) { code = 0; }
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            this._im = imagemanager;
-            this._label = label;
-            this._code = code;
-            this._dx = dx;
-            this._dy = dy;
-            var i = this._im.getwide(label, code, dx, dy);
-            _super.call(this, i.width, i.height);
-            this.canvas.getContext("2d").drawImage(i, 0, 0, i.width, i.height, 0, 0, i.width, i.height);
-        }
-        Object.defineProperty(PatternSurface.prototype, "code", {
-            get: function () {
-                return this._code;
-            },
-            set: function (c) {
-                this._code = c;
-                var i = this._im.getwide(this._label, this._code, this._dx, this._dy);
-                this.canvas.getContext("2d").drawImage(i, 0, 0, i.width, i.height, 0, 0, i.width, i.height);
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return PatternSurface;
-    })(Surface);
-    Game.PatternSurface = PatternSurface;
-})(Game || (Game = {}));
-/// <reference path="surface.ts"/>
-var Game;
-(function (Game) {
-    // UNDONE: 自分の所属しているgroup名の取得
-    var Sprite = (function () {
-        function Sprite(x, y, imagemanager, label, code, dx, dy) {
-            if (code === void 0) { code = 0; }
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            this._groups = new Array();
-            this.x = x;
-            this.y = y;
-            this.z = 0;
-            this.surface = new Game.PatternSurface(imagemanager, label, code, dx, dy);
-        }
-        Object.defineProperty(Sprite.prototype, "width", {
-            get: function () {
-                return this.surface.width;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Sprite.prototype, "height", {
-            get: function () {
-                return this.surface.height;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /*// Surfaceの初期化
-        setsurface(screen: Surface) {
-        }*/
-        // 自身をグループに追加する
-        Sprite.prototype.add = function (group) {
-            // グループへの追加はSpriteSystemを経由して行う
-            //this.ss.regist(group, this);
-            this._groups.push(group);
-        };
-        Sprite.prototype.remove = function (group) {
-            var f = false;
-            for (var i = this._groups.length - 1; i >= 0; i--) {
-                if (this._groups[i] == group) {
-                    this._groups.splice(i, 1);
-                    f = true;
-                }
-            }
-            if (f)
-                group.remove(this); // 相互に参照を破棄
-        };
-        Sprite.prototype.update = function () {
-        };
-        // 所属しているすべてのグループとの参照を破棄します
-        Sprite.prototype.kill = function () {
-            for (var i = this._groups.length - 1; i >= 0; i--) {
-                this.remove(this._groups[i]);
-            }
-        };
-        Sprite.default_groups = [];
-        return Sprite;
-    })();
-    Game.Sprite = Sprite;
-    // TODO: sort
-    var Group = (function () {
-        function Group(screen) {
-            this._sprites = new Array();
-            this.screen = screen;
-        }
-        Group.prototype.add = function (sprite) {
-            this._sprites.push(sprite);
-        };
-        Group.prototype.remove = function (sprite) {
-            var f = false;
-            for (var i = this._sprites.length - 1; i >= 0; i--) {
-                if (this._sprites[i] == sprite) {
-                    this._sprites.splice(i, 1);
-                    f = true;
-                }
-            }
-            if (f)
-                sprite.remove(this); // 相互に参照を破棄
-        };
-        Group.prototype.remove_all = function () {
-            for (var i = this._sprites.length - 1; i >= 0; i--) {
-                this.remove(this._sprites[i]);
-            }
-        };
-        Group.prototype.update = function () {
-            // 処理中にthis._spritesの要素が変化する可能性があるため、配列のコピーを回す
-            var sps = this._sprites.slice(0);
-            for (var i = 0; i < sps.length; i++) {
-                sps[i].update();
-            }
-        };
-        Group.prototype.draw = function () {
-            for (var i = 0; i < this._sprites.length; i++) {
-                this.screen.drawSurface(this._sprites[i].surface, this._sprites[i].x, this._sprites[i].y);
-            }
-        };
-        return Group;
-    })();
-    Game.Group = Group;
-})(Game || (Game = {}));
-var Game;
-(function (Game) {
     var States;
     (function (States) {
         var AbstractState = (function () {
@@ -907,4 +881,170 @@ var Game;
     })();
     _Game.Game = Game;
 })(Game || (Game = {}));
-//# sourceMappingURL=out.js.map
+var Game;
+(function (Game) {
+    var States;
+    (function (States) {
+        var Title = (function (_super) {
+            __extends(Title, _super);
+            function Title() {
+                _super.apply(this, arguments);
+            }
+            Title.prototype.enter = function () {
+                console.log(this.name);
+                this.titleimg = this.sm.game.assets.image.get("title");
+            };
+            Title.prototype.update = function () {
+                this.sm.game.screen.context.drawImage(this.titleimg, 0, 0);
+                if (this.sm.game.gamekey.isOnDown(90)) {
+                    this.sm.push(new States.Stage("stage", this.sm));
+                }
+            };
+            return Title;
+        })(States.AbstractState);
+        States.Title = Title;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+/// <reference path="../ActionGameFramework/src/main.ts"/>
+/// <reference path="./src/states/preload.ts"/>
+var Greeter = (function () {
+    function Greeter(element) {
+        this.element = element;
+        this.element.innerHTML += "The time is: ";
+        this.span = document.createElement('span');
+        this.element.appendChild(this.span);
+        this.span.innerText = new Date().toUTCString();
+    }
+    Greeter.prototype.start = function () {
+        var _this = this;
+        this.timerToken = setInterval(function () { return _this.span.innerHTML = new Date().toUTCString(); }, 500);
+    };
+    Greeter.prototype.stop = function () {
+        clearTimeout(this.timerToken);
+    };
+    return Greeter;
+})();
+var game;
+window.onload = function () {
+    var el = document.getElementById('content');
+    /*var greeter = new Greeter(el);
+    greeter.start();*/
+    game = new Game.Game();
+    game.setparent(el);
+    game.start(new Game.States.Preload("preload", game.statemachine));
+};
+var Game;
+(function (Game) {
+    var States;
+    (function (States) {
+        var Pause = (function (_super) {
+            __extends(Pause, _super);
+            function Pause(name, sm) {
+                _super.call(this, name, sm);
+                this.background = document.createElement("canvas");
+                this.background.width = this.sm.game.screen.width;
+                this.background.height = this.sm.game.screen.height;
+            }
+            Pause.prototype.enter = function () {
+                console.log(this.name);
+                // 現在の画面を保存
+                this.background.getContext("2d").drawImage(this.sm.game.screen.canvas, 0, 0);
+            };
+            Pause.prototype.update = function () {
+                this.sm.game.screen.context.drawImage(this.background, 0, 0);
+                this.sm.game.screen.context.fillStyle = "rgba(0,0,0,0.2)";
+                this.sm.game.screen.context.fillRect(0, 0, this.sm.game.screen.width, this.sm.game.screen.height);
+                this.sm.game.screen.context.fillStyle = "black";
+                this.sm.game.screen.context.strokeText("PAUSE", 240, 150);
+                if (this.sm.game.gamekey.isOnDown(80)) {
+                    this.sm.pop(); // ステージに戻る
+                }
+                if (this.sm.game.gamekey.isOnDown(84)) {
+                    this.sm.pop();
+                    this.sm.pop(); // タイトルに戻る
+                }
+            };
+            return Pause;
+        })(States.AbstractState);
+        States.Pause = Pause;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var States;
+    (function (States) {
+        var Player = (function (_super) {
+            __extends(Player, _super);
+            function Player(x, y, imagemanager, label, code, dx, dy) {
+                if (code === void 0) { code = 0; }
+                if (dx === void 0) { dx = 1; }
+                if (dy === void 0) { dy = 1; }
+                _super.call(this, x, y, imagemanager, label, code, dx, dy);
+            }
+            return Player;
+        })(Game.Sprite);
+        States.Player = Player;
+        var Stage = (function (_super) {
+            __extends(Stage, _super);
+            function Stage(name, sm) {
+                _super.call(this, name, sm);
+                this.x = 0;
+                this.player = new Player(224, 120, this.sm.game.assets.image, "pattern", 100);
+                this.sprites = new Game.Group(this.sm.game.screen);
+                this.sprites.add(this.player);
+            }
+            Stage.prototype.enter = function () {
+                console.log(this.name);
+            };
+            Stage.prototype.update = function () {
+                // 背景色で埋めてみる
+                this.sm.game.screen.context.fillStyle = "rgb(0,255,255)";
+                this.sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
+                this.sprites.draw();
+                // うごく
+                if (this.sm.game.gamekey.isDown(39)) {
+                    this.player.x += 8;
+                }
+                if (this.sm.game.gamekey.isDown(37)) {
+                    this.player.x -= 8;
+                }
+                if (this.sm.game.gamekey.isOnDown(80)) {
+                    this.sm.push(new States.Pause(this.name + "-pause", this.sm)); // ポーズ
+                }
+                if (this.sm.game.gamekey.isOnDown(84)) {
+                    this.sm.pop(); // タイトルに戻る
+                }
+            };
+            return Stage;
+        })(States.AbstractState);
+        States.Stage = Stage;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var States;
+    (function (States) {
+        var Preload = (function (_super) {
+            __extends(Preload, _super);
+            function Preload() {
+                _super.apply(this, arguments);
+            }
+            Preload.prototype.enter = function () {
+                console.log(this.name);
+                var assets = this.sm.game.assets;
+                assets.image.regist_image("title", "title.gif");
+                assets.image.regist_pattern("pattern", "pattern.gif", 32, 32);
+                assets.load();
+            };
+            Preload.prototype.update = function () {
+                var loader = this.sm.game.assets.loader;
+                if (loader.state == 2 /* NOTHING2LOAD */) {
+                    this.sm.replace(new States.Title("title", this.sm));
+                }
+            };
+            return Preload;
+        })(States.AbstractState);
+        States.Preload = Preload;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+//# sourceMappingURL=app.js.map

@@ -21,7 +21,6 @@
     <Content Include="app.css" />
     <Content Include="index.html" />
     <Content Include="out.js" />
-    <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
@@ -33,14 +32,6 @@
     <TypeScriptCompile Include="src\state.ts" />
     <TypeScriptCompile Include="src\statemachine.ts" />
     <TypeScriptCompile Include="src\surface.ts" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="web.Debug.config">
-      <DependentUpon>web.config</DependentUpon>
-    </None>
-    <None Include="web.Release.config">
-      <DependentUpon>web.config</DependentUpon>
-    </None>
   </ItemGroup>
   <ItemGroup />
   <PropertyGroup>

@@ -1,4 +1,5 @@
 ﻿/// <reference path="surface.ts"/>
+/// <reference path="sprite.ts"/>
 /// <reference path="input.ts"/>
 /// <reference path="assets.ts"/>
 /// <reference path="statemachine.ts"/>
@@ -32,15 +33,12 @@ module Game {
             this.gamekey.setEvent(this.screen.container);　// 画面に対してキー入力を受け付けるように
         }
         // ゲームループの開始
-        public start() {
+        public start(state?:State) {
             console.log("app start"); // DEBUG
             // this.statemachine.push(最初のState);
-            if(!this.statemachine.CurrentState()) this.statemachine.push(new States.Preload("preload", this.statemachine));
+            /*if(!this.statemachine.CurrentState()) this.statemachine.push(new States.Preload("preload", this.statemachine));*/
+            if(!this.statemachine.CurrentState()) this.statemachine.push(state); // TODO:state==null時などの考慮
 
-            /*this.statemachine.regist(new Preload("preload", this.statemachine));
-            this.statemachine.start("preload");*/
-
-            //this.timerToken = setInterval(() => this.statemachine.update(), 100);
             this.timerToken = setInterval(() => this.loop(), 100);
         }
         // 使うの?
