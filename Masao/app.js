@@ -42,6 +42,30 @@ window.onload = function () {
 };
 var Game;
 (function (Game) {
+    var Player = (function (_super) {
+        __extends(Player, _super);
+        function Player(input, x, y, imagemanager, label, code, dx, dy) {
+            if (code === void 0) { code = 0; }
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, code, dx, dy);
+            this.gk = input;
+        }
+        Player.prototype.update = function () {
+            // うごく
+            if (this.gk.isDown(39)) {
+                this.x += 8;
+            }
+            if (this.gk.isDown(37)) {
+                this.x -= 8;
+            }
+        };
+        return Player;
+    })(Game.Sprite);
+    Game.Player = Player;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
     var States;
     (function (States) {
         var Pause = (function (_super) {
@@ -80,33 +104,12 @@ var Game;
 (function (Game) {
     var States;
     (function (States) {
-        var Player = (function (_super) {
-            __extends(Player, _super);
-            function Player(input, x, y, imagemanager, label, code, dx, dy) {
-                if (code === void 0) { code = 0; }
-                if (dx === void 0) { dx = 1; }
-                if (dy === void 0) { dy = 1; }
-                _super.call(this, x, y, imagemanager, label, code, dx, dy);
-                this.gk = input;
-            }
-            Player.prototype.update = function () {
-                // うごく
-                if (this.gk.isDown(39)) {
-                    this.x += 8;
-                }
-                if (this.gk.isDown(37)) {
-                    this.x -= 8;
-                }
-            };
-            return Player;
-        })(Game.Sprite);
-        States.Player = Player;
         var Stage = (function (_super) {
             __extends(Stage, _super);
             function Stage(name, sm) {
                 _super.call(this, name, sm);
                 this.gk = this.sm.game.gamekey;
-                this.player = new Player(this.gk, 224, 120, this.sm.game.assets.image, "pattern", 100);
+                this.player = new Game.Player(this.gk, 224, 120, this.sm.game.assets.image, "pattern", 100);
                 this.sprites = new Game.Group(this.sm.game.screen);
                 this.sprites.add(this.player);
             }
