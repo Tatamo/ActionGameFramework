@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActionGameFramework", "ActionGameFramework\ActionGameFramework.csproj", "{91838006-AD11-4C32-B08E-54EF86418F50}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Masao", "Masao\Masao.csproj", "{460430A5-D7B1-4775-BB35-2930D939314E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{91838006-AD11-4C32-B08E-54EF86418F50}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91838006-AD11-4C32-B08E-54EF86418F50}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91838006-AD11-4C32-B08E-54EF86418F50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{460430A5-D7B1-4775-BB35-2930D939314E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{460430A5-D7B1-4775-BB35-2930D939314E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{460430A5-D7B1-4775-BB35-2930D939314E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{460430A5-D7B1-4775-BB35-2930D939314E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
