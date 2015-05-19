@@ -1,4 +1,4 @@
-﻿/// <reference path="../ActionGameFramework/out.d.ts"/>
+﻿/// <reference path="./out.d.ts"/>
 /// <reference path="./src/states/preload.ts"/>
 
 var game: Game.Game;
@@ -6,5 +6,5 @@ window.onload = () => {
     var el = document.getElementById('content');
     game = new Game.Game();
     game.setparent(el);
-    game.start(new Game.States.Preload("preload", game.statemachine));
+    game.start(new Game.States.Preload(game.statemachine));
 };

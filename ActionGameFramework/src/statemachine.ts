@@ -4,35 +4,24 @@ module Game {
         private current_state: State;
         private global_state: State;
         private root_state: State;
-        /*private is_started: boolean;*/
         private _states: Array<State>;
-        public game: Game;
         public parent: any;
 
-        constructor(game: Game, parent: any = null) {
+        constructor(parent: any = null) {
             this.current_state = null;
             this.global_state = null;
             this.root_state = null;
             /*this.is_started = false;*/
             this._states = new Array<State>();
 
-            this.game = game;
             this.parent = parent;
         }
         update() {
-            /*if (this.is_started) {*/
             // グローバルステートが存在すれば実行
             if (this.global_state) this.global_state.update();
             // 現在のステートの処理
             if (this.current_state) this.current_state.update();
-            /*}*/
-        }/*
-        start(state: string) {
-            this.is_started = true;
         }
-        regist(state: State) {
-            this._states.set(state.name, state);
-        }*/
         // スタックに新しいStateを積み、そのStateに遷移する
         // UNDONE:戻り値未定義
         push(state: State) {
@@ -71,5 +60,12 @@ module Game {
         CurrentState(): State { return this.current_state; }
         RootState(): State { return this.root_state; }
         GlobalState(): State { return this.global_state; }
+    }
+    export class GameStateMachine extends StateMachine {
+        public game: Game;
+        constructor(game: Game, parent: any = null) {
+            super(parent);
+            this.game = game;
+        }
     }
 }

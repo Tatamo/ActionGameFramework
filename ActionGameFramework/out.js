@@ -662,6 +662,11 @@ var Game;
             if (dx === void 0) { dx = 1; }
             if (dy === void 0) { dy = 1; }
             this._groups = new Array();
+            if (Sprite.default_groups) {
+                for (var i = 0; i < Sprite.default_groups.length; i++) {
+                    Sprite.default_groups[i].add(this);
+                }
+            }
             this.x = x;
             this.y = y;
             this.z = 0;
@@ -681,6 +686,12 @@ var Game;
             enumerable: true,
             configurable: true
         });
+        Sprite.getDefaultGroups = function () {
+            return Sprite.default_groups;
+        };
+        Sprite.setDefaultGroups = function (groups) {
+            Sprite.default_groups = groups;
+        };
         /*// Surfaceの初期化
         setsurface(screen: Surface) {
         }*/
@@ -759,8 +770,9 @@ var Game;
     var States;
     (function (States) {
         var AbstractState = (function () {
-            function AbstractState(name, sm) {
-                this.name = name;
+            //constructor(name: string, sm: GameStateMachine) {
+            function AbstractState(sm) {
+                //this.name = name;
                 this.sm = sm;
             }
             AbstractState.prototype.enter = function () {
@@ -778,32 +790,23 @@ var Game;
 var Game;
 (function (Game) {
     var StateMachine = (function () {
-        function StateMachine(game, parent) {
+        function StateMachine(parent) {
             if (parent === void 0) { parent = null; }
             this.current_state = null;
             this.global_state = null;
             this.root_state = null;
             /*this.is_started = false;*/
             this._states = new Array();
-            this.game = game;
             this.parent = parent;
         }
         StateMachine.prototype.update = function () {
-            /*if (this.is_started) {*/
             // グローバルステートが存在すれば実行
             if (this.global_state)
                 this.global_state.update();
             // 現在のステートの処理
             if (this.current_state)
                 this.current_state.update();
-            /*}*/
-        }; /*
-        start(state: string) {
-            this.is_started = true;
-        }
-        regist(state: State) {
-            this._states.set(state.name, state);
-        }*/
+        };
         // スタックに新しいStateを積み、そのStateに遷移する
         // UNDONE:戻り値未定義
         StateMachine.prototype.push = function (state) {
@@ -855,6 +858,16 @@ var Game;
         return StateMachine;
     })();
     Game.StateMachine = StateMachine;
+    var GameStateMachine = (function (_super) {
+        __extends(GameStateMachine, _super);
+        function GameStateMachine(game, parent) {
+            if (parent === void 0) { parent = null; }
+            _super.call(this, parent);
+            this.game = game;
+        }
+        return GameStateMachine;
+    })(StateMachine);
+    Game.GameStateMachine = GameStateMachine;
 })(Game || (Game = {}));
 /// <reference path="surface.ts"/>
 /// <reference path="sprite.ts"/>
@@ -869,7 +882,7 @@ var Game;
     var Game = (function () {
         function Game() {
             this.screen = new _Game.Surface(SCREEN_WIDTH, SCREEN_HEIGHT);
-            this.statemachine = new _Game.StateMachine(this);
+            this.statemachine = new _Game.GameStateMachine(this);
             this.gamekey = new _Game.GameKey();
             this.assets = new _Game.AssetsManagerManager();
             //this.config = new Config(map, image, config);

@@ -1,15 +1,14 @@
 ﻿module Game {
     export module States {
-        export class Pause extends AbstractState {
+        export class Pause extends GameState {
             background: HTMLCanvasElement;
-            constructor(name: string, sm: StateMachine) {
-                super(name, sm);
+            constructor(sm: GameStateMachine) {
+                super(sm);
                 this.background = document.createElement("canvas");
                 this.background.width = this.sm.game.screen.width;
                 this.background.height = this.sm.game.screen.height;
             }
             enter() {
-                console.log(this.name);
                 // 現在の画面を保存
                 this.background.getContext("2d").drawImage(this.sm.game.screen.canvas, 0, 0);
             }

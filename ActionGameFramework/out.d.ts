@@ -164,7 +164,9 @@ declare module Game {
         private _groups;
         width: number;
         height: number;
-        static default_groups: Array<Group>;
+        private static default_groups;
+        static getDefaultGroups(): Group[];
+        static setDefaultGroups(groups: Array<Group>): void;
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, code?: number, dx?: number, dy?: number);
         add(group: Group): void;
         remove(group: Group): void;
@@ -193,7 +195,6 @@ declare module Game {
 declare module Game {
     interface State {
         parent: State;
-        name: string;
         sm: StateMachine;
         enter(): any;
         update(): any;
@@ -202,9 +203,8 @@ declare module Game {
     module States {
         class AbstractState implements State {
             parent: State;
-            name: string;
             sm: StateMachine;
-            constructor(name: string, sm: StateMachine);
+            constructor(sm: StateMachine);
             enter(): void;
             update(): void;
             exit(): void;
@@ -217,9 +217,8 @@ declare module Game {
         private global_state;
         private root_state;
         private _states;
-        game: Game;
         parent: any;
-        constructor(game: Game, parent?: any);
+        constructor(parent?: any);
         update(): void;
         push(state: State): void;
         pop(): void;
@@ -229,12 +228,16 @@ declare module Game {
         RootState(): State;
         GlobalState(): State;
     }
+    class GameStateMachine extends StateMachine {
+        game: Game;
+        constructor(game: Game, parent?: any);
+    }
 }
 declare module Game {
     class Game {
         element: HTMLElement;
         screen: Surface;
-        statemachine: StateMachine;
+        statemachine: GameStateMachine;
         gamekey: GameKey;
         assets: AssetsManagerManager;
         private timerToken;

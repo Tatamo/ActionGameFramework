@@ -10,7 +10,7 @@ module Game {
     export class Game {
         element: HTMLElement;
         screen: Surface;
-        statemachine: StateMachine;
+        statemachine: GameStateMachine;
         gamekey: GameKey;
         assets: AssetsManagerManager;
         //config:Config;
@@ -19,7 +19,7 @@ module Game {
 
         constructor() {
             this.screen = new Surface(SCREEN_WIDTH, SCREEN_HEIGHT);
-            this.statemachine = new StateMachine(this);
+            this.statemachine = new GameStateMachine(this);
             this.gamekey = new GameKey();
             this.assets = new AssetsManagerManager();
             //this.config = new Config(map, image, config);

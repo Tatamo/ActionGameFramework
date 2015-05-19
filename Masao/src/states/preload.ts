@@ -1,8 +1,10 @@
 ﻿module Game {
     export module States {
-        export class Preload extends AbstractState {
+        export class GameState extends AbstractState {
+            sm: GameStateMachine;
+        }
+        export class Preload extends GameState {
             enter() {
-                console.log(this.name);
                 var assets = this.sm.game.assets;
 
                 assets.image.regist_image("title", "title.gif");
@@ -13,7 +15,7 @@
             update() {
                 var loader = this.sm.game.assets.loader;
                 if (loader.state == PreloadStates.NOTHING2LOAD) {
-                    this.sm.replace(new Title("title", this.sm));
+                    this.sm.replace(new Title(this.sm));
                 }
             }
         }
