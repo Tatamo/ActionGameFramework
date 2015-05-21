@@ -195,19 +195,17 @@ declare module Game {
 declare module Game {
     interface State {
         parent: State;
-        sm: StateMachine;
-        enter(): any;
-        update(): any;
-        exit(): any;
+        enter(sm: StateMachine): any;
+        update(sm: StateMachine): any;
+        exit(sm: StateMachine): any;
     }
     module States {
         class AbstractState implements State {
             parent: State;
-            sm: StateMachine;
-            constructor(sm: StateMachine);
-            enter(): void;
-            update(): void;
-            exit(): void;
+            constructor();
+            enter(sm: StateMachine): void;
+            update(sm: StateMachine): void;
+            exit(sm: StateMachine): void;
         }
     }
 }

@@ -21,16 +21,16 @@ var Game;
             function Preload() {
                 _super.apply(this, arguments);
             }
-            Preload.prototype.enter = function () {
-                var assets = this.sm.game.assets;
+            Preload.prototype.enter = function (sm) {
+                var assets = sm.game.assets;
                 assets.image.regist_image("title", "title.gif");
                 assets.image.regist_pattern("pattern", "pattern.gif", 32, 32);
                 assets.load();
             };
-            Preload.prototype.update = function () {
-                var loader = this.sm.game.assets.loader;
+            Preload.prototype.update = function (sm) {
+                var loader = sm.game.assets.loader;
                 if (loader.state == 2 /* NOTHING2LOAD */) {
-                    this.sm.replace(new States.Title(this.sm));
+                    sm.replace(new States.Title());
                 }
             };
             return Preload;
@@ -45,7 +45,7 @@ window.onload = function () {
     var el = document.getElementById('content');
     game = new Game.Game();
     game.setparent(el);
-    game.start(new Game.States.Preload(game.statemachine));
+    game.start(new Game.States.Preload());
 };
 var Game;
 (function (Game) {
@@ -58,7 +58,7 @@ var Game;
             _super.call(this, x, y, imagemanager, label, code, dx, dy);
             this.gk = input;
             this.moving = new PlayerStateMachine(this);
-            this.moving.push(new States.PlayerInterialMove(this.moving));
+            this.moving.push(new States.PlayerInterialMove());
             this.counter = {};
             this.counter["running"] = 0;
             this.flags = {};
@@ -78,100 +78,85 @@ var Game;
             }
             else if (this.gk.isDown(37)) {
                 if (this.gk.releasedkeys[37] <= 8) {
-                    this.moving.replace(new States.PlayerRunningLeft(this.moving));
+                    this.moving.replace(new States.PlayerRunningLeft());
                 }
                 else if (!(this.moving.CurrentState() instanceof States.PlayerRunningLeft)) {
-                    this.moving.replace(new States.PlayerWalkingLeft(this.moving));
+                    this.moving.replace(new States.PlayerWalkingLeft());
                 }
             }
             else if (this.gk.isDown(39)) {
                 if (this.gk.releasedkeys[39] <= 8) {
-                    this.moving.replace(new States.PlayerRunningRight(this.moving));
+                    this.moving.replace(new States.PlayerRunningRight());
                 }
                 else if (!(this.moving.CurrentState() instanceof States.PlayerRunningRight)) {
-                    this.moving.replace(new States.PlayerWalkingRight(this.moving));
+                    this.moving.replace(new States.PlayerWalkingRight());
                 }
             }
             else {
-                this.moving.replace(new States.PlayerInterialMove(this.moving));
+                this.moving.replace(new States.PlayerInterialMove());
             }
-        };
-        Player.prototype.externalForce = function () {
+        }; /*
+        externalForce() {
             var cnt = this.counter;
             var flg = this.flags;
             // 歩き,走り判定
             if (this.gk.isDown(37)) {
                 cnt["running"]++;
-                if (cnt["running"] > 3)
-                    cnt["running"] = 0;
+                if (cnt["running"] > 3) cnt["running"] = 0;
                 if (flg["isRunning"]) {
                     this.vx = (this.vx - 15 > -120) ? this.vx - 15 : -120;
-                    if (this.vx > 0)
-                        this.code = 108;
-                    else
-                        this.code = 105 + cnt["running"] / 2;
+                    if (this.vx > 0) this.code = 108;
+                    else this.code = 105 + cnt["running"] / 2;
                 }
                 else {
                     this.vx = (this.vx - 15 > -60) ? this.vx - 15 : -60;
-                    if (this.vx > 0)
-                        this.code = 108;
-                    else
-                        this.code = 103 + cnt["running"] / 2;
+                    if (this.vx > 0) this.code = 108;
+                    else this.code = 103 + cnt["running"] / 2;
                 }
+                //muki_x = false;
             }
             else if (this.gk.isDown(39)) {
                 cnt["running"]++;
-                if (cnt["running"] > 3)
-                    cnt["running"] = 0;
+                if (cnt["running"] > 3) cnt["running"] = 0;
                 if (flg["isRunning"]) {
                     this.vx = (this.vx + 15 < 120) ? this.vx + 15 : 120;
-                    if (this.vx < 0)
-                        this.code = 108;
-                    else
-                        this.code = 105 + cnt["running"] / 2;
+                    if (this.vx < 0) this.code = 108;
+                    else this.code = 105 + cnt["running"] / 2;
                 }
                 else {
                     this.vx = (this.vx + 15 < 60) ? this.vx + 15 : 60;
-                    if (this.vx < 0)
-                        this.code = 108;
-                    else
-                        this.code = 103 + cnt["running"] / 2;
+                    if (this.vx < 0) this.code = 108;
+                    else this.code = 103 + cnt["running"] / 2;
                 }
+                //muki_x = true;
             }
             else if (this.vx < 0) {
                 cnt["running"]++;
-                if (cnt["running"] > 3)
-                    cnt["running"] = 0;
-                if (flg["isRunning"])
-                    this.code = 107;
-                else
-                    this.code = 103 + cnt["running"] / 2;
+                if (cnt["running"] > 3) cnt["running"] = 0;
+                if (flg["isRunning"]) this.code = 107;
+                else this.code = 103 + cnt["running"] / 2;
+                //muki_x = false;
             }
             else if (this.vx > 0) {
                 cnt["running"]++;
-                if (cnt["running"] > 3)
-                    cnt["running"] = 0;
-                if (flg["isRunning"])
-                    this.code = 107;
-                else
-                    this.code = 103 + cnt["running"] / 2;
+                if (cnt["running"] > 3) cnt["running"] = 0;
+                if (flg["isRunning"]) this.code = 107;
+                else this.code = 103 + cnt["running"] / 2;
+                //muki_x = true;
             }
+
             // 左右キー入力なし・地上
-            if (!this.gk.isDown(39) && !this.gk.isDown(37)) {
+            if (!this.gk.isDown(39) && !this.gk.isDown(37)) { // 摩擦を受ける
                 if (this.vx > 0) {
                     this.vx -= 5;
-                    if (this.vx < 0)
-                        this.vx = 0;
+                    if (this.vx < 0) this.vx = 0;
                 }
                 else if (this.vx < 0) {
                     this.vx += 5;
-                    if (this.vx > 0)
-                        this.vx = 0;
+                    if (this.vx > 0) this.vx = 0;
                 }
             }
-        };
-        Player.prototype.hoge = function () {
-        };
+        }*/
         return Player;
     })(Game.Sprite);
     Game.Player = Player;
@@ -187,14 +172,11 @@ var Game;
     Game.PlayerStateMachine = PlayerStateMachine;
     var States;
     (function (States) {
-        var PlayerMovingState = (function (_super) {
-            __extends(PlayerMovingState, _super);
-            function PlayerMovingState(sm) {
-                _super.call(this, sm);
-            }
-            return PlayerMovingState;
-        })(States.AbstractState);
-        States.PlayerMovingState = PlayerMovingState;
+        /*export interface IPlayerMovingState extends State { // 不要説 てか不要
+            enter(sm: PlayerStateMachine);
+            update(sm: PlayerStateMachine);
+            exit(sm: PlayerStateMachine);
+        }*/
         // 地上での処理が前提
         // TODO:空中
         var PlayerWalkingLeft = (function (_super) {
@@ -202,11 +184,11 @@ var Game;
             function PlayerWalkingLeft() {
                 _super.apply(this, arguments);
             }
-            PlayerWalkingLeft.prototype.enter = function () {
+            PlayerWalkingLeft.prototype.enter = function (sm) {
                 console.log("walk left ");
             };
-            PlayerWalkingLeft.prototype.update = function () {
-                var pl = this.sm.pl;
+            PlayerWalkingLeft.prototype.update = function (sm) {
+                var pl = sm.pl;
                 pl.counter["running"]++;
                 if (pl.counter["running"] > 3)
                     pl.counter["running"] = 0;
@@ -217,18 +199,18 @@ var Game;
                     pl.code = 103 + pl.counter["running"] / 2;
             };
             return PlayerWalkingLeft;
-        })(PlayerMovingState);
+        })(States.AbstractState);
         States.PlayerWalkingLeft = PlayerWalkingLeft;
         var PlayerRunningLeft = (function (_super) {
             __extends(PlayerRunningLeft, _super);
             function PlayerRunningLeft() {
                 _super.apply(this, arguments);
             }
-            PlayerRunningLeft.prototype.enter = function () {
+            PlayerRunningLeft.prototype.enter = function (sm) {
                 console.log("run left ");
             };
-            PlayerRunningLeft.prototype.update = function () {
-                var pl = this.sm.pl;
+            PlayerRunningLeft.prototype.update = function (sm) {
+                var pl = sm.pl;
                 pl.counter["running"]++;
                 if (pl.counter["running"] > 3)
                     pl.counter["running"] = 0;
@@ -239,18 +221,18 @@ var Game;
                     pl.code = 105 + pl.counter["running"] / 2;
             };
             return PlayerRunningLeft;
-        })(PlayerMovingState);
+        })(States.AbstractState);
         States.PlayerRunningLeft = PlayerRunningLeft;
         var PlayerWalkingRight = (function (_super) {
             __extends(PlayerWalkingRight, _super);
             function PlayerWalkingRight() {
                 _super.apply(this, arguments);
             }
-            PlayerWalkingRight.prototype.enter = function () {
+            PlayerWalkingRight.prototype.enter = function (sm) {
                 console.log("walk right ");
             };
-            PlayerWalkingRight.prototype.update = function () {
-                var pl = this.sm.pl;
+            PlayerWalkingRight.prototype.update = function (sm) {
+                var pl = sm.pl;
                 pl.counter["running"]++;
                 if (pl.counter["running"] > 3)
                     pl.counter["running"] = 0;
@@ -261,18 +243,18 @@ var Game;
                     pl.code = 103 + pl.counter["running"] / 2;
             };
             return PlayerWalkingRight;
-        })(PlayerMovingState);
+        })(States.AbstractState);
         States.PlayerWalkingRight = PlayerWalkingRight;
         var PlayerRunningRight = (function (_super) {
             __extends(PlayerRunningRight, _super);
             function PlayerRunningRight() {
                 _super.apply(this, arguments);
             }
-            PlayerRunningRight.prototype.enter = function () {
+            PlayerRunningRight.prototype.enter = function (sm) {
                 console.log("run right ");
             };
-            PlayerRunningRight.prototype.update = function () {
-                var pl = this.sm.pl;
+            PlayerRunningRight.prototype.update = function (sm) {
+                var pl = sm.pl;
                 pl.counter["running"]++;
                 if (pl.counter["running"] > 3)
                     pl.counter["running"] = 0;
@@ -283,18 +265,18 @@ var Game;
                     pl.code = 103 + pl.counter["running"] / 2;
             };
             return PlayerRunningRight;
-        })(PlayerMovingState);
+        })(States.AbstractState);
         States.PlayerRunningRight = PlayerRunningRight;
         var PlayerInterialMove = (function (_super) {
             __extends(PlayerInterialMove, _super);
             function PlayerInterialMove() {
                 _super.apply(this, arguments);
             }
-            PlayerInterialMove.prototype.enter = function () {
+            PlayerInterialMove.prototype.enter = function (sm) {
                 console.log("move interial ");
             };
-            PlayerInterialMove.prototype.update = function () {
-                var pl = this.sm.pl;
+            PlayerInterialMove.prototype.update = function (sm) {
+                var pl = sm.pl;
                 if (pl.vx < 0) {
                     pl.counter["running"]++;
                     if (pl.counter["running"] > 3)
@@ -326,7 +308,7 @@ var Game;
                 }
             };
             return PlayerInterialMove;
-        })(PlayerMovingState);
+        })(States.AbstractState);
         States.PlayerInterialMove = PlayerInterialMove;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
@@ -337,27 +319,27 @@ var Game;
         var Pause = (function (_super) {
             __extends(Pause, _super);
             function Pause(sm) {
-                _super.call(this, sm);
+                _super.call(this);
                 this.background = document.createElement("canvas");
-                this.background.width = this.sm.game.screen.width;
-                this.background.height = this.sm.game.screen.height;
+                this.background.width = sm.game.screen.width;
+                this.background.height = sm.game.screen.height;
             }
-            Pause.prototype.enter = function () {
+            Pause.prototype.enter = function (sm) {
                 // 現在の画面を保存
-                this.background.getContext("2d").drawImage(this.sm.game.screen.canvas, 0, 0);
+                this.background.getContext("2d").drawImage(sm.game.screen.canvas, 0, 0);
             };
-            Pause.prototype.update = function () {
-                this.sm.game.screen.context.drawImage(this.background, 0, 0);
-                this.sm.game.screen.context.fillStyle = "rgba(0,0,0,0.2)";
-                this.sm.game.screen.context.fillRect(0, 0, this.sm.game.screen.width, this.sm.game.screen.height);
-                this.sm.game.screen.context.fillStyle = "black";
-                this.sm.game.screen.context.strokeText("PAUSE", 240, 150);
-                if (this.sm.game.gamekey.isOnDown(80)) {
-                    this.sm.pop(); // ステージに戻る
+            Pause.prototype.update = function (sm) {
+                sm.game.screen.context.drawImage(this.background, 0, 0);
+                sm.game.screen.context.fillStyle = "rgba(0,0,0,0.2)";
+                sm.game.screen.context.fillRect(0, 0, sm.game.screen.width, sm.game.screen.height);
+                sm.game.screen.context.fillStyle = "black";
+                sm.game.screen.context.strokeText("PAUSE", 240, 150);
+                if (sm.game.gamekey.isOnDown(80)) {
+                    sm.pop(); // ステージに戻る
                 }
-                if (this.sm.game.gamekey.isOnDown(84)) {
-                    this.sm.pop();
-                    this.sm.pop(); // タイトルに戻る
+                if (sm.game.gamekey.isOnDown(84)) {
+                    sm.pop();
+                    sm.pop(); // タイトルに戻る
                 }
             };
             return Pause;
@@ -371,26 +353,25 @@ var Game;
     (function (States) {
         var Stage = (function (_super) {
             __extends(Stage, _super);
-            function Stage(sm) {
-                _super.call(this, sm);
-                this.gk = this.sm.game.gamekey;
-                this.player = new Game.Player(this.gk, 224, 120, this.sm.game.assets.image, "pattern", 100);
-                this.sprites = new Game.Group(this.sm.game.screen);
-                this.sprites.add(this.player);
+            function Stage() {
+                _super.call(this);
             }
-            Stage.prototype.enter = function () {
+            Stage.prototype.enter = function (sm) {
+                this.player = new Game.Player(sm.game.gamekey, 224, 120, sm.game.assets.image, "pattern", 100);
+                this.sprites = new Game.Group(sm.game.screen);
+                this.sprites.add(this.player);
             };
-            Stage.prototype.update = function () {
+            Stage.prototype.update = function (sm) {
                 // 背景色で埋めてみる
-                this.sm.game.screen.context.fillStyle = "rgb(0,255,255)";
-                this.sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
+                sm.game.screen.context.fillStyle = "rgb(0,255,255)";
+                sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
                 this.sprites.update();
                 this.sprites.draw();
-                if (this.gk.isOnDown(80)) {
-                    this.sm.push(new States.Pause(this.sm)); // ポーズ
+                if (sm.game.gamekey.isOnDown(80)) {
+                    sm.push(new States.Pause(sm)); // ポーズ
                 }
-                if (this.gk.isOnDown(84)) {
-                    this.sm.pop(); // タイトルに戻る
+                if (sm.game.gamekey.isOnDown(84)) {
+                    sm.pop(); // タイトルに戻る
                 }
             };
             return Stage;
@@ -407,13 +388,13 @@ var Game;
             function Title() {
                 _super.apply(this, arguments);
             }
-            Title.prototype.enter = function () {
-                this.titleimg = this.sm.game.assets.image.get("title");
+            Title.prototype.enter = function (sm) {
+                this.titleimg = sm.game.assets.image.get("title");
             };
-            Title.prototype.update = function () {
-                this.sm.game.screen.context.drawImage(this.titleimg, 0, 0);
-                if (this.sm.game.gamekey.isOnDown(90)) {
-                    this.sm.push(new States.Stage(this.sm));
+            Title.prototype.update = function (sm) {
+                sm.game.screen.context.drawImage(this.titleimg, 0, 0);
+                if (sm.game.gamekey.isOnDown(90)) {
+                    sm.push(new States.Stage());
                 }
             };
             return Title;

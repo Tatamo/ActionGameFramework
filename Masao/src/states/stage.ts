@@ -3,29 +3,27 @@
         export class Stage extends GameState {
             player: Player;
             sprites: Group;
-            gk: GameKey;
-            constructor(sm: GameStateMachine) {
-                super(sm);
-                this.gk = this.sm.game.gamekey;
-                this.player = new Player(this.gk, 224, 120, this.sm.game.assets.image, "pattern", 100);
-                this.sprites = new Group(this.sm.game.screen);
+            constructor() {
+                super();
+            }
+            enter(sm: GameStateMachine) {
+                this.player = new Player(sm.game.gamekey, 224, 120, sm.game.assets.image, "pattern", 100);
+                this.sprites = new Group(sm.game.screen);
                 this.sprites.add(this.player);
             }
-            enter() {
-            }
-            update() {
+            update(sm: GameStateMachine) {
                 // 背景色で埋めてみる
-                this.sm.game.screen.context.fillStyle = "rgb(0,255,255)";
-                this.sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
+                sm.game.screen.context.fillStyle = "rgb(0,255,255)";
+                sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
 
                 this.sprites.update();
                 this.sprites.draw();
 
-                if (this.gk.isOnDown(80)) { // Pキー
-                    this.sm.push(new Pause(this.sm)); // ポーズ
+                if (sm.game.gamekey.isOnDown(80)) { // Pキー
+                    sm.push(new Pause(sm)); // ポーズ
                 }
-                if (this.gk.isOnDown(84)) { // T
-                    this.sm.pop(); // タイトルに戻る
+                if (sm.game.gamekey.isOnDown(84)) { // T
+                    sm.pop(); // タイトルに戻る
                 }
             }
         }

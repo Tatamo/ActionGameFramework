@@ -1,8 +1,8 @@
 ﻿module Game {
     export class Player extends Sprite {
         public gk: GameKey;
-        public counter: {};
-        public flags: {};
+        public counter: { [key: string]: number; };
+        public flags: { [key: string]: boolean; };
         public code: number;
         public vx: number;
         public vy: number;
@@ -11,7 +11,7 @@
             super(x, y, imagemanager, label, code, dx, dy);
             this.gk = input;
             this.moving = new PlayerStateMachine(this);
-            this.moving.push(new States.PlayerInterialMove(this.moving));
+            this.moving.push(new States.PlayerInterialMove());
             this.counter = {};
             this.counter["running"] = 0;
             this.flags = {};
@@ -23,32 +23,32 @@
             this.checkInput();
             //this.externalForce();
             this.moving.update();
-            this.x += this.vx/10;
-            this.y += this.vy/10;
+            this.x += this.vx / 10;
+            this.y += this.vy / 10;
         }
         checkInput() {
             if (this.gk.isDown(37) && this.gk.isDown(39)) { } // 左右同時に押されていたらとりあえず何もしないことに
             else if (this.gk.isDown(37)) {
                 if (this.gk.releasedkeys[37] <= 8) {
-                    this.moving.replace(new States.PlayerRunningLeft(this.moving));
+                    this.moving.replace(new States.PlayerRunningLeft());
                     //this.flags["isRunning"] = true;
                 }
                 else if(!(this.moving.CurrentState() instanceof States.PlayerRunningLeft)) {
-                    this.moving.replace(new States.PlayerWalkingLeft(this.moving));
+                    this.moving.replace(new States.PlayerWalkingLeft());
                 }
             }
             else if (this.gk.isDown(39)) {
                 if (this.gk.releasedkeys[39] <= 8) {
-                    this.moving.replace(new States.PlayerRunningRight(this.moving));
+                    this.moving.replace(new States.PlayerRunningRight());
                 }
                 else if (!(this.moving.CurrentState() instanceof States.PlayerRunningRight)) {
-                    this.moving.replace(new States.PlayerWalkingRight(this.moving));
+                    this.moving.replace(new States.PlayerWalkingRight());
                 }
             }
             else {
-                this.moving.replace(new States.PlayerInterialMove(this.moving));
+                this.moving.replace(new States.PlayerInterialMove());
             }
-        }
+        }/*
         externalForce() {
             var cnt = this.counter;
             var flg = this.flags;
@@ -109,8 +109,7 @@
                     if (this.vx > 0) this.vx = 0;
                 }
             }
-        }
-        hoge() { }
+        }*/
     }
     export class PlayerStateMachine extends StateMachine {
         public pl: Player;
@@ -120,20 +119,19 @@
         }
     }
     export module States {
-        export class PlayerMovingState extends AbstractState {
-            sm: PlayerStateMachine;
-            constructor(sm: PlayerStateMachine) {
-                super(sm);
-            }
-        }
+        /*export interface IPlayerMovingState extends State { // 不要説 てか不要
+            enter(sm: PlayerStateMachine);
+            update(sm: PlayerStateMachine);
+            exit(sm: PlayerStateMachine);
+        }*/
         // 地上での処理が前提
         // TODO:空中
-        export class PlayerWalkingLeft extends PlayerMovingState {
-            enter() {
+        export class PlayerWalkingLeft extends AbstractState {
+            enter(sm: PlayerStateMachine) {
                 console.log("walk left ");
             }
-            update() {
-                var pl = this.sm.pl;
+            update(sm: PlayerStateMachine) {
+                var pl = sm.pl;
                 pl.counter["running"]++;
                 if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                 pl.vx = (pl.vx - 15 > -60) ? pl.vx - 15 : -60;
@@ -141,12 +139,12 @@
                 else pl.code = 103 + pl.counter["running"] / 2;
             }
         }
-        export class PlayerRunningLeft extends PlayerMovingState {
-            enter() {
+        export class PlayerRunningLeft extends AbstractState {
+            enter(sm: PlayerStateMachine) {
                 console.log("run left ");
             }
-            update() {
-                var pl = this.sm.pl;
+            update(sm: PlayerStateMachine) {
+                var pl = sm.pl;
                 pl.counter["running"]++;
                 if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                 pl.vx = (pl.vx - 15 > -120) ? pl.vx - 15 : -120;
@@ -154,12 +152,12 @@
                 else pl.code = 105 + pl.counter["running"] / 2;
             }
         }
-        export class PlayerWalkingRight extends PlayerMovingState {
-            enter() {
+        export class PlayerWalkingRight extends AbstractState {
+            enter(sm: PlayerStateMachine) {
                 console.log("walk right ");
             }
-            update() {
-                var pl = this.sm.pl;
+            update(sm: PlayerStateMachine) {
+                var pl = sm.pl;
                 pl.counter["running"]++;
                 if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                 pl.vx = (pl.vx + 15 < 60) ? pl.vx + 15 : 60;
@@ -167,12 +165,12 @@
                 else pl.code = 103 + pl.counter["running"] / 2;
             }
         }
-        export class PlayerRunningRight extends PlayerMovingState {
-            enter() {
+        export class PlayerRunningRight extends AbstractState {
+            enter(sm: PlayerStateMachine) {
                 console.log("run right ");
             }
-            update() {
-                var pl = this.sm.pl;
+            update(sm: PlayerStateMachine) {
+                var pl = sm.pl;
                 pl.counter["running"]++;
                 if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                 pl.vx = (pl.vx + 15 < 120) ? pl.vx + 15 : 120;
@@ -180,12 +178,12 @@
                 else pl.code = 103 + pl.counter["running"] / 2;
             }
         }
-        export class PlayerInterialMove extends PlayerMovingState {
-            enter() {
+        export class PlayerInterialMove extends AbstractState {
+            enter(sm: PlayerStateMachine) {
                 console.log("move interial ");
             }
-            update() {
-                var pl = this.sm.pl;
+            update(sm: PlayerStateMachine) {
+                var pl = sm.pl;
                 if (pl.vx < 0) {
                     pl.counter["running"]++;
                     if (pl.counter["running"] > 3) pl.counter["running"] = 0;

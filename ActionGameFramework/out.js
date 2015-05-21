@@ -770,16 +770,16 @@ var Game;
     var States;
     (function (States) {
         var AbstractState = (function () {
+            //name: string;
             //constructor(name: string, sm: GameStateMachine) {
-            function AbstractState(sm) {
+            function AbstractState() {
                 //this.name = name;
-                this.sm = sm;
             }
-            AbstractState.prototype.enter = function () {
+            AbstractState.prototype.enter = function (sm) {
             };
-            AbstractState.prototype.update = function () {
+            AbstractState.prototype.update = function (sm) {
             };
-            AbstractState.prototype.exit = function () {
+            AbstractState.prototype.exit = function (sm) {
             };
             return AbstractState;
         })();
@@ -802,10 +802,10 @@ var Game;
         StateMachine.prototype.update = function () {
             // グローバルステートが存在すれば実行
             if (this.global_state)
-                this.global_state.update();
+                this.global_state.update(this);
             // 現在のステートの処理
             if (this.current_state)
-                this.current_state.update();
+                this.current_state.update(this);
         };
         // スタックに新しいStateを積み、そのStateに遷移する
         // UNDONE:戻り値未定義
@@ -814,36 +814,36 @@ var Game;
             if (this._states.length == 0)
                 this.root_state = state;
             if (this.current_state)
-                this.current_state.exit();
+                this.current_state.exit(this);
             this._states.push(state);
             this.current_state = state;
-            this.current_state.enter();
+            this.current_state.enter(this);
         };
         // 現在のステートを終了し、前のステートに遷移する
         // UNDONE:戻り値未定義
         StateMachine.prototype.pop = function () {
             /*// rootならばpopはできない
             if (this.current_state == this.root_state) return;*/
-            this._states.pop().exit();
+            this._states.pop().exit(this);
             console.log(this._states);
             this.current_state = this._states[this._states.length - 1];
             if (this.current_state)
-                this.current_state.enter();
+                this.current_state.enter(this);
         };
         // 現在のステートを新しいステートに入れ替え、遷移処理を行う
         StateMachine.prototype.replace = function (state) {
             // 現在のステートがrootならば、新しいステートをrootとする
             if (this.root_state = this.current_state)
                 this.root_state = state;
-            this._states.pop().exit();
+            this._states.pop().exit(this);
             this._states.push(state);
             this.current_state = state;
-            this.current_state.enter();
+            this.current_state.enter(this);
         };
         // 初期化用
         StateMachine.prototype.setGlobalState = function (state) {
             this.global_state = state;
-            this.global_state.enter();
+            this.global_state.enter(this);
         };
         // アクセサ
         StateMachine.prototype.CurrentState = function () {

@@ -2,13 +2,13 @@
     export module States {
         export class Title extends GameState {
             titleimg: HTMLCanvasElement;
-            enter() {
-                this.titleimg = this.sm.game.assets.image.get("title");
+            enter(sm: GameStateMachine) {
+                this.titleimg = sm.game.assets.image.get("title");
             }
-            update() {
-                this.sm.game.screen.context.drawImage(this.titleimg, 0, 0);
-                if (this.sm.game.gamekey.isOnDown(90)) { // Z
-                    this.sm.push(new Stage(this.sm));
+            update(sm: GameStateMachine) {
+                sm.game.screen.context.drawImage(this.titleimg, 0, 0);
+                if (sm.game.gamekey.isOnDown(90)) { // Z
+                    sm.push(new Stage());
                 }
             }
         }

@@ -6,5 +6,5 @@ window.onload = () => {
     var el = document.getElementById('content');
     game = new Game.Game();
     game.setparent(el);
-    game.start(new Game.States.Preload(game.statemachine));
+    game.start(new Game.States.Preload());
 };

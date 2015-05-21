@@ -3,25 +3,22 @@ module Game {
     export interface State {
         parent: State;
         //name: string;
-        sm: StateMachine;
-        enter();
-        update();
-        exit();
+        enter(sm: StateMachine);
+        update(sm: StateMachine);
+        exit(sm: StateMachine);
     }
 
     export module States {
         export class AbstractState implements State {
             parent: State;
             //name: string;
-            sm: StateMachine;
             //constructor(name: string, sm: GameStateMachine) {
-            constructor(sm: StateMachine) {
+            constructor() {
                 //this.name = name;
-                this.sm = sm;
             }
-            enter() { }
-            update() { }
-            exit() { }
+            enter(sm: StateMachine) { }
+            update(sm: StateMachine) { }
+            exit(sm: StateMachine) { }
         }
     }
 }
