@@ -11,17 +11,24 @@ module Game {
         kill();
     }
     // UNDONE: 自分の所属しているgroup名の取得
+    // パターン画像を使用するスプライト
     export class Sprite implements ISprite {
         x: number; // マップ座標
         y: number; // マップ座標
         z: number; // マップ座標
-        surface: Surface;
+        surface: PatternSurface;
         private _groups: Array<Group>;
         get width(): number {
             return this.surface.width;
         }
         get height(): number {
             return this.surface.height;
+        }
+        get code(): number {
+            return this.surface.code;
+        }
+        set code(c: number) {
+            this.surface.code = c;
         }
         private static default_groups: Array<Group> = [];
         static getDefaultGroups() {

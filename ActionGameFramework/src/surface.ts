@@ -75,6 +75,7 @@
         set code(c: number) {
             this._code = c;
             var i = this._im.getwide(this._label, this._code, this._dx, this._dy);
+            this.canvas.getContext("2d").clearRect(0, 0, this.width, this.height);
             this.canvas.getContext("2d").drawImage(i, 0, 0, i.width, i.height, 0, 0, i.width, i.height);
         }
         constructor(imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {

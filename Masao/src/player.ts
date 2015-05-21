@@ -3,7 +3,6 @@
         public gk: GameKey;
         public counter: { [key: string]: number; };
         public flags: { [key: string]: boolean; };
-        public code: number;
         public vx: number;
         public vy: number;
         public moving: PlayerStateMachine;
@@ -136,7 +135,7 @@
                 if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                 pl.vx = (pl.vx - 15 > -60) ? pl.vx - 15 : -60;
                 if (pl.vx > 0) pl.code = 108;
-                else pl.code = 103 + pl.counter["running"] / 2;
+                else pl.code = 103 + Math.floor(pl.counter["running"] / 2);
             }
         }
         export class PlayerRunningLeft extends AbstractState {
@@ -149,7 +148,7 @@
                 if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                 pl.vx = (pl.vx - 15 > -120) ? pl.vx - 15 : -120;
                 if (pl.vx > 0) pl.code = 108;
-                else pl.code = 105 + pl.counter["running"] / 2;
+                else pl.code = 105 + Math.floor(pl.counter["running"] / 2);
             }
         }
         export class PlayerWalkingRight extends AbstractState {
@@ -161,8 +160,8 @@
                 pl.counter["running"]++;
                 if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                 pl.vx = (pl.vx + 15 < 60) ? pl.vx + 15 : 60;
-                if (pl.vx > 0) pl.code = 108;
-                else pl.code = 103 + pl.counter["running"] / 2;
+                if (pl.vx < 0) pl.code = 108;
+                else pl.code = 103 + Math.floor(pl.counter["running"] / 2);
             }
         }
         export class PlayerRunningRight extends AbstractState {
@@ -174,8 +173,8 @@
                 pl.counter["running"]++;
                 if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                 pl.vx = (pl.vx + 15 < 120) ? pl.vx + 15 : 120;
-                if (pl.vx > 0) pl.code = 108;
-                else pl.code = 103 + pl.counter["running"] / 2;
+                if (pl.vx < 0) pl.code = 108;
+                else pl.code = 105 + Math.floor(pl.counter["running"] / 2);
             }
         }
         export class PlayerInterialMove extends AbstractState {
@@ -188,14 +187,14 @@
                     pl.counter["running"]++;
                     if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                     if (pl.flags["isRunning"]) pl.code = 107;
-                    else pl.code = 103 + pl.counter["running"] / 2;
+                    else pl.code = 103 + Math.floor(pl.counter["running"] / 2);
                     //muki_x = false;
                 }
                 else if (pl.vx > 0) {
                     pl.counter["running"]++;
                     if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                     if (pl.flags["isRunning"]) pl.code = 107;
-                    else pl.code = 103 + pl.counter["running"] / 2;
+                    else pl.code = 103 + Math.floor(pl.counter["running"] / 2);
                     //muki_x = true;
                 }
 

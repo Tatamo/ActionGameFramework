@@ -196,7 +196,7 @@ var Game;
                 if (pl.vx > 0)
                     pl.code = 108;
                 else
-                    pl.code = 103 + pl.counter["running"] / 2;
+                    pl.code = 103 + Math.floor(pl.counter["running"] / 2);
             };
             return PlayerWalkingLeft;
         })(States.AbstractState);
@@ -218,7 +218,7 @@ var Game;
                 if (pl.vx > 0)
                     pl.code = 108;
                 else
-                    pl.code = 105 + pl.counter["running"] / 2;
+                    pl.code = 105 + Math.floor(pl.counter["running"] / 2);
             };
             return PlayerRunningLeft;
         })(States.AbstractState);
@@ -237,10 +237,10 @@ var Game;
                 if (pl.counter["running"] > 3)
                     pl.counter["running"] = 0;
                 pl.vx = (pl.vx + 15 < 60) ? pl.vx + 15 : 60;
-                if (pl.vx > 0)
+                if (pl.vx < 0)
                     pl.code = 108;
                 else
-                    pl.code = 103 + pl.counter["running"] / 2;
+                    pl.code = 103 + Math.floor(pl.counter["running"] / 2);
             };
             return PlayerWalkingRight;
         })(States.AbstractState);
@@ -259,10 +259,10 @@ var Game;
                 if (pl.counter["running"] > 3)
                     pl.counter["running"] = 0;
                 pl.vx = (pl.vx + 15 < 120) ? pl.vx + 15 : 120;
-                if (pl.vx > 0)
+                if (pl.vx < 0)
                     pl.code = 108;
                 else
-                    pl.code = 103 + pl.counter["running"] / 2;
+                    pl.code = 105 + Math.floor(pl.counter["running"] / 2);
             };
             return PlayerRunningRight;
         })(States.AbstractState);
@@ -284,7 +284,7 @@ var Game;
                     if (pl.flags["isRunning"])
                         pl.code = 107;
                     else
-                        pl.code = 103 + pl.counter["running"] / 2;
+                        pl.code = 103 + Math.floor(pl.counter["running"] / 2);
                 }
                 else if (pl.vx > 0) {
                     pl.counter["running"]++;
@@ -293,7 +293,7 @@ var Game;
                     if (pl.flags["isRunning"])
                         pl.code = 107;
                     else
-                        pl.code = 103 + pl.counter["running"] / 2;
+                        pl.code = 103 + Math.floor(pl.counter["running"] / 2);
                 }
                 // 摩擦を受ける
                 if (pl.vx > 0) {

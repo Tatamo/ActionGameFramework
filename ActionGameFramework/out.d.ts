@@ -40,26 +40,6 @@ declare module Game {
     }
 }
 declare module Game {
-    class GameKey {
-        keys: {
-            [key: number]: number;
-        };
-        releasedkeys: {
-            [key: number]: number;
-        };
-        private keepreleasedtime;
-        constructor();
-        setEvent(el: HTMLElement): void;
-        init(): void;
-        update(): void;
-        KeyDown(key: number): void;
-        KeyUp(key: number): void;
-        isDown(key: number): boolean;
-        isOnDown(key: number): boolean;
-        getCount(key: number): number;
-    }
-}
-declare module Game {
     class AssetsManagerManager {
         loader: Loader;
         image: ImageManager;
@@ -122,6 +102,26 @@ declare module Game {
     }
 }
 declare module Game {
+    class GameKey {
+        keys: {
+            [key: number]: number;
+        };
+        releasedkeys: {
+            [key: number]: number;
+        };
+        private keepreleasedtime;
+        constructor();
+        setEvent(el: HTMLElement): void;
+        init(): void;
+        update(): void;
+        KeyDown(key: number): void;
+        KeyUp(key: number): void;
+        isDown(key: number): boolean;
+        isOnDown(key: number): boolean;
+        getCount(key: number): number;
+    }
+}
+declare module Game {
     interface ISurface {
     }
     class Surface {
@@ -160,10 +160,11 @@ declare module Game {
         x: number;
         y: number;
         z: number;
-        surface: Surface;
+        surface: PatternSurface;
         private _groups;
         width: number;
         height: number;
+        code: number;
         private static default_groups;
         static getDefaultGroups(): Group[];
         static setDefaultGroups(groups: Array<Group>): void;
