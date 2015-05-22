@@ -6,8 +6,8 @@
         public vx: number;
         public vy: number;
         public moving: PlayerStateMachine;
-        constructor(input: GameKey, x: number, y: number, imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {
-            super(x, y, imagemanager, label, code, dx, dy);
+        constructor(input: GameKey, x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
+            super(x, y, imagemanager, label, 100, dx, dy);
             this.gk = input;
             this.moving = new PlayerStateMachine(this);
             this.moving.push(new States.PlayerInterialMove());
@@ -17,6 +17,7 @@
             this.flags["isRunning"] = false;
             this.vx = 0;
             this.vy = 0;
+            this.z = 128;
         }
         update() {
             this.checkInput();

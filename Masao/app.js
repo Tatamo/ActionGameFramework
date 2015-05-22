@@ -49,13 +49,52 @@ window.onload = function () {
 };
 var Game;
 (function (Game) {
-    var Player = (function (_super) {
-        __extends(Player, _super);
-        function Player(input, x, y, imagemanager, label, code, dx, dy) {
-            if (code === void 0) { code = 0; }
+    var Block = (function (_super) {
+        __extends(Block, _super);
+        function Block(x, y, imagemanager, label, dx, dy) {
             if (dx === void 0) { dx = 1; }
             if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, code, dx, dy);
+            _super.call(this, x, y, imagemanager, label, 21, dx, dy);
+            this.z = 512;
+            this.initPatternCode();
+        }
+        // to be overridden
+        Block.prototype.initPatternCode = function () {
+            this.code = 20;
+        };
+        return Block;
+    })(Game.Sprite);
+    var Block1 = (function (_super) {
+        __extends(Block1, _super);
+        function Block1() {
+            _super.apply(this, arguments);
+        }
+        Block1.prototype.initPattern = function () {
+            this.code = 20;
+        };
+        return Block1;
+    })(Block);
+    Game.Block1 = Block1;
+    var Block2 = (function (_super) {
+        __extends(Block2, _super);
+        function Block2() {
+            _super.apply(this, arguments);
+        }
+        Block2.prototype.initPattern = function () {
+            this.code = 21;
+        };
+        return Block2;
+    })(Block);
+    Game.Block2 = Block2;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var Player = (function (_super) {
+        __extends(Player, _super);
+        function Player(input, x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, 100, dx, dy);
             this.gk = input;
             this.moving = new PlayerStateMachine(this);
             this.moving.push(new States.PlayerInterialMove());
@@ -65,6 +104,7 @@ var Game;
             this.flags["isRunning"] = false;
             this.vx = 0;
             this.vy = 0;
+            this.z = 128;
         }
         Player.prototype.update = function () {
             this.checkInput();
@@ -357,9 +397,10 @@ var Game;
                 _super.call(this);
             }
             Stage.prototype.enter = function (sm) {
-                this.player = new Game.Player(sm.game.gamekey, 224, 120, sm.game.assets.image, "pattern", 100);
+                this.player = new Game.Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
                 this.sprites = new Game.Group(sm.game.screen);
                 this.sprites.add(this.player);
+                this.sprites.add(new Game.Block1(224, 160, sm.game.assets.image, "pattern"));
             };
             Stage.prototype.update = function (sm) {
                 // 背景色で埋めてみる

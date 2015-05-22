@@ -7,9 +7,10 @@
                 super();
             }
             enter(sm: GameStateMachine) {
-                this.player = new Player(sm.game.gamekey, 224, 120, sm.game.assets.image, "pattern", 100);
+                this.player = new Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
                 this.sprites = new Group(sm.game.screen);
                 this.sprites.add(this.player);
+                this.sprites.add(new Block1(224, 160, sm.game.assets.image, "pattern"));
             }
             update(sm: GameStateMachine) {
                 // 背景色で埋めてみる
