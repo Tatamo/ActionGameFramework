@@ -48,68 +48,7 @@
             else {
                 this.moving.replace(new States.PlayerInterialMove());
             }
-        }/*
-        externalForce() {
-            var cnt = this.counter;
-            var flg = this.flags;
-            // 歩き,走り判定
-            if (this.gk.isDown(37)) {
-                cnt["running"]++;
-                if (cnt["running"] > 3) cnt["running"] = 0;
-                if (flg["isRunning"]) {
-                    this.vx = (this.vx - 15 > -120) ? this.vx - 15 : -120;
-                    if (this.vx > 0) this.code = 108;
-                    else this.code = 105 + cnt["running"] / 2;
-                }
-                else {
-                    this.vx = (this.vx - 15 > -60) ? this.vx - 15 : -60;
-                    if (this.vx > 0) this.code = 108;
-                    else this.code = 103 + cnt["running"] / 2;
-                }
-                //muki_x = false;
-            }
-            else if (this.gk.isDown(39)) {
-                cnt["running"]++;
-                if (cnt["running"] > 3) cnt["running"] = 0;
-                if (flg["isRunning"]) {
-                    this.vx = (this.vx + 15 < 120) ? this.vx + 15 : 120;
-                    if (this.vx < 0) this.code = 108;
-                    else this.code = 105 + cnt["running"] / 2;
-                }
-                else {
-                    this.vx = (this.vx + 15 < 60) ? this.vx + 15 : 60;
-                    if (this.vx < 0) this.code = 108;
-                    else this.code = 103 + cnt["running"] / 2;
-                }
-                //muki_x = true;
-            }
-            else if (this.vx < 0) {
-                cnt["running"]++;
-                if (cnt["running"] > 3) cnt["running"] = 0;
-                if (flg["isRunning"]) this.code = 107;
-                else this.code = 103 + cnt["running"] / 2;
-                //muki_x = false;
-            }
-            else if (this.vx > 0) {
-                cnt["running"]++;
-                if (cnt["running"] > 3) cnt["running"] = 0;
-                if (flg["isRunning"]) this.code = 107;
-                else this.code = 103 + cnt["running"] / 2;
-                //muki_x = true;
-            }
-
-            // 左右キー入力なし・地上
-            if (!this.gk.isDown(39) && !this.gk.isDown(37)) { // 摩擦を受ける
-                if (this.vx > 0) {
-                    this.vx -= 5;
-                    if (this.vx < 0) this.vx = 0;
-                }
-                else if (this.vx < 0) {
-                    this.vx += 5;
-                    if (this.vx > 0) this.vx = 0;
-                }
-            }
-        }*/
+        }
     }
     export class PlayerStateMachine extends StateMachine {
         public pl: Player;
@@ -129,9 +68,11 @@
         export class PlayerWalkingLeft extends AbstractState {
             enter(sm: PlayerStateMachine) {
                 console.log("walk left ");
+                sm.pl.flags["isRunning"] = false;
             }
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
+                pl.surface.reverse_horizontal = false;
                 pl.counter["running"]++;
                 if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                 pl.vx = (pl.vx - 15 > -60) ? pl.vx - 15 : -60;
@@ -142,9 +83,11 @@
         export class PlayerRunningLeft extends AbstractState {
             enter(sm: PlayerStateMachine) {
                 console.log("run left ");
+                sm.pl.flags["isRunning"] = true;
             }
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
+                pl.surface.reverse_horizontal = false;
                 pl.counter["running"]++;
                 if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                 pl.vx = (pl.vx - 15 > -120) ? pl.vx - 15 : -120;
@@ -155,9 +98,11 @@
         export class PlayerWalkingRight extends AbstractState {
             enter(sm: PlayerStateMachine) {
                 console.log("walk right ");
+                sm.pl.flags["isRunning"] = false;
             }
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
+                pl.surface.reverse_horizontal = true;
                 pl.counter["running"]++;
                 if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                 pl.vx = (pl.vx + 15 < 60) ? pl.vx + 15 : 60;
@@ -168,9 +113,11 @@
         export class PlayerRunningRight extends AbstractState {
             enter(sm: PlayerStateMachine) {
                 console.log("run right ");
+                sm.pl.flags["isRunning"] = true;
             }
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
+                pl.surface.reverse_horizontal = true;
                 pl.counter["running"]++;
                 if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                 pl.vx = (pl.vx + 15 < 120) ? pl.vx + 15 : 120;
@@ -209,7 +156,8 @@
                     if (pl.vx > 0) pl.vx = 0;
                 }
 
-                if (pl.vx == 0){
+                if (pl.vx == 0) {
+                    sm.pl.flags["isRunning"] = false;
                     pl.code = 100;
                 }
             }

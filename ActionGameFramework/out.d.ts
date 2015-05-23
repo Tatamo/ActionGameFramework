@@ -40,26 +40,6 @@ declare module Game {
     }
 }
 declare module Game {
-    class GameKey {
-        keys: {
-            [key: number]: number;
-        };
-        releasedkeys: {
-            [key: number]: number;
-        };
-        private keepreleasedtime;
-        constructor();
-        setEvent(el: HTMLElement): void;
-        init(): void;
-        update(): void;
-        KeyDown(key: number): void;
-        KeyUp(key: number): void;
-        isDown(key: number): boolean;
-        isOnDown(key: number): boolean;
-        getCount(key: number): number;
-    }
-}
-declare module Game {
     class AssetsManagerManager {
         loader: Loader;
         image: ImageManager;
@@ -122,6 +102,26 @@ declare module Game {
     }
 }
 declare module Game {
+    class GameKey {
+        keys: {
+            [key: number]: number;
+        };
+        releasedkeys: {
+            [key: number]: number;
+        };
+        private keepreleasedtime;
+        constructor();
+        setEvent(el: HTMLElement): void;
+        init(): void;
+        update(): void;
+        KeyDown(key: number): void;
+        KeyUp(key: number): void;
+        isDown(key: number): boolean;
+        isOnDown(key: number): boolean;
+        getCount(key: number): number;
+    }
+}
+declare module Game {
     interface ISurface {
     }
     class Surface {
@@ -137,12 +137,19 @@ declare module Game {
     }
     class PatternSurface extends Surface {
         private _im;
+        private _i;
         private _label;
         private _code;
         private _dx;
         private _dy;
         code: number;
+        private _reverse_vertical;
+        private _reverse_horizontal;
+        reverse_vertical: boolean;
+        reverse_horizontal: boolean;
         constructor(imagemanager: ImageManager, label: string, code?: number, dx?: number, dy?: number);
+        reverseVertical(): void;
+        reverseHorizontal(): void;
     }
 }
 declare module Game {

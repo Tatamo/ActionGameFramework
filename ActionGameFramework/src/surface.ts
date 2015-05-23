@@ -65,6 +65,7 @@
     }
     export class PatternSurface extends Surface {
         private _im: ImageManager;
+        private _i: HTMLCanvasElement;
         private _label: string;
         private _code: number;
         private _dx: number; // パターンチップ何枚分か x方向
@@ -74,9 +75,33 @@
         }
         set code(c: number) {
             this._code = c;
-            var i = this._im.getwide(this._label, this._code, this._dx, this._dy);
-            this.canvas.getContext("2d").clearRect(0, 0, this.width, this.height);
-            this.canvas.getContext("2d").drawImage(i, 0, 0, i.width, i.height, 0, 0, i.width, i.height);
+            this._i = this._im.getwide(this._label, this._code, this._dx, this._dy);
+            this.context.clearRect(0, 0, this.width, this.height);
+            this.context.drawImage(this._i, 0, 0, this._i.width, this._i.height, 0, 0, this._i.width, this._i.height);
+            if (this.reverse_horizontal) this.reverseHorizontal();
+            if (this.reverse_vertical) this.reverseVertical();
+        }
+        private _reverse_vertical: boolean;
+        private _reverse_horizontal: boolean;
+        get reverse_vertical(): boolean {
+            return this._reverse_vertical;
+        }
+        set reverse_vertical(flag: boolean) {
+            if (flag == this._reverse_vertical) return;
+            else {
+                this.reverseVertical();
+                this._reverse_vertical = !this._reverse_vertical;
+            }
+        }
+        get reverse_horizontal(): boolean {
+            return this._reverse_horizontal;
+        }
+        set reverse_horizontal(flag: boolean) {
+            if (flag == this._reverse_horizontal) return;
+            else {
+                this.reverseHorizontal();
+                this._reverse_horizontal = !this._reverse_horizontal;
+            }
         }
         constructor(imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {
             this._im = imagemanager;
@@ -84,9 +109,27 @@
             this._code = code;
             this._dx = dx;
             this._dy = dy;
+            this._reverse_horizontal = false;
+            this._reverse_vertical = false;
             var i = this._im.getwide(label, code, dx, dy);
             super(i.width, i.height);
-            this.canvas.getContext("2d").drawImage(i, 0, 0, i.width, i.height, 0, 0, i.width, i.height);
+            this.context.drawImage(i, 0, 0, i.width, i.height, 0, 0, i.width, i.height);
+        }
+        reverseVertical() {
+            this.context.save();
+            this.context.clearRect(0, 0, this.width, this.height);
+            this.context.translate(0, this.height)
+            this.context.scale(1, -1);
+            this.context.drawImage(this._i, 0, 0, this._i.width, this._i.height, 0, 0, this._i.width, this._i.height);
+            this.context.restore();
+        }
+        reverseHorizontal() {
+            this.context.save();
+            this.context.clearRect(0, 0, this.width, this.height);
+            this.context.translate(this.width, 0);
+            this.context.scale(-1, 1);
+            this.context.drawImage(this._i, 0, 0, this._i.width, this._i.height, 0, 0, this._i.width, this._i.height);
+            this.context.restore();
         }
     }
 }
