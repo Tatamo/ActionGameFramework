@@ -99,6 +99,8 @@ var Game;
             this.moving = new PlayerStateMachine(this);
             this.moving.push(new States.PlayerInterialMove());
             this.counter = {};
+            this.counter["able2runningLeft"] = 0;
+            this.counter["able2runningRight"] = 0;
             this.counter["running"] = 0;
             this.flags = {};
             this.flags["isRunning"] = false;
@@ -114,13 +116,48 @@ var Game;
             this.y += this.vy / 10;
         };
         Player.prototype.checkInput = function () {
-            if (this.gk.isDown(37) && this.gk.isDown(39)) {
-            }
-            else if (this.gk.isDown(37)) {
-                if (this.gk.releasedkeys[37] <= 8) {
+            console.log(this.counter["able2runningRight"]);
+            //if (this.gk.isDown(37) && this.gk.isDown(39)) { } // 左右同時に押されていたらとりあえず何もしないことに
+            if (this.gk.isOnDown(37)) {
+                if (this.counter["able2runningLeft"] > 0) {
                     this.moving.replace(new States.PlayerRunningLeft());
                 }
                 else if (!(this.moving.CurrentState() instanceof States.PlayerRunningLeft)) {
+                    this.moving.replace(new States.PlayerWalkingLeft());
+                }
+            }
+            else if (this.gk.isOnDown(39)) {
+                if (this.counter["able2runningRight"] > 0) {
+                    this.moving.replace(new States.PlayerRunningRight());
+                }
+                else if (!(this.moving.CurrentState() instanceof States.PlayerRunningRight)) {
+                    this.moving.replace(new States.PlayerWalkingRight());
+                }
+            }
+            if ((!this.gk.isDown(37) && !this.gk.isDown(39)) || ((this.moving.CurrentState() instanceof States.PlayerWalkingLeft) && !this.gk.isDown(37)) || ((this.moving.CurrentState() instanceof States.PlayerWalkingRight) && !this.gk.isDown(39)) || ((this.moving.CurrentState() instanceof States.PlayerRunningLeft) && !this.gk.isDown(37)) || ((this.moving.CurrentState() instanceof States.PlayerRunningRight) && !this.gk.isDown(39))) {
+                this.moving.replace(new States.PlayerInterialMove());
+            }
+            if (this.counter["able2runningLeft"] >= 8)
+                this.counter["able2runningLeft"] = 0;
+            else if (this.counter["able2runningLeft"] > 0)
+                this.counter["able2runningLeft"] += 1;
+            if (this.counter["able2runningRight"] >= 8)
+                this.counter["able2runningRight"] = 0;
+            else if (this.counter["able2runningRight"] > 0)
+                this.counter["able2runningRight"] += 1;
+            if (this.gk.isOnDown(37)) {
+                this.counter["able2runningLeft"] = 1;
+            }
+            if (this.gk.isOnDown(39)) {
+                this.counter["able2runningRight"] = 1;
+            }
+            /*if (this.gk.isDown(37) && this.gk.isDown(39)) { } // 左右同時に押されていたらとりあえず何もしないことに
+            else if (this.gk.isDown(37)) {
+                if (this.gk.releasedkeys[37] <= 8) {
+                    this.moving.replace(new States.PlayerRunningLeft());
+                    //this.flags["isRunning"] = true;
+                }
+                else if(!(this.moving.CurrentState() instanceof States.PlayerRunningLeft)) {
                     this.moving.replace(new States.PlayerWalkingLeft());
                 }
             }
@@ -134,7 +171,7 @@ var Game;
             }
             else {
                 this.moving.replace(new States.PlayerInterialMove());
-            }
+            }*/
         };
         return Player;
     })(Game.Sprite);
@@ -265,6 +302,7 @@ var Game;
             PlayerInterialMove.prototype.update = function (sm) {
                 var pl = sm.pl;
                 if (pl.vx < 0) {
+                    pl.surface.reverse_horizontal = false;
                     pl.counter["running"]++;
                     if (pl.counter["running"] > 3)
                         pl.counter["running"] = 0;
@@ -274,6 +312,7 @@ var Game;
                         pl.code = 103 + Math.floor(pl.counter["running"] / 2);
                 }
                 else if (pl.vx > 0) {
+                    pl.surface.reverse_horizontal = true;
                     pl.counter["running"]++;
                     if (pl.counter["running"] > 3)
                         pl.counter["running"] = 0;
