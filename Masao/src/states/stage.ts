@@ -10,7 +10,9 @@
                 this.player = new Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
                 this.sprites = new Group(sm.game.screen);
                 this.sprites.add(this.player);
-                this.sprites.add(new Block1(224, 160, sm.game.assets.image, "pattern"));
+                for (var i: number = 0; i < 8; i++) {
+                    this.sprites.add(new Block1(128+i*32, 160, sm.game.assets.image, "pattern"));
+                }
             }
             update(sm: GameStateMachine) {
                 // 背景色で埋めてみる

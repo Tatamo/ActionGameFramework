@@ -208,6 +208,10 @@
                     pl.vx += 5;
                     if (pl.vx > 0) pl.vx = 0;
                 }
+
+                if (pl.vx == 0){
+                    pl.code = 100;
+                }
             }
             /*checkInput() {
                 var pl = this.sm.pl;
