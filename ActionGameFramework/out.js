@@ -941,11 +941,11 @@ var Game;
 /// <reference path="state.ts"/>
 var Game;
 (function (_Game) {
-    var SCREEN_WIDTH = 512;
-    var SCREEN_HEIGHT = 320;
+    _Game.SCREEN_WIDTH = 512;
+    _Game.SCREEN_HEIGHT = 320;
     var Game = (function () {
         function Game() {
-            this.screen = new _Game.Surface(SCREEN_WIDTH, SCREEN_HEIGHT);
+            this.screen = new _Game.Surface(_Game.SCREEN_WIDTH, _Game.SCREEN_HEIGHT);
             this.statemachine = new _Game.GameStateMachine(this);
             this.gamekey = new _Game.GameKey();
             this.assets = new _Game.AssetsManagerManager();

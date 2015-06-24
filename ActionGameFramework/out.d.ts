@@ -158,8 +158,8 @@ declare module Game {
         y: number;
         z: number;
         surface: Surface;
-        add(group: Group): any;
-        remove(group: Group): any;
+        add(group: IGroup): any;
+        remove(group: IGroup): any;
         update(): any;
         kill(): any;
     }
@@ -173,18 +173,18 @@ declare module Game {
         height: number;
         code: number;
         private static default_groups;
-        static getDefaultGroups(): Group[];
-        static setDefaultGroups(groups: Array<Group>): void;
+        static getDefaultGroups(): IGroup[];
+        static setDefaultGroups(groups: Array<IGroup>): void;
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, code?: number, dx?: number, dy?: number);
-        add(group: Group): void;
-        remove(group: Group): void;
+        add(group: IGroup): void;
+        remove(group: IGroup): void;
         update(): void;
         kill(): void;
     }
     interface IGroup {
         screen: Surface;
-        add(sprite: Sprite): any;
-        remove(sprite: Sprite): any;
+        add(sprite: ISprite): any;
+        remove(sprite: ISprite): any;
         remove_all(): any;
         update(): any;
         draw(): any;
@@ -193,8 +193,8 @@ declare module Game {
         screen: Surface;
         private _sprites;
         constructor(screen: Surface);
-        add(sprite: Sprite): void;
-        remove(sprite: Sprite): void;
+        add(sprite: ISprite): void;
+        remove(sprite: ISprite): void;
         remove_all(): void;
         update(): void;
         draw(): void;
@@ -240,6 +240,8 @@ declare module Game {
     }
 }
 declare module Game {
+    var SCREEN_WIDTH: number;
+    var SCREEN_HEIGHT: number;
     class Game {
         element: HTMLElement;
         screen: Surface;

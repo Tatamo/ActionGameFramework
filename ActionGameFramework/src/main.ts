@@ -5,8 +5,8 @@
 /// <reference path="statemachine.ts"/>
 /// <reference path="state.ts"/>
 module Game {
-    var SCREEN_WIDTH = 512;
-    var SCREEN_HEIGHT = 320;
+    export var SCREEN_WIDTH = 512;
+    export var SCREEN_HEIGHT = 320;
     export class Game {
         element: HTMLElement;
         screen: Surface;

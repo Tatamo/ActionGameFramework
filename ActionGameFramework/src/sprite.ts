@@ -5,8 +5,8 @@ module Game {
         y: number;
         z: number;
         surface: Surface;
-        add(group: Group);
-        remove(group: Group);
+        add(group: IGroup);
+        remove(group: IGroup);
         update();
         kill();
     }
@@ -17,7 +17,7 @@ module Game {
         y: number; // マップ座標
         z: number; // マップ座標
         surface: PatternSurface;
-        private _groups: Array<Group>;
+        private _groups: Array<IGroup>;
         get width(): number {
             return this.surface.width;
         }
@@ -30,11 +30,11 @@ module Game {
         set code(c: number) {
             this.surface.code = c;
         }
-        private static default_groups: Array<Group> = [];
+        private static default_groups: Array<IGroup> = [];
         static getDefaultGroups() {
             return Sprite.default_groups;
         }
-        static setDefaultGroups(groups: Array<Group>) {
+        static setDefaultGroups(groups: Array<IGroup>) {
             Sprite.default_groups = groups;
         }
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {
@@ -55,12 +55,12 @@ module Game {
         setsurface(screen: Surface) {
         }*/
         // 自身をグループに追加する
-        add(group: Group) {
+        add(group: IGroup) {
             // グループへの追加はSpriteSystemを経由して行う
             //this.ss.regist(group, this);
             this._groups.push(group);
         }
-        remove(group: Group) {
+        remove(group: IGroup) {
             var f: boolean = false;
             for (var i = this._groups.length - 1; i >= 0; i--) {
                 if (this._groups[i] == group) {
@@ -81,8 +81,8 @@ module Game {
     }
     export interface IGroup {
         screen: Surface;
-        add(sprite: Sprite);
-        remove(sprite: Sprite);
+        add(sprite: ISprite);
+        remove(sprite: ISprite);
         remove_all();
         update();
         draw();
@@ -90,15 +90,15 @@ module Game {
     // TODO: sort
     export class Group implements IGroup{
         screen: Surface;
-        private _sprites: Array<Sprite>;
+        private _sprites: Array<ISprite>;
         constructor(screen: Surface) {
-            this._sprites = new Array<Sprite>();
+            this._sprites = new Array<ISprite>();
             this.screen = screen;
         }
-        add(sprite:Sprite) {
+        add(sprite:ISprite) {
             this._sprites.push(sprite);
         }
-        remove(sprite: Sprite) {
+        remove(sprite: ISprite) {
             var f: boolean = false;
             for (var i = this._sprites.length - 1; i >= 0; i--) {
                 if (this._sprites[i] == sprite) {
@@ -122,7 +122,7 @@ module Game {
         }
         draw() {
             for (var i = 0; i < this._sprites.length; i++) {
-                this.screen.drawSurface(this._sprites[i].surface, Math.round(this._sprites[i].x), Math.round(this._sprites[i].y));
+                this.screen.drawSurface(this._sprites[i].surface,Math.round(this._sprites[i].x),Math.round(this._sprites[i].y));
             }
         }
     }

@@ -89,6 +89,152 @@ var Game;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
+    // ステージマップの役割を持つGroup。
+    // 座標からSpriteを取得でき、かつ取得がそこそこ高速であることが期待される。
+    // 座標が変化することのないSpriteが登録されるべきである。
+    var MapGroup = (function () {
+        function MapGroup(screen, width, height) {
+            if (width === void 0) { width = 180; }
+            if (height === void 0) { height = 30; }
+            this._xsprites = new Array();
+            this.screen = screen;
+            this._map = new Array();
+            for (var i = 0; i < height; i++) {
+                this._map.push(new Array());
+                for (var ii = 0; ii < width; i++) {
+                    this._map.push(null);
+                }
+            }
+            this._width = width;
+            this._height = height;
+            this.setChipSize(32, 32); // 32*32サイズのSpriteを保管
+        }
+        Object.defineProperty(MapGroup.prototype, "chipwidth", {
+            get: function () {
+                return this._chipwidth;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(MapGroup.prototype, "chipheight", {
+            get: function () {
+                return this._chipheight;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        MapGroup.prototype.setChipSize = function (width, height) {
+            this._chipwidth = width;
+            this._chipwidth = height;
+        };
+        MapGroup.prototype.add = function (sprite) {
+            if (sprite.x % this.chipwidth != 0 || sprite.y % this.chipheight != 0) {
+                this._xsprites.push(sprite);
+            }
+            else {
+                var nx = sprite.x / this.chipwidth;
+                var ny = sprite.y / this.chipheight;
+                if (!this._map[ny][nx])
+                    this._map[ny][nx] = sprite;
+                else
+                    this._xsprites.push(sprite); // 既に同一座標に登録済みならばEX領域に追加
+            }
+        };
+        MapGroup.prototype.getByXY = function (nx, ny) {
+            if (this._map[ny][nx])
+                return this._map[ny][nx];
+            for (var i = 0; i < this._xsprites.length; i++) {
+                var sp = this._xsprites[i];
+                if (sp.x == nx * this.chipwidth && sp.y == ny * this.chipheight)
+                    return sp;
+            }
+        };
+        MapGroup.prototype.getByXYObscure = function (nx, ny) {
+            var result = new Array();
+            if (this._map[ny][nx])
+                result.push(this._map[ny][nx]);
+            for (var i = 0; i < this._xsprites.length; i++) {
+                var sp = this._xsprites[i];
+                if (sp.x <= (nx + 1) * this.chipwidth && sp.x + this.chipwidth >= nx * this.chipwidth && sp.y <= (ny + 1) * this.chipheight && sp.y + this.chipheight >= ny * this.chipheight) {
+                    result.push(sp);
+                }
+            }
+            return result;
+        };
+        MapGroup.prototype.getByXYReal = function (x, y) {
+            if (x % this.chipwidth == 0 && y % this.chipheight == 0) {
+                var nx = Math.floor(x / this.chipwidth);
+                var ny = Math.floor(y / this.chipheight);
+                if (this._map[ny][nx])
+                    return this._map[ny][nx];
+            }
+            for (var i = 0; i < this._xsprites.length; i++) {
+                var sp = this._xsprites[i];
+                if (sp.x == x && sp.y == y)
+                    return sp;
+            }
+            return null;
+        };
+        MapGroup.prototype.remove = function (sprite) {
+            var f = false;
+            for (var i = 0; i < this._height; i++) {
+                for (var ii = 0; ii < this._width; ii++) {
+                    if (this._map[i][ii] == sprite) {
+                        this._map[i][ii] = null;
+                        f = true;
+                    }
+                }
+            }
+            for (var i = this._xsprites.length - 1; i >= 0; i--) {
+                if (this._xsprites[i] == sprite) {
+                    this._xsprites.splice(i, 1);
+                    f = true;
+                }
+            }
+            if (f)
+                sprite.remove(this); // 相互に参照を破棄
+        };
+        MapGroup.prototype.remove_all = function () {
+            for (var i = 0; i < this._height; i++) {
+                for (var ii = 0; ii < this._width; ii++) {
+                    if (this._map[i][ii])
+                        this.remove(this._map[i][ii]);
+                }
+            }
+            for (var i = this._xsprites.length - 1; i >= 0; i--) {
+                this.remove(this._xsprites[i]);
+            }
+        };
+        MapGroup.prototype.update = function () {
+            for (var i = 0; i < this._height; i++) {
+                for (var ii = 0; ii < this._width; ii++) {
+                    if (this._map[i][ii])
+                        this._map[i][ii].update();
+                }
+            }
+            // 処理中にthis._spritesの要素が変化する可能性があるため、配列のコピーを回す
+            var sps = this._xsprites.slice(0);
+            for (var i = 0; i < sps.length; i++) {
+                sps[i].update();
+            }
+        };
+        MapGroup.prototype.draw = function () {
+            for (var i = 0; i < this._height; i++) {
+                for (var ii = 0; ii < this._width; ii++) {
+                    if (this._map[i][ii])
+                        this.screen.drawSurface(this._map[i][ii].surface, Math.round(this._map[i][ii].x), Math.round(this._map[i][ii].y));
+                }
+            }
+            for (var i = 0; i < this._xsprites.length; i++) {
+                this.screen.drawSurface(this._xsprites[i].surface, Math.round(this._xsprites[i].x), Math.round(this._xsprites[i].y));
+            }
+        };
+        return MapGroup;
+    })();
+    Game.MapGroup = MapGroup;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
     var Player = (function (_super) {
         __extends(Player, _super);
         function Player(input, x, y, imagemanager, label, dx, dy) {
