@@ -101,13 +101,13 @@ var Game;
             this._map = new Array();
             for (var i = 0; i < height; i++) {
                 this._map.push(new Array());
-                for (var ii = 0; ii < width; i++) {
-                    this._map.push(null);
+                for (var ii = 0; ii < width; ii++) {
+                    this._map[i].push(null);
                 }
             }
             this._width = width;
             this._height = height;
-            this.setChipSize(32, 32); // 32*32サイズのSpriteを保管
+            this.setChipSize(32, 32); // 32*32サイズのSpriteを保管 TODO:変更可能に
         }
         Object.defineProperty(MapGroup.prototype, "chipwidth", {
             get: function () {

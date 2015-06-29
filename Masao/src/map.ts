@@ -18,13 +18,13 @@
             this._map = new Array<Array<ISprite>>();
             for (var i = 0; i < height; i++) { // _mapの初期化
                 this._map.push(new Array<ISprite>());
-                for (var ii = 0; ii < width; i++) {
-                    this._map.push(null);
+                for (var ii = 0; ii < width; ii++) {
+                    this._map[i].push(null);
                 }
             }
             this._width = width;
             this._height = height;
-            this.setChipSize(32, 32); // 32*32サイズのSpriteを保管
+            this.setChipSize(32, 32); // 32*32サイズのSpriteを保管 TODO:変更可能に
         }
         setChipSize(width: number, height: number) {
             this._chipwidth = width;

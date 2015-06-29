@@ -3,6 +3,7 @@
         export class Stage extends GameState {
             player: Player;
             sprites: Group;
+            map: MapGroup;
             constructor() {
                 super();
             }
