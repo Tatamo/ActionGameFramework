@@ -1,6 +1,6 @@
 ﻿module Game {
     export class Player extends Sprite {
-        public gk: GameKey;
+        public gk: GameKey; // TODO:疎結合に
         public counter: { [key: string]: number; };
         public flags: { [key: string]: boolean; };
         public vx: number;
@@ -10,88 +10,76 @@
             super(x, y, imagemanager, label, 100, dx, dy);
             this.gk = input;
             this.moving = new PlayerStateMachine(this);
-            this.moving.push(new States.PlayerInterialMove());
+            this.moving.push(new States.PlayerInterialMoveOnGround());
             this.counter = {};
             this.counter["able2runningLeft"] = 0;
             this.counter["able2runningRight"] = 0;
             this.counter["running"] = 0;
             this.flags = {};
             this.flags["isRunning"] = false;
+            this.flags["isOnGround"] = false;
             this.vx = 0;
             this.vy = 0;
             this.z = 128;
         }
         update() {
+            this.checkOnGround();
             this.checkInput();
             //this.externalForce();
             this.moving.update();
             this.x += this.vx / 10;
             this.y += this.vy / 10;
         }
+        checkOnGround() {
+            // check
+            this.flags["isOnGround"] = true;
+        }
         checkInput() {
-            console.log(this.counter["able2runningRight"]);
-
-            //if (this.gk.isDown(37) && this.gk.isDown(39)) { } // 左右同時に押されていたらとりあえず何もしないことに
-            if (this.gk.isOnDown(37)) {
-                if (this.counter["able2runningLeft"] > 0) {
-                    this.moving.replace(new States.PlayerRunningLeft());
-                    //this.flags["isRunning"] = true;
+            
+            if (this.flags["isOnGround"]) { // 地上にいる
+                //if (this.gk.isDown(37) && this.gk.isDown(39)) { } // 左右同時に押されていたらとりあえず何もしないことに
+                if (this.gk.isOnDown(37)) {
+                    if (this.counter["able2runningLeft"] > 0) {
+                        this.moving.replace(new States.PlayerRunningLeft());
+                        //this.flags["isRunning"] = true;
+                    }
+                    else if (!(this.moving.CurrentState() instanceof States.PlayerRunningLeft)) {
+                        this.moving.replace(new States.PlayerWalkingLeft());
+                    }
                 }
-                else if (!(this.moving.CurrentState() instanceof States.PlayerRunningLeft)) {
-                    this.moving.replace(new States.PlayerWalkingLeft());
+                else if (this.gk.isOnDown(39)) {
+                    if (this.counter["able2runningRight"] > 0) {
+                        this.moving.replace(new States.PlayerRunningRight());
+                    }
+                    else if (!(this.moving.CurrentState() instanceof States.PlayerRunningRight)) {
+                        this.moving.replace(new States.PlayerWalkingRight());
+                    }
                 }
-            }
-            else if (this.gk.isOnDown(39)) {
-                if (this.counter["able2runningRight"] > 0) {
-                    this.moving.replace(new States.PlayerRunningRight());
+                if ((!this.gk.isDown(37) && !this.gk.isDown(39)) ||
+                    ((this.moving.CurrentState() instanceof States.PlayerWalkingLeft) && !this.gk.isDown(37)) ||
+                    ((this.moving.CurrentState() instanceof States.PlayerWalkingRight) && !this.gk.isDown(39)) ||
+                    ((this.moving.CurrentState() instanceof States.PlayerRunningLeft) && !this.gk.isDown(37)) ||
+                    ((this.moving.CurrentState() instanceof States.PlayerRunningRight) && !this.gk.isDown(39))) {
+                    this.moving.replace(new States.PlayerInterialMoveOnGround());
                 }
-                else if (!(this.moving.CurrentState() instanceof States.PlayerRunningRight)) {
-                    this.moving.replace(new States.PlayerWalkingRight());
-                }
-            }
-            if ((!this.gk.isDown(37) && !this.gk.isDown(39)) ||
-                ((this.moving.CurrentState() instanceof States.PlayerWalkingLeft) && !this.gk.isDown(37)) ||
-                ((this.moving.CurrentState() instanceof States.PlayerWalkingRight) && !this.gk.isDown(39)) ||
-                ((this.moving.CurrentState() instanceof States.PlayerRunningLeft) && !this.gk.isDown(37)) ||
-                ((this.moving.CurrentState() instanceof States.PlayerRunningRight) && !this.gk.isDown(39))) {
-                this.moving.replace(new States.PlayerInterialMove());
-            }
-
-
-            if (this.counter["able2runningLeft"] >= 8) this.counter["able2runningLeft"] = 0;
-            else if (this.counter["able2runningLeft"] > 0) this.counter["able2runningLeft"] += 1;
-
-            if (this.counter["able2runningRight"] >= 8) this.counter["able2runningRight"] = 0;
-            else if (this.counter["able2runningRight"] > 0) this.counter["able2runningRight"] += 1;
 
 
-            if (this.gk.isOnDown(37)) { // ステート遷移判定より後で処理
-                this.counter["able2runningLeft"] = 1;
-            }
-            if (this.gk.isOnDown(39)) {
-                this.counter["able2runningRight"] = 1;
-            }
-            /*if (this.gk.isDown(37) && this.gk.isDown(39)) { } // 左右同時に押されていたらとりあえず何もしないことに
-            else if (this.gk.isDown(37)) {
-                if (this.gk.releasedkeys[37] <= 8) {
-                    this.moving.replace(new States.PlayerRunningLeft());
-                    //this.flags["isRunning"] = true;
+                if (this.counter["able2runningLeft"] >= 8) this.counter["able2runningLeft"] = 0;
+                else if (this.counter["able2runningLeft"] > 0) this.counter["able2runningLeft"] += 1;
+
+                if (this.counter["able2runningRight"] >= 8) this.counter["able2runningRight"] = 0;
+                else if (this.counter["able2runningRight"] > 0) this.counter["able2runningRight"] += 1;
+
+
+                if (this.gk.isOnDown(37)) { // ステート遷移判定より後で処理
+                    this.counter["able2runningLeft"] = 1;
                 }
-                else if(!(this.moving.CurrentState() instanceof States.PlayerRunningLeft)) {
-                    this.moving.replace(new States.PlayerWalkingLeft());
+                if (this.gk.isOnDown(39)) {
+                    this.counter["able2runningRight"] = 1;
                 }
             }
-            else if (this.gk.isDown(39)) {
-                if (this.gk.releasedkeys[39] <= 8) {
-                    this.moving.replace(new States.PlayerRunningRight());
-                }
-                else if (!(this.moving.CurrentState() instanceof States.PlayerRunningRight)) {
-                    this.moving.replace(new States.PlayerWalkingRight());
-                }
+            else { // 地上にいない
             }
-            else {
-                this.moving.replace(new States.PlayerInterialMove());
-            }*/
         }
     }
     export class PlayerStateMachine extends StateMachine {
@@ -169,7 +157,7 @@
                 else pl.code = 105 + Math.floor(pl.counter["running"] / 2);
             }
         }
-        export class PlayerInterialMove extends AbstractState {
+        export class PlayerInterialMoveOnGround extends AbstractState {
             enter(sm: PlayerStateMachine) {
                 console.log("move interial ");
             }
