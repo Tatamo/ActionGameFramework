@@ -724,8 +724,19 @@ var Game;
             this.x = x;
             this.y = y;
             this.z = 0;
+            this.ss = null;
             this.surface = new Game.PatternSurface(imagemanager, label, code, dx, dy);
         }
+        Object.defineProperty(Sprite.prototype, "ss", {
+            get: function () {
+                return this._ss;
+            },
+            set: function (ss) {
+                this._ss = ss;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Sprite.prototype, "width", {
             get: function () {
                 return this.surface.width;
@@ -759,30 +770,26 @@ var Game;
         /*// Surfaceの初期化
         setsurface(screen: Surface) {
         }*/
-        // 自身をグループに追加する
-        Sprite.prototype.add = function (group) {
+        /*// 自身をグループに追加する
+        add(group: IGroup) {
             // グループへの追加はSpriteSystemを経由して行う
             //this.ss.regist(group, this);
             this._groups.push(group);
-        };
-        Sprite.prototype.remove = function (group) {
-            var f = false;
+        }
+        remove(group: IGroup) {
+            var f: boolean = false;
             for (var i = this._groups.length - 1; i >= 0; i--) {
                 if (this._groups[i] == group) {
                     this._groups.splice(i, 1);
                     f = true;
                 }
             }
-            if (f)
-                group.remove(this); // 相互に参照を破棄
-        };
+            if (f) group.remove(this); // 相互に参照を破棄
+        }*/
         Sprite.prototype.update = function () {
         };
-        // 所属しているすべてのグループとの参照を破棄します
         Sprite.prototype.kill = function () {
-            for (var i = this._groups.length - 1; i >= 0; i--) {
-                this.remove(this._groups[i]);
-            }
+            this.ss.remove(this);
         };
         Sprite.default_groups = [];
         return Sprite;
@@ -798,15 +805,11 @@ var Game;
             this._sprites.push(sprite);
         };
         Group.prototype.remove = function (sprite) {
-            var f = false;
             for (var i = this._sprites.length - 1; i >= 0; i--) {
                 if (this._sprites[i] == sprite) {
                     this._sprites.splice(i, 1);
-                    f = true;
                 }
             }
-            if (f)
-                sprite.remove(this); // 相互に参照を破棄
         };
         Group.prototype.remove_all = function () {
             for (var i = this._sprites.length - 1; i >= 0; i--) {

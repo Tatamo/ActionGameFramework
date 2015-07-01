@@ -157,9 +157,8 @@ declare module Game {
         x: number;
         y: number;
         z: number;
+        ss: ISpriteSystem;
         surface: Surface;
-        add(group: IGroup): any;
-        remove(group: IGroup): any;
         update(): any;
         kill(): any;
     }
@@ -167,6 +166,8 @@ declare module Game {
         x: number;
         y: number;
         z: number;
+        private _ss;
+        ss: ISpriteSystem;
         surface: PatternSurface;
         private _groups;
         width: number;
@@ -176,8 +177,6 @@ declare module Game {
         static getDefaultGroups(): IGroup[];
         static setDefaultGroups(groups: Array<IGroup>): void;
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, code?: number, dx?: number, dy?: number);
-        add(group: IGroup): void;
-        remove(group: IGroup): void;
         update(): void;
         kill(): void;
     }
@@ -254,5 +253,12 @@ declare module Game {
         start(state?: State): void;
         stop(): void;
         loop(): void;
+    }
+}
+declare module Game {
+    interface ISpriteSystem {
+        AllSprites: IGroup;
+        add(s: ISprite): any;
+        remove(s: ISprite): any;
     }
 }

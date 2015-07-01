@@ -64,6 +64,7 @@ var Game;
         };
         return Block;
     })(Game.Sprite);
+    Game.Block = Block;
     var Block1 = (function (_super) {
         __extends(Block1, _super);
         function Block1() {
@@ -475,6 +476,37 @@ var Game;
         })(States.AbstractState);
         States.PlayerInterialMoveOnGround = PlayerInterialMoveOnGround;
     })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    // ゲーム内オブジェクトの参照・走査を一手に引き受けるクラス。
+    var SpriteSystem = (function () {
+        function SpriteSystem(screen) {
+            this.screen = screen;
+            this.AllSprites = new Game.Group(screen);
+            this.Players = new Game.Group(screen);
+            this.MapBlocks = new Game.MapGroup(screen, 180, 30);
+            this.groups = new Array();
+            this.groups.push(this.AllSprites, this.Players, this.MapBlocks);
+        }
+        SpriteSystem.prototype.add = function (s) {
+            this.AllSprites.add(s);
+            if (s instanceof Game.Player) {
+                this.Players.add(s);
+            }
+            if (s instanceof Game.Block) {
+                this.MapBlocks.add(s);
+            }
+            s.ss = this;
+        };
+        SpriteSystem.prototype.remove = function (s) {
+            for (var i = 0; i < this.groups.length; i++) {
+                this.groups[i].remove(s);
+            }
+        };
+        return SpriteSystem;
+    })();
+    Game.SpriteSystem = SpriteSystem;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {

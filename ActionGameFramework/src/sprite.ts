@@ -4,9 +4,8 @@ module Game {
         x: number;
         y: number;
         z: number;
+        ss: ISpriteSystem;
         surface: Surface;
-        add(group: IGroup);
-        remove(group: IGroup);
         update();
         kill();
     }
@@ -16,6 +15,13 @@ module Game {
         x: number; // マップ座標
         y: number; // マップ座標
         z: number; // マップ座標
+        private _ss: ISpriteSystem;
+        get ss(): ISpriteSystem {
+            return this._ss;
+        }
+        set ss(ss: ISpriteSystem) {
+            this._ss = ss;
+        }
         surface: PatternSurface;
         private _groups: Array<IGroup>;
         get width(): number {
@@ -49,12 +55,13 @@ module Game {
             this.y = y;
             this.z = 0;
 
+            this.ss = null;
             this.surface = new PatternSurface(imagemanager,label,code,dx,dy);
         }
         /*// Surfaceの初期化
         setsurface(screen: Surface) {
         }*/
-        // 自身をグループに追加する
+        /*// 自身をグループに追加する
         add(group: IGroup) {
             // グループへの追加はSpriteSystemを経由して行う
             //this.ss.regist(group, this);
@@ -69,14 +76,11 @@ module Game {
                 }
             }
             if (f) group.remove(this); // 相互に参照を破棄
-        }
+        }*/
         update() {
         }
-        // 所属しているすべてのグループとの参照を破棄します
         kill() {
-            for (var i = this._groups.length - 1; i >= 0; i--) {
-                this.remove(this._groups[i]);
-            }
+            this.ss.remove(this);
         }
     }
     export interface IGroup {
@@ -99,14 +103,13 @@ module Game {
             this._sprites.push(sprite);
         }
         remove(sprite: ISprite) {
-            var f: boolean = false;
+            //var f: boolean = false; //削除に成功したかどうか判定するフラグ もう使わないか
             for (var i = this._sprites.length - 1; i >= 0; i--) {
                 if (this._sprites[i] == sprite) {
                     this._sprites.splice(i, 1);
-                    f = true;
+                    //f = true;
                 }
             }
-            if (f) sprite.remove(this); // 相互に参照を破棄
         }
         remove_all() {
             for (var i = this._sprites.length - 1; i >= 0; i--) {

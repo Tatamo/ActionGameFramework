@@ -1,5 +1,5 @@
 ﻿module Game {
-    class Block extends Sprite {
+    export class Block extends Sprite {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
             super(x, y, imagemanager, label, 21, dx, dy);
             this.z = 512;
