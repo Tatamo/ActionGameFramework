@@ -1,6 +1,6 @@
 ﻿/// <reference path="surface.ts"/>
 module Game {
-    export interface ISprite {
+    export interface ISprite extends IEventDispatcher {
         x: number;
         y: number;
         z: number;
@@ -11,7 +11,7 @@ module Game {
     }
     // UNDONE: 自分の所属しているgroup名の取得
     // パターン画像を使用するスプライト
-    export class Sprite implements ISprite {
+    export class Sprite extends EventDispatcher implements ISprite {
         x: number; // マップ座標
         y: number; // マップ座標
         z: number; // マップ座標
@@ -44,6 +44,7 @@ module Game {
             Sprite.default_groups = groups;
         }
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {
+            super();
             this._groups = new Array<Group>();
             if (Sprite.default_groups) {
                 for (var i = 0; i < Sprite.default_groups.length; i++) {

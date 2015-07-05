@@ -73,23 +73,18 @@
             return null;
         }
         remove(sprite: ISprite) {
-            var f: boolean = false;
             for (var i = 0; i < this._height; i++) {
                 for (var ii = 0; ii < this._width; ii++) {
                     if (this._map[i][ii] == sprite) {
                         this._map[i][ii] = null;
-
-                        f = true;
                     }
                 }
             }
             for (var i = this._xsprites.length - 1; i >= 0; i--) {
                 if (this._xsprites[i] == sprite) {
                     this._xsprites.splice(i, 1);
-                    f = true;
                 }
             }
-            if (f) sprite.remove(this); // 相互に参照を破棄
         }
         remove_all() {
             for (var i = 0; i < this._height; i++) {

@@ -6,6 +6,7 @@
         public vx: number;
         public vy: number;
         public moving: PlayerStateMachine;
+        public ss: SpriteSystem;
         constructor(input: GameKey, x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
             super(x, y, imagemanager, label, 100, dx, dy);
             this.gk = input;
@@ -32,6 +33,7 @@
         }
         checkOnGround() {
             // check
+            var blocks = this.ss.GetBlocks((this.x + 16) / 32,(this.y + 32) / 32);
             this.flags["isOnGround"] = true;
         }
         checkInput() {

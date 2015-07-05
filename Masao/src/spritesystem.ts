@@ -33,5 +33,8 @@
             try { return BlockData[x / 32, y / 32]; }
             catch { return null; }
         }*/
+        GetBlocks(x: number, y: number):Array<ISprite> {
+            return this.MapBlocks.getByXYObscure(x, y);
+        }
     }
 }

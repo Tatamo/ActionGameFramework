@@ -177,23 +177,18 @@ var Game;
             return null;
         };
         MapGroup.prototype.remove = function (sprite) {
-            var f = false;
             for (var i = 0; i < this._height; i++) {
                 for (var ii = 0; ii < this._width; ii++) {
                     if (this._map[i][ii] == sprite) {
                         this._map[i][ii] = null;
-                        f = true;
                     }
                 }
             }
             for (var i = this._xsprites.length - 1; i >= 0; i--) {
                 if (this._xsprites[i] == sprite) {
                     this._xsprites.splice(i, 1);
-                    f = true;
                 }
             }
-            if (f)
-                sprite.remove(this); // 相互に参照を破棄
         };
         MapGroup.prototype.remove_all = function () {
             for (var i = 0; i < this._height; i++) {
@@ -266,6 +261,7 @@ var Game;
         };
         Player.prototype.checkOnGround = function () {
             // check
+            var blocks = this.ss.GetBlocks((this.x + 16) / 32, (this.y + 32) / 32);
             this.flags["isOnGround"] = true;
         };
         Player.prototype.checkInput = function () {
@@ -503,6 +499,13 @@ var Game;
             for (var i = 0; i < this.groups.length; i++) {
                 this.groups[i].remove(s);
             }
+        };
+        /*public virtual Block GetBlock(int x, int y) {
+            try { return BlockData[x / 32, y / 32]; }
+            catch { return null; }
+        }*/
+        SpriteSystem.prototype.GetBlocks = function (x, y) {
+            return this.MapBlocks.getByXYObscure(x, y);
         };
         return SpriteSystem;
     })();
