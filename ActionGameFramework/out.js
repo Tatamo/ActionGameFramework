@@ -767,12 +767,6 @@ var Game;
             if (dx === void 0) { dx = 1; }
             if (dy === void 0) { dy = 1; }
             _super.call(this);
-            this._groups = new Array();
-            if (Sprite.default_groups) {
-                for (var i = 0; i < Sprite.default_groups.length; i++) {
-                    Sprite.default_groups[i].add(this);
-                }
-            }
             this.x = x;
             this.y = y;
             this.z = 0;
@@ -813,12 +807,6 @@ var Game;
             enumerable: true,
             configurable: true
         });
-        Sprite.getDefaultGroups = function () {
-            return Sprite.default_groups;
-        };
-        Sprite.setDefaultGroups = function (groups) {
-            Sprite.default_groups = groups;
-        };
         /*// Surfaceの初期化
         setsurface(screen: Surface) {
         }*/
@@ -843,10 +831,19 @@ var Game;
         Sprite.prototype.kill = function () {
             this.ss.remove(this);
         };
-        Sprite.default_groups = [];
         return Sprite;
     })(Game.EventDispatcher);
     Game.Sprite = Sprite;
+    var SpriteEvent = (function (_super) {
+        __extends(SpriteEvent, _super);
+        function SpriteEvent(type, sprite) {
+            _super.call(this, type);
+            this.type = type;
+            this.sprite = sprite;
+        }
+        return SpriteEvent;
+    })(Game.Event);
+    Game.SpriteEvent = SpriteEvent;
     // TODO: sort
     var Group = (function () {
         function Group(screen) {

@@ -4,6 +4,9 @@ module Game {
         x: number;
         y: number;
         z: number;
+        width: number;
+        height: number;
+        code: number;
         ss: ISpriteSystem;
         surface: Surface;
         update();
@@ -23,7 +26,6 @@ module Game {
             this._ss = ss;
         }
         surface: PatternSurface;
-        private _groups: Array<IGroup>;
         get width(): number {
             return this.surface.width;
         }
@@ -36,21 +38,8 @@ module Game {
         set code(c: number) {
             this.surface.code = c;
         }
-        private static default_groups: Array<IGroup> = [];
-        static getDefaultGroups() {
-            return Sprite.default_groups;
-        }
-        static setDefaultGroups(groups: Array<IGroup>) {
-            Sprite.default_groups = groups;
-        }
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {
             super();
-            this._groups = new Array<Group>();
-            if (Sprite.default_groups) {
-                for (var i = 0; i < Sprite.default_groups.length; i++) {
-                    Sprite.default_groups[i].add(this);
-                }
-            }
 
             this.x = x;
             this.y = y;
@@ -82,6 +71,11 @@ module Game {
         }
         kill() {
             this.ss.remove(this);
+        }
+    }
+    export class SpriteEvent extends Event{
+        constructor(public type:string, public sprite:Sprite){
+            super(type);
         }
     }
     export interface IGroup {

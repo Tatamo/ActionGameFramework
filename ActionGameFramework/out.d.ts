@@ -177,6 +177,9 @@ declare module Game {
         x: number;
         y: number;
         z: number;
+        width: number;
+        height: number;
+        code: number;
         ss: ISpriteSystem;
         surface: Surface;
         update(): any;
@@ -189,16 +192,17 @@ declare module Game {
         private _ss;
         ss: ISpriteSystem;
         surface: PatternSurface;
-        private _groups;
         width: number;
         height: number;
         code: number;
-        private static default_groups;
-        static getDefaultGroups(): IGroup[];
-        static setDefaultGroups(groups: Array<IGroup>): void;
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, code?: number, dx?: number, dy?: number);
         update(): void;
         kill(): void;
+    }
+    class SpriteEvent extends Event {
+        type: string;
+        sprite: Sprite;
+        constructor(type: string, sprite: Sprite);
     }
     interface IGroup {
         screen: Surface;
