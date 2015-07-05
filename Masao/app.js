@@ -65,9 +65,7 @@ var Game;
         };
         Block.prototype.onHit = function (e) {
             var s = e.sprite;
-            console.log(this);
-            //if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && // spriteのx中心点との判定
-            if (this.x <= s.x + s.width && this.x + this.width >= s.x && this.y <= s.y + s.height && this.y + this.height >= s.y) {
+            if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y <= s.y + s.height && this.y + this.height >= s.y) {
                 console.log("onground");
                 s.dispatchEvent(new Game.Event("onground"));
                 s.y = this.y - s.height;
@@ -289,7 +287,6 @@ var Game;
             blocks = blocks.concat(this.ss.GetBlocks(this.x, this.y + this.height, this.width, this.height));
             blocks = blocks.concat(this.ss.GetBlocks(this.x - this.width, this.y + this.height, this.width, this.height));
             blocks = blocks.concat(this.ss.GetBlocks(this.x + this.width, this.y + this.height, this.width, this.height));
-            console.log(blocks);
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
                 if (this.x <= b.x + b.width && this.x + this.width >= b.x && this.y <= b.y + b.height && this.y + this.height >= b.y) {
@@ -541,7 +538,6 @@ var Game;
             catch { return null; }
         }*/
         SpriteSystem.prototype.GetBlocks = function (x, y, width, height) {
-            console.log(Math.floor((x + width / 2) / this.MapBlocks.chipwidth) + ", " + Math.floor((y + height / 2) / this.MapBlocks.chipheight));
             return this.MapBlocks.getByXYObscure(Math.floor((x + width / 2) / this.MapBlocks.chipwidth), Math.floor((y + height / 2) / this.MapBlocks.chipheight));
         };
         return SpriteSystem;
