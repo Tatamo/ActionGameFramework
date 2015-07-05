@@ -57,10 +57,22 @@ var Game;
             _super.call(this, x, y, imagemanager, label, 21, dx, dy);
             this.z = 512;
             this.initPatternCode();
+            this.addEventHandler("onhit", this.onHit);
         }
         // to be overridden
         Block.prototype.initPatternCode = function () {
             this.code = 20;
+        };
+        Block.prototype.onHit = function (e) {
+            var s = e.sprite;
+            console.log(this);
+            //if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && // spriteのx中心点との判定
+            if (this.x <= s.x + s.width && this.x + this.width >= s.x && this.y <= s.y + s.height && this.y + this.height >= s.y) {
+                console.log("onground");
+                s.dispatchEvent(new Game.Event("onground"));
+                s.y = this.y - s.height;
+                s.vy = 0;
+            }
         };
         return Block;
     })(Game.Sprite);
@@ -126,7 +138,7 @@ var Game;
         });
         MapGroup.prototype.setChipSize = function (width, height) {
             this._chipwidth = width;
-            this._chipwidth = height;
+            this._chipheight = height;
         };
         MapGroup.prototype.add = function (sprite) {
             if (sprite.x % this.chipwidth != 0 || sprite.y % this.chipheight != 0) {
@@ -135,14 +147,14 @@ var Game;
             else {
                 var nx = sprite.x / this.chipwidth;
                 var ny = sprite.y / this.chipheight;
-                if (!this._map[ny][nx])
+                if (!this._map[ny] || !this._map[ny][nx])
                     this._map[ny][nx] = sprite;
                 else
                     this._xsprites.push(sprite); // 既に同一座標に登録済みならばEX領域に追加
             }
         };
         MapGroup.prototype.getByXY = function (nx, ny) {
-            if (this._map[ny][nx])
+            if (this._map[ny] && this._map[ny][nx])
                 return this._map[ny][nx];
             for (var i = 0; i < this._xsprites.length; i++) {
                 var sp = this._xsprites[i];
@@ -152,7 +164,7 @@ var Game;
         };
         MapGroup.prototype.getByXYObscure = function (nx, ny) {
             var result = new Array();
-            if (this._map[ny][nx])
+            if (this._map[ny] && this._map[ny][nx])
                 result.push(this._map[ny][nx]);
             for (var i = 0; i < this._xsprites.length; i++) {
                 var sp = this._xsprites[i];
@@ -166,7 +178,7 @@ var Game;
             if (x % this.chipwidth == 0 && y % this.chipheight == 0) {
                 var nx = Math.floor(x / this.chipwidth);
                 var ny = Math.floor(y / this.chipheight);
-                if (this._map[ny][nx])
+                if (this._map[ny] && this._map[ny][nx])
                     return this._map[ny][nx];
             }
             for (var i = 0; i < this._xsprites.length; i++) {
@@ -247,22 +259,43 @@ var Game;
             this.flags = {};
             this.flags["isRunning"] = false;
             this.flags["isOnGround"] = false;
-            this.vx = 0;
-            this.vy = 0;
             this.z = 128;
+            this.addEventHandler("onground", this.onGround);
         }
+        Player.prototype.onGround = function (e) {
+            this.flags["isOnGround"] = true;
+        };
         Player.prototype.update = function () {
-            this.checkOnGround();
+            // 入力の更新
             this.checkInput();
             //this.externalForce();
+            // 外力を受けない移動
             this.moving.update();
             this.x += this.vx / 10;
             this.y += this.vy / 10;
+            // 接触判定
+            this.checkOnGround();
         };
         Player.prototype.checkOnGround = function () {
+            this.flags["isOnGround"] = false;
             // check
-            var blocks = this.ss.GetBlocks((this.x + 16) / 32, (this.y + 32) / 32);
-            this.flags["isOnGround"] = true;
+            var blocks = [];
+            blocks = blocks.concat(this.ss.GetBlocks(this.x, this.y, this.width, this.height));
+            blocks = blocks.concat(this.ss.GetBlocks(this.x - this.width, this.y, this.width, this.height));
+            blocks = blocks.concat(this.ss.GetBlocks(this.x + this.width, this.y, this.width, this.height));
+            blocks = blocks.concat(this.ss.GetBlocks(this.x, this.y - this.height, this.width, this.height));
+            blocks = blocks.concat(this.ss.GetBlocks(this.x - this.width, this.y - this.height, this.width, this.height));
+            blocks = blocks.concat(this.ss.GetBlocks(this.x + this.width, this.y - this.height, this.width, this.height));
+            blocks = blocks.concat(this.ss.GetBlocks(this.x, this.y + this.height, this.width, this.height));
+            blocks = blocks.concat(this.ss.GetBlocks(this.x - this.width, this.y + this.height, this.width, this.height));
+            blocks = blocks.concat(this.ss.GetBlocks(this.x + this.width, this.y + this.height, this.width, this.height));
+            console.log(blocks);
+            for (var i = 0; i < blocks.length; i++) {
+                var b = blocks[i];
+                if (this.x <= b.x + b.width && this.x + this.width >= b.x && this.y <= b.y + b.height && this.y + this.height >= b.y) {
+                    b.dispatchEvent(new Game.SpriteEvent("onhit", this));
+                }
+            }
         };
         Player.prototype.checkInput = function () {
             if (this.flags["isOnGround"]) {
@@ -302,6 +335,9 @@ var Game;
                 }
             }
             else {
+                this.vy += 25; // 重力を受ける
+                if (this.vy > 160)
+                    this.vy = 160;
             }
         };
         return Player;
@@ -504,8 +540,9 @@ var Game;
             try { return BlockData[x / 32, y / 32]; }
             catch { return null; }
         }*/
-        SpriteSystem.prototype.GetBlocks = function (x, y) {
-            return this.MapBlocks.getByXYObscure(x, y);
+        SpriteSystem.prototype.GetBlocks = function (x, y, width, height) {
+            console.log(Math.floor((x + width / 2) / this.MapBlocks.chipwidth) + ", " + Math.floor((y + height / 2) / this.MapBlocks.chipheight));
+            return this.MapBlocks.getByXYObscure(Math.floor((x + width / 2) / this.MapBlocks.chipwidth), Math.floor((y + height / 2) / this.MapBlocks.chipheight));
         };
         return SpriteSystem;
     })();
@@ -556,22 +593,19 @@ var Game;
                 _super.call(this);
             }
             Stage.prototype.enter = function (sm) {
+                this.ss = new Game.SpriteSystem(sm.game.screen);
                 this.player = new Game.Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
-                this.creatures = new Game.Group(sm.game.screen);
-                this.blocks = new Game.MapGroup(sm.game.screen, 180, 30);
-                this.creatures.add(this.player);
+                this.ss.add(this.player);
                 for (var i = 0; i < 8; i++) {
-                    this.blocks.add(new Game.Block1(128 + i * 32, 160, sm.game.assets.image, "pattern"));
+                    this.ss.add(new Game.Block1(128 + i * 32, 160, sm.game.assets.image, "pattern"));
                 }
             };
             Stage.prototype.update = function (sm) {
                 // 背景色で埋めてみる
                 sm.game.screen.context.fillStyle = "rgb(0,255,255)";
                 sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
-                this.creatures.update();
-                this.blocks.update();
-                this.creatures.draw();
-                this.blocks.draw();
+                this.ss.AllSprites.update();
+                this.ss.AllSprites.draw();
                 if (sm.game.gamekey.isOnDown(80)) {
                     sm.push(new States.Pause(sm)); // ポーズ
                 }

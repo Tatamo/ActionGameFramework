@@ -7,17 +7,17 @@
     }
 
     export class EventDispatcher implements IEventDispatcher {
-        private _handlers: { [key: string]: Array<(e: Event)=> void> };
+        private _handlers: { [key: string]: Array<(e: Event) => void> };
         constructor() {
             this._handlers = {};
         }
         // イベントハンドラの追加
         addEventHandler(type: string, handler: (e: Event) => void) {
             if (!this._handlers[type]) {
-                this._handlers[type] = [handler];
+                this._handlers[type] = [handler.bind(this)];
             }
             else {
-                this._handlers[type].push(handler);
+                this._handlers[type].push(handler.bind(this));
             }
         }
         // イベントハンドラの削除

@@ -4,6 +4,8 @@ module Game {
         x: number;
         y: number;
         z: number;
+        vx: number;
+        vy: number;
         width: number;
         height: number;
         code: number;
@@ -18,6 +20,8 @@ module Game {
         x: number; // マップ座標
         y: number; // マップ座標
         z: number; // マップ座標
+        vx: number;
+        vy: number;
         private _ss: ISpriteSystem;
         get ss(): ISpriteSystem {
             return this._ss;
@@ -44,6 +48,9 @@ module Game {
             this.x = x;
             this.y = y;
             this.z = 0;
+
+            this.vx = 0;
+            this.vy = 0;
 
             this.ss = null;
             this.surface = new PatternSurface(imagemanager,label,code,dx,dy);

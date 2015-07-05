@@ -516,10 +516,10 @@ var Game;
         // イベントハンドラの追加
         EventDispatcher.prototype.addEventHandler = function (type, handler) {
             if (!this._handlers[type]) {
-                this._handlers[type] = [handler];
+                this._handlers[type] = [handler.bind(this)];
             }
             else {
-                this._handlers[type].push(handler);
+                this._handlers[type].push(handler.bind(this));
             }
         };
         // イベントハンドラの削除
@@ -770,6 +770,8 @@ var Game;
             this.x = x;
             this.y = y;
             this.z = 0;
+            this.vx = 0;
+            this.vy = 0;
             this.ss = null;
             this.surface = new Game.PatternSurface(imagemanager, label, code, dx, dy);
         }
@@ -1019,7 +1021,7 @@ var Game;
             /*if(!this.statemachine.CurrentState()) this.statemachine.push(new States.Preload("preload", this.statemachine));*/
             if (!this.statemachine.CurrentState())
                 this.statemachine.push(state); // TODO:state==null時などの考慮
-            this.timerToken = setInterval(function () { return _this.loop(); }, 100);
+            this.timerToken = setInterval(function () { return _this.loop(); }, 70);
         };
         // 使うの?
         Game.prototype.stop = function () {

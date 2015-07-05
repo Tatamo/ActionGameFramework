@@ -39,7 +39,7 @@ module Game {
             /*if(!this.statemachine.CurrentState()) this.statemachine.push(new States.Preload("preload", this.statemachine));*/
             if(!this.statemachine.CurrentState()) this.statemachine.push(state); // TODO:state==null時などの考慮
 
-            this.timerToken = setInterval(() => this.loop(), 100);
+            this.timerToken = setInterval(() => this.loop(), 70);
         }
         // 使うの?
         public stop() {

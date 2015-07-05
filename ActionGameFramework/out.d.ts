@@ -177,6 +177,8 @@ declare module Game {
         x: number;
         y: number;
         z: number;
+        vx: number;
+        vy: number;
         width: number;
         height: number;
         code: number;
@@ -189,6 +191,8 @@ declare module Game {
         x: number;
         y: number;
         z: number;
+        vx: number;
+        vy: number;
         private _ss;
         ss: ISpriteSystem;
         surface: PatternSurface;

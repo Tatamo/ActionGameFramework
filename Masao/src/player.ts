@@ -3,8 +3,6 @@
         public gk: GameKey; // TODO:疎結合に
         public counter: { [key: string]: number; };
         public flags: { [key: string]: boolean; };
-        public vx: number;
-        public vy: number;
         public moving: PlayerStateMachine;
         public ss: SpriteSystem;
         constructor(input: GameKey, x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
@@ -19,25 +17,48 @@
             this.flags = {};
             this.flags["isRunning"] = false;
             this.flags["isOnGround"] = false;
-            this.vx = 0;
-            this.vy = 0;
             this.z = 128;
+            this.addEventHandler("onground", this.onGround);
+        }
+        private onGround(e: Event) {
+            this.flags["isOnGround"] = true;
         }
         update() {
-            this.checkOnGround();
+            // 入力の更新
             this.checkInput();
             //this.externalForce();
+
+            // 外力を受けない移動
             this.moving.update();
             this.x += this.vx / 10;
             this.y += this.vy / 10;
+
+            // 接触判定
+            this.checkOnGround();
         }
         checkOnGround() {
+            this.flags["isOnGround"] = false;
             // check
-            var blocks = this.ss.GetBlocks((this.x + 16) / 32,(this.y + 32) / 32);
-            this.flags["isOnGround"] = true;
+            var blocks = [];
+            blocks = blocks.concat(this.ss.GetBlocks(this.x, this.y, this.width, this.height));
+            blocks = blocks.concat(this.ss.GetBlocks(this.x - this.width, this.y, this.width, this.height));
+            blocks = blocks.concat(this.ss.GetBlocks(this.x + this.width, this.y, this.width, this.height));
+            blocks = blocks.concat(this.ss.GetBlocks(this.x, this.y - this.height, this.width, this.height));
+            blocks = blocks.concat(this.ss.GetBlocks(this.x - this.width, this.y - this.height, this.width, this.height));
+            blocks = blocks.concat(this.ss.GetBlocks(this.x + this.width, this.y - this.height, this.width, this.height));
+            blocks = blocks.concat(this.ss.GetBlocks(this.x, this.y + this.height, this.width, this.height));
+            blocks = blocks.concat(this.ss.GetBlocks(this.x - this.width, this.y + this.height, this.width, this.height));
+            blocks = blocks.concat(this.ss.GetBlocks(this.x + this.width, this.y + this.height, this.width, this.height));
+            console.log(blocks);
+            for (var i = 0; i < blocks.length; i++) {
+                var b = blocks[i];
+                if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
+                    this.y <= b.y + b.height && this.y + this.height >= b.y) {
+                    b.dispatchEvent(new SpriteEvent("onhit", this));
+                }
+            }
         }
         checkInput() {
-            
             if (this.flags["isOnGround"]) { // 地上にいる
                 //if (this.gk.isDown(37) && this.gk.isDown(39)) { } // 左右同時に押されていたらとりあえず何もしないことに
                 if (this.gk.isOnDown(37)) {
@@ -81,6 +102,8 @@
                 }
             }
             else { // 地上にいない
+                this.vy += 25; // 重力を受ける
+                if (this.vy > 160) this.vy = 160;
             }
         }
     }

@@ -28,7 +28,7 @@
         }
         setChipSize(width: number, height: number) {
             this._chipwidth = width;
-            this._chipwidth = height;
+            this._chipheight = height;
         }
         add(sprite: ISprite) {
             if (sprite.x % this.chipwidth != 0 || sprite.y % this.chipheight != 0) {
@@ -37,12 +37,12 @@
             else {
                 var nx = sprite.x / this.chipwidth;
                 var ny = sprite.y / this.chipheight;
-                if (!this._map[ny][nx]) this._map[ny][nx] = sprite;
+                if (!this._map[ny] || !this._map[ny][nx]) this._map[ny][nx] = sprite;
                 else this._xsprites.push(sprite); // 既に同一座標に登録済みならばEX領域に追加
             }
         }
         getByXY(nx: number, ny: number): ISprite {
-            if (this._map[ny][nx]) return this._map[ny][nx];
+            if (this._map[ny] && this._map[ny][nx]) return this._map[ny][nx];
             for (var i = 0; i < this._xsprites.length; i++) {
                 var sp = this._xsprites[i];
                 if (sp.x == nx*this.chipwidth && sp.y == ny*this.chipheight) return sp;
@@ -50,7 +50,7 @@
         }
         getByXYObscure(nx: number, ny: number):Array<ISprite> { // 指定したマスに少しでも接しているSpriteをすべて取得
             var result = new Array<ISprite>();
-            if (this._map[ny][nx]) result.push(this._map[ny][nx]);
+            if (this._map[ny] && this._map[ny][nx]) result.push(this._map[ny][nx]);
             for (var i = 0; i < this._xsprites.length; i++) {
                 var sp = this._xsprites[i];
                 if (sp.x <= (nx + 1) * this.chipwidth && sp.x + this.chipwidth >= nx * this.chipwidth &&
@@ -64,7 +64,7 @@
             if (x % this.chipwidth == 0 && y % this.chipheight == 0) {
                 var nx = Math.floor(x / this.chipwidth);
                 var ny = Math.floor(y / this.chipheight);
-                if (this._map[ny][nx]) return this._map[ny][nx];
+                if (this._map[ny] && this._map[ny][nx]) return this._map[ny][nx];
             }
             for (var i = 0; i < this._xsprites.length; i++) {
                 var sp = this._xsprites[i];

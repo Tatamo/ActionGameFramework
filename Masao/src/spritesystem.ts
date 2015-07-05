@@ -33,8 +33,9 @@
             try { return BlockData[x / 32, y / 32]; }
             catch { return null; }
         }*/
-        GetBlocks(x: number, y: number):Array<ISprite> {
-            return this.MapBlocks.getByXYObscure(x, y);
+        GetBlocks(x: number, y: number,width:number,height:number):Array<ISprite> {
+            console.log(Math.floor((x + width / 2) / this.MapBlocks.chipwidth)+", "+Math.floor((y + height / 2) / this.MapBlocks.chipheight));
+            return this.MapBlocks.getByXYObscure(Math.floor((x + width / 2) / this.MapBlocks.chipwidth),Math.floor((y + height / 2) / this.MapBlocks.chipheight));
         }
     }
 }
