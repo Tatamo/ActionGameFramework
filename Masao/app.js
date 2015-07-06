@@ -174,8 +174,10 @@ var Game;
             var result = new Array();
             var nx = Math.floor(x / this.chipwidth);
             var ny = Math.floor(y / this.chipheight);
-            for (var i = ny; i < Math.ceil((y + height) / this.chipheight); i++) {
-                for (var ii = nx; ii < Math.ceil((x + width) / this.chipwidth); ii++) {
+            var nx2 = Math.ceil((x + width) / this.chipwidth);
+            var ny2 = Math.ceil((y + height) / this.chipheight);
+            for (var i = ny; i < ny2; i++) {
+                for (var ii = nx; ii < nx2; ii++) {
                     if (this._map[i] && this._map[i][ii])
                         result.push(this._map[i][ii]);
                 }
@@ -257,8 +259,7 @@ var Game;
         Player.prototype.checkOnGround = function () {
             this.flags["isOnGround"] = false;
             // check
-            var blocks = [];
-            blocks = blocks.concat(this.ss.GetBlocks(this.x, this.y, this.width, this.height));
+            var blocks = this.ss.GetBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
             console.log(blocks);
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];

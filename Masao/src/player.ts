@@ -39,8 +39,8 @@
         checkOnGround() {
             this.flags["isOnGround"] = false;
             // check
-            var blocks = [];
-            blocks = blocks.concat(this.ss.GetBlocks(this.x, this.y, this.width, this.height));
+            var blocks = this.ss.GetBlocks(this.x, this.y, this.width, this.height+1); // 足元+1ピクセルも含めて取得
+
             console.log(blocks);
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
