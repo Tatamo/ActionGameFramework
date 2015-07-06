@@ -41,14 +41,7 @@
             // check
             var blocks = [];
             blocks = blocks.concat(this.ss.GetBlocks(this.x, this.y, this.width, this.height));
-            blocks = blocks.concat(this.ss.GetBlocks(this.x - this.width, this.y, this.width, this.height));
-            blocks = blocks.concat(this.ss.GetBlocks(this.x + this.width, this.y, this.width, this.height));
-            blocks = blocks.concat(this.ss.GetBlocks(this.x, this.y - this.height, this.width, this.height));
-            blocks = blocks.concat(this.ss.GetBlocks(this.x - this.width, this.y - this.height, this.width, this.height));
-            blocks = blocks.concat(this.ss.GetBlocks(this.x + this.width, this.y - this.height, this.width, this.height));
-            blocks = blocks.concat(this.ss.GetBlocks(this.x, this.y + this.height, this.width, this.height));
-            blocks = blocks.concat(this.ss.GetBlocks(this.x - this.width, this.y + this.height, this.width, this.height));
-            blocks = blocks.concat(this.ss.GetBlocks(this.x + this.width, this.y + this.height, this.width, this.height));
+            console.log(blocks);
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
                 if (this.x <= b.x + b.width && this.x + this.width >= b.x &&

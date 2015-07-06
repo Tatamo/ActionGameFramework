@@ -104,10 +104,11 @@ var Game;
     // 座標からSpriteを取得でき、かつ取得がそこそこ高速であることが期待される。
     // 座標が変化することのないSpriteが登録されるべきである。
     var MapGroup = (function () {
-        function MapGroup(screen, width, height) {
+        function MapGroup(screen, width, height, chipwidth, chipheight) {
             if (width === void 0) { width = 180; }
             if (height === void 0) { height = 30; }
-            this._xsprites = new Array();
+            if (chipwidth === void 0) { chipwidth = 32; }
+            if (chipheight === void 0) { chipheight = 32; }
             this.screen = screen;
             this._map = new Array();
             for (var i = 0; i < height; i++) {
@@ -118,7 +119,7 @@ var Game;
             }
             this._width = width;
             this._height = height;
-            this.setChipSize(32, 32); // 32*32サイズのSpriteを保管 TODO:変更可能に
+            this.setChipSize(chipwidth, chipwidth); // 32*32サイズのSpriteを保管 TODO:変更可能に
         }
         Object.defineProperty(MapGroup.prototype, "chipwidth", {
             get: function () {
@@ -139,52 +140,47 @@ var Game;
             this._chipheight = height;
         };
         MapGroup.prototype.add = function (sprite) {
-            if (sprite.x % this.chipwidth != 0 || sprite.y % this.chipheight != 0) {
-                this._xsprites.push(sprite);
-            }
-            else {
-                var nx = sprite.x / this.chipwidth;
-                var ny = sprite.y / this.chipheight;
-                if (!this._map[ny] || !this._map[ny][nx])
-                    this._map[ny][nx] = sprite;
-                else
-                    this._xsprites.push(sprite); // 既に同一座標に登録済みならばEX領域に追加
-            }
+            var nx = Math.floor(sprite.x / this.chipwidth);
+            var ny = Math.floor(sprite.y / this.chipheight);
+            if (!this._map[ny] || !this._map[ny][nx])
+                this._map[ny][nx] = sprite;
+            else
+                throw new Error("sprite already registered");
         };
         MapGroup.prototype.getByXY = function (nx, ny) {
             if (this._map[ny] && this._map[ny][nx])
                 return this._map[ny][nx];
-            for (var i = 0; i < this._xsprites.length; i++) {
-                var sp = this._xsprites[i];
-                if (sp.x == nx * this.chipwidth && sp.y == ny * this.chipheight)
-                    return sp;
-            }
+            else
+                return null;
         };
-        MapGroup.prototype.getByXYObscure = function (nx, ny) {
-            var result = new Array();
+        MapGroup.prototype.getByXYReal = function (x, y) {
+            var nx = Math.floor(x / this.chipwidth);
+            var ny = Math.floor(y / this.chipheight);
             if (this._map[ny] && this._map[ny][nx])
-                result.push(this._map[ny][nx]);
-            for (var i = 0; i < this._xsprites.length; i++) {
-                var sp = this._xsprites[i];
-                if (sp.x <= (nx + 1) * this.chipwidth && sp.x + this.chipwidth >= nx * this.chipwidth && sp.y <= (ny + 1) * this.chipheight && sp.y + this.chipheight >= ny * this.chipheight) {
-                    result.push(sp);
+                return this._map[ny][nx];
+            return null;
+        };
+        MapGroup.prototype.getByRect = function (nx, ny, nwidth, nheight) {
+            var result = new Array();
+            for (var i = ny; i < ny + nwidth; i++) {
+                for (var ii = nx; ii < nx + nheight; ii++) {
+                    if (this._map[i] && this._map[i][ii])
+                        result.push(this._map[i][ii]);
                 }
             }
             return result;
         };
-        MapGroup.prototype.getByXYReal = function (x, y) {
-            if (x % this.chipwidth == 0 && y % this.chipheight == 0) {
-                var nx = Math.floor(x / this.chipwidth);
-                var ny = Math.floor(y / this.chipheight);
-                if (this._map[ny] && this._map[ny][nx])
-                    return this._map[ny][nx];
+        MapGroup.prototype.getByRectReal = function (x, y, width, height) {
+            var result = new Array();
+            var nx = Math.floor(x / this.chipwidth);
+            var ny = Math.floor(y / this.chipheight);
+            for (var i = ny; i < Math.ceil((y + height) / this.chipheight); i++) {
+                for (var ii = nx; ii < Math.ceil((x + width) / this.chipwidth); ii++) {
+                    if (this._map[i] && this._map[i][ii])
+                        result.push(this._map[i][ii]);
+                }
             }
-            for (var i = 0; i < this._xsprites.length; i++) {
-                var sp = this._xsprites[i];
-                if (sp.x == x && sp.y == y)
-                    return sp;
-            }
-            return null;
+            return result;
         };
         MapGroup.prototype.remove = function (sprite) {
             for (var i = 0; i < this._height; i++) {
@@ -192,11 +188,6 @@ var Game;
                     if (this._map[i][ii] == sprite) {
                         this._map[i][ii] = null;
                     }
-                }
-            }
-            for (var i = this._xsprites.length - 1; i >= 0; i--) {
-                if (this._xsprites[i] == sprite) {
-                    this._xsprites.splice(i, 1);
                 }
             }
         };
@@ -207,9 +198,6 @@ var Game;
                         this.remove(this._map[i][ii]);
                 }
             }
-            for (var i = this._xsprites.length - 1; i >= 0; i--) {
-                this.remove(this._xsprites[i]);
-            }
         };
         MapGroup.prototype.update = function () {
             for (var i = 0; i < this._height; i++) {
@@ -218,11 +206,6 @@ var Game;
                         this._map[i][ii].update();
                 }
             }
-            // 処理中にthis._spritesの要素が変化する可能性があるため、配列のコピーを回す
-            var sps = this._xsprites.slice(0);
-            for (var i = 0; i < sps.length; i++) {
-                sps[i].update();
-            }
         };
         MapGroup.prototype.draw = function () {
             for (var i = 0; i < this._height; i++) {
@@ -230,9 +213,6 @@ var Game;
                     if (this._map[i][ii])
                         this.screen.drawSurface(this._map[i][ii].surface, Math.round(this._map[i][ii].x), Math.round(this._map[i][ii].y));
                 }
-            }
-            for (var i = 0; i < this._xsprites.length; i++) {
-                this.screen.drawSurface(this._xsprites[i].surface, Math.round(this._xsprites[i].x), Math.round(this._xsprites[i].y));
             }
         };
         return MapGroup;
@@ -279,14 +259,7 @@ var Game;
             // check
             var blocks = [];
             blocks = blocks.concat(this.ss.GetBlocks(this.x, this.y, this.width, this.height));
-            blocks = blocks.concat(this.ss.GetBlocks(this.x - this.width, this.y, this.width, this.height));
-            blocks = blocks.concat(this.ss.GetBlocks(this.x + this.width, this.y, this.width, this.height));
-            blocks = blocks.concat(this.ss.GetBlocks(this.x, this.y - this.height, this.width, this.height));
-            blocks = blocks.concat(this.ss.GetBlocks(this.x - this.width, this.y - this.height, this.width, this.height));
-            blocks = blocks.concat(this.ss.GetBlocks(this.x + this.width, this.y - this.height, this.width, this.height));
-            blocks = blocks.concat(this.ss.GetBlocks(this.x, this.y + this.height, this.width, this.height));
-            blocks = blocks.concat(this.ss.GetBlocks(this.x - this.width, this.y + this.height, this.width, this.height));
-            blocks = blocks.concat(this.ss.GetBlocks(this.x + this.width, this.y + this.height, this.width, this.height));
+            console.log(blocks);
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
                 if (this.x <= b.x + b.width && this.x + this.width >= b.x && this.y <= b.y + b.height && this.y + this.height >= b.y) {
@@ -538,7 +511,7 @@ var Game;
             catch { return null; }
         }*/
         SpriteSystem.prototype.GetBlocks = function (x, y, width, height) {
-            return this.MapBlocks.getByXYObscure(Math.floor((x + width / 2) / this.MapBlocks.chipwidth), Math.floor((y + height / 2) / this.MapBlocks.chipheight));
+            return this.MapBlocks.getByRectReal(x, y, width, height);
         };
         return SpriteSystem;
     })();
