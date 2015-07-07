@@ -12,6 +12,7 @@
         }
         onHit(e: SpriteEvent) {
             var s = e.sprite;
+            if (s.vy < 0) return;
             if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && // spriteのx中心点との判定
                 this.y <= s.y + s.height && this.y + this.height >= s.y) {
                 console.log("onground");

@@ -65,6 +65,8 @@ var Game;
         };
         Block.prototype.onHit = function (e) {
             var s = e.sprite;
+            if (s.vy < 0)
+                return;
             if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y <= s.y + s.height && this.y + this.height >= s.y) {
                 console.log("onground");
                 s.dispatchEvent(new Game.Event("onground"));
@@ -688,14 +690,14 @@ var Game;
             }
             Stage.prototype.enter = function (sm) {
                 this.ss = new Game.SpriteSystem(sm.game.screen);
-                this.player = new Game.Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
-                this.ss.add(this.player);
                 for (var i = 0; i < 8; i++) {
                     this.ss.add(new Game.Block1(128 + i * 32, 160, sm.game.assets.image, "pattern"));
                 }
                 for (var i = 0; i < 12; i++) {
                     this.ss.add(new Game.Block1(64 + i * 32, 256, sm.game.assets.image, "pattern"));
                 }
+                this.player = new Game.Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
+                this.ss.add(this.player);
             };
             Stage.prototype.update = function (sm) {
                 // 背景色で埋めてみる
