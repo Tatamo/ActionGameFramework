@@ -960,6 +960,8 @@ var Game;
         };
         // 初期化用
         StateMachine.prototype.setGlobalState = function (state) {
+            if (this.global_state)
+                this.global_state.exit(this);
             this.global_state = state;
             this.global_state.enter(this);
         };

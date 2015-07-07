@@ -54,7 +54,11 @@ module Game {
             this.current_state.enter(this);
         }
         // 初期化用
-        setGlobalState(state: State) { this.global_state = state; this.global_state.enter(this) }
+        setGlobalState(state: State) {
+            if (this.global_state) this.global_state.exit(this);
+            this.global_state = state;
+            this.global_state.enter(this);
+        }
 
         // アクセサ
         CurrentState(): State { return this.current_state; }
