@@ -231,19 +231,26 @@ var Game;
             _super.call(this, x, y, imagemanager, label, 100, dx, dy);
             this.gk = input;
             this.moving = new PlayerStateMachine(this);
-            this.moving.push(new States.PlayerInterialMoveOnGround());
+            this.moving.setGlobalState(new States.PlayerGlobalMove());
+            this.moving.push(new States.PlayerInterialMove());
             this.counter = {};
             this.counter["able2runningLeft"] = 0;
             this.counter["able2runningRight"] = 0;
             this.counter["running"] = 0;
+            this.counter["jump_level"] = 0;
+            this.counter["ptc_slippingonair"] = 0;
             this.flags = {};
             this.flags["isRunning"] = false;
+            this.flags["isWalking"] = false;
+            this.flags["isJumping"] = false;
             this.flags["isOnGround"] = false;
             this.z = 128;
             this.addEventHandler("onground", this.onGround);
         }
         Player.prototype.onGround = function (e) {
             this.flags["isOnGround"] = true;
+            this.flags["isJumping"] = false;
+            this.counter["jump_level"] = 0;
         };
         Player.prototype.update = function () {
             // 入力の更新
@@ -269,46 +276,44 @@ var Game;
             }
         };
         Player.prototype.checkInput = function () {
-            if (this.flags["isOnGround"]) {
-                //if (this.gk.isDown(37) && this.gk.isDown(39)) { } // 左右同時に押されていたらとりあえず何もしないことに
-                if (this.gk.isOnDown(37)) {
-                    if (this.counter["able2runningLeft"] > 0) {
-                        this.moving.replace(new States.PlayerRunningLeft());
-                    }
-                    else if (!(this.moving.CurrentState() instanceof States.PlayerRunningLeft)) {
-                        this.moving.replace(new States.PlayerWalkingLeft());
-                    }
+            //if (this.gk.isDown(37) && this.gk.isDown(39)) { } // 左右同時に押されていたらとりあえず何もしないことに
+            if (this.gk.isOnDown(37)) {
+                if (this.counter["able2runningLeft"] > 0) {
+                    this.moving.replace(new States.PlayerRunningLeft());
                 }
-                else if (this.gk.isOnDown(39)) {
-                    if (this.counter["able2runningRight"] > 0) {
-                        this.moving.replace(new States.PlayerRunningRight());
-                    }
-                    else if (!(this.moving.CurrentState() instanceof States.PlayerRunningRight)) {
-                        this.moving.replace(new States.PlayerWalkingRight());
-                    }
-                }
-                if ((!this.gk.isDown(37) && !this.gk.isDown(39)) || ((this.moving.CurrentState() instanceof States.PlayerWalkingLeft) && !this.gk.isDown(37)) || ((this.moving.CurrentState() instanceof States.PlayerWalkingRight) && !this.gk.isDown(39)) || ((this.moving.CurrentState() instanceof States.PlayerRunningLeft) && !this.gk.isDown(37)) || ((this.moving.CurrentState() instanceof States.PlayerRunningRight) && !this.gk.isDown(39))) {
-                    this.moving.replace(new States.PlayerInterialMoveOnGround());
-                }
-                if (this.counter["able2runningLeft"] >= 8)
-                    this.counter["able2runningLeft"] = 0;
-                else if (this.counter["able2runningLeft"] > 0)
-                    this.counter["able2runningLeft"] += 1;
-                if (this.counter["able2runningRight"] >= 8)
-                    this.counter["able2runningRight"] = 0;
-                else if (this.counter["able2runningRight"] > 0)
-                    this.counter["able2runningRight"] += 1;
-                if (this.gk.isOnDown(37)) {
-                    this.counter["able2runningLeft"] = 1;
-                }
-                if (this.gk.isOnDown(39)) {
-                    this.counter["able2runningRight"] = 1;
+                else if (!(this.moving.CurrentState() instanceof States.PlayerRunningLeft)) {
+                    this.moving.replace(new States.PlayerWalkingLeft());
                 }
             }
-            else {
-                this.vy += 25; // 重力を受ける
-                if (this.vy > 160)
-                    this.vy = 160;
+            else if (this.gk.isOnDown(39)) {
+                if (this.counter["able2runningRight"] > 0) {
+                    this.moving.replace(new States.PlayerRunningRight());
+                }
+                else if (!(this.moving.CurrentState() instanceof States.PlayerRunningRight)) {
+                    this.moving.replace(new States.PlayerWalkingRight());
+                }
+            }
+            if ((!this.gk.isDown(37) && !this.gk.isDown(39)) || ((this.moving.CurrentState() instanceof States.PlayerWalkingLeft) && !this.gk.isDown(37)) || ((this.moving.CurrentState() instanceof States.PlayerWalkingRight) && !this.gk.isDown(39)) || ((this.moving.CurrentState() instanceof States.PlayerRunningLeft) && !this.gk.isDown(37)) || ((this.moving.CurrentState() instanceof States.PlayerRunningRight) && !this.gk.isDown(39))) {
+                this.moving.replace(new States.PlayerInterialMove());
+            }
+            if (this.counter["able2runningLeft"] >= 8)
+                this.counter["able2runningLeft"] = 0;
+            else if (this.counter["able2runningLeft"] > 0)
+                this.counter["able2runningLeft"] += 1;
+            if (this.counter["able2runningRight"] >= 8)
+                this.counter["able2runningRight"] = 0;
+            else if (this.counter["able2runningRight"] > 0)
+                this.counter["able2runningRight"] += 1;
+            if (this.gk.isOnDown(37)) {
+                this.counter["able2runningLeft"] = 1;
+            }
+            if (this.gk.isOnDown(39)) {
+                this.counter["able2runningRight"] = 1;
+            }
+            if (this.flags["isOnGround"]) {
+                if (this.gk.isOnDown(90)) {
+                    this.moving.push(new States.PlayerJumping());
+                }
             }
         };
         return Player;
@@ -333,6 +338,48 @@ var Game;
         }*/
         // 地上での処理が前提
         // TODO:空中
+        var PlayerGlobalMove = (function (_super) {
+            __extends(PlayerGlobalMove, _super);
+            function PlayerGlobalMove() {
+                _super.apply(this, arguments);
+            }
+            PlayerGlobalMove.prototype.update = function (sm) {
+                var pl = sm.pl;
+                if (pl.flags["isOnGround"]) {
+                }
+                else {
+                    pl.vy += 25; // 重力を受ける
+                    if (pl.vy > 160)
+                        pl.vy = 160;
+                    if (pl.flags["isJumping"]) {
+                        if (pl.vy < 0)
+                            pl.code = 101;
+                        if (pl.vy > 0)
+                            pl.code = 102;
+                    }
+                    else {
+                        if (pl.flags["isOnGround"]) {
+                            if (pl.vx == 0 && !pl.flags["isRunning"] && !pl.flags["isWalking"]) {
+                                pl.counter["ptc_slippingonair"] = 0;
+                            }
+                            else if (pl.flags["isRunning"]) {
+                                pl.counter["ptc_slippingonair"] = 105;
+                            }
+                            else if (pl.flags["isWalking"]) {
+                                pl.counter["ptc_slippingonair"] = 103;
+                            }
+                        }
+                        else {
+                            if (pl.counter["ptc_slippingonair"] != 0) {
+                                pl.code = pl.counter["ptc_slippingonair"];
+                            }
+                        }
+                    }
+                }
+            };
+            return PlayerGlobalMove;
+        })(States.AbstractState);
+        States.PlayerGlobalMove = PlayerGlobalMove;
         var PlayerWalkingLeft = (function (_super) {
             __extends(PlayerWalkingLeft, _super);
             function PlayerWalkingLeft() {
@@ -341,18 +388,25 @@ var Game;
             PlayerWalkingLeft.prototype.enter = function (sm) {
                 console.log("walk left ");
                 sm.pl.flags["isRunning"] = false;
+                sm.pl.flags["isWalking"] = true;
             };
             PlayerWalkingLeft.prototype.update = function (sm) {
                 var pl = sm.pl;
-                pl.surface.reverse_horizontal = false;
-                pl.counter["running"]++;
-                if (pl.counter["running"] > 3)
-                    pl.counter["running"] = 0;
-                pl.vx = (pl.vx - 15 > -60) ? pl.vx - 15 : -60;
-                if (pl.vx > 0)
-                    pl.code = 108;
-                else
-                    pl.code = 103 + Math.floor(pl.counter["running"] / 2);
+                if (pl.flags["isOnGround"]) {
+                    pl.surface.reverse_horizontal = false;
+                    pl.counter["running"]++;
+                    if (pl.counter["running"] > 3)
+                        pl.counter["running"] = 0;
+                    pl.vx = (pl.vx - 15 > -60) ? pl.vx - 15 : -60;
+                    if (pl.vx > 0)
+                        pl.code = 108;
+                    else
+                        pl.code = 103 + Math.floor(pl.counter["running"] / 2);
+                }
+                else {
+                    if (pl.vx > -60)
+                        pl.vx -= 10;
+                }
             };
             return PlayerWalkingLeft;
         })(States.AbstractState);
@@ -365,18 +419,25 @@ var Game;
             PlayerRunningLeft.prototype.enter = function (sm) {
                 console.log("run left ");
                 sm.pl.flags["isRunning"] = true;
+                sm.pl.flags["isWalking"] = false;
             };
             PlayerRunningLeft.prototype.update = function (sm) {
                 var pl = sm.pl;
-                pl.surface.reverse_horizontal = false;
-                pl.counter["running"]++;
-                if (pl.counter["running"] > 3)
-                    pl.counter["running"] = 0;
-                pl.vx = (pl.vx - 15 > -120) ? pl.vx - 15 : -120;
-                if (pl.vx > 0)
-                    pl.code = 108;
-                else
-                    pl.code = 105 + Math.floor(pl.counter["running"] / 2);
+                if (pl.flags["isOnGround"]) {
+                    pl.surface.reverse_horizontal = false;
+                    pl.counter["running"]++;
+                    if (pl.counter["running"] > 3)
+                        pl.counter["running"] = 0;
+                    pl.vx = (pl.vx - 15 > -120) ? pl.vx - 15 : -120;
+                    if (pl.vx > 0)
+                        pl.code = 108;
+                    else
+                        pl.code = 105 + Math.floor(pl.counter["running"] / 2);
+                }
+                else {
+                    if (pl.vx > -60)
+                        pl.vx -= 10;
+                }
             };
             return PlayerRunningLeft;
         })(States.AbstractState);
@@ -389,18 +450,25 @@ var Game;
             PlayerWalkingRight.prototype.enter = function (sm) {
                 console.log("walk right ");
                 sm.pl.flags["isRunning"] = false;
+                sm.pl.flags["isWalking"] = true;
             };
             PlayerWalkingRight.prototype.update = function (sm) {
                 var pl = sm.pl;
-                pl.surface.reverse_horizontal = true;
-                pl.counter["running"]++;
-                if (pl.counter["running"] > 3)
-                    pl.counter["running"] = 0;
-                pl.vx = (pl.vx + 15 < 60) ? pl.vx + 15 : 60;
-                if (pl.vx < 0)
-                    pl.code = 108;
-                else
-                    pl.code = 103 + Math.floor(pl.counter["running"] / 2);
+                if (pl.flags["isOnGround"]) {
+                    pl.surface.reverse_horizontal = true;
+                    pl.counter["running"]++;
+                    if (pl.counter["running"] > 3)
+                        pl.counter["running"] = 0;
+                    pl.vx = (pl.vx + 15 < 60) ? pl.vx + 15 : 60;
+                    if (pl.vx < 0)
+                        pl.code = 108;
+                    else
+                        pl.code = 103 + Math.floor(pl.counter["running"] / 2);
+                }
+                else {
+                    if (pl.vx < 60)
+                        pl.vx += 10;
+                }
             };
             return PlayerWalkingRight;
         })(States.AbstractState);
@@ -413,71 +481,127 @@ var Game;
             PlayerRunningRight.prototype.enter = function (sm) {
                 console.log("run right ");
                 sm.pl.flags["isRunning"] = true;
+                sm.pl.flags["isWalking"] = false;
             };
             PlayerRunningRight.prototype.update = function (sm) {
                 var pl = sm.pl;
-                pl.surface.reverse_horizontal = true;
-                pl.counter["running"]++;
-                if (pl.counter["running"] > 3)
-                    pl.counter["running"] = 0;
-                pl.vx = (pl.vx + 15 < 120) ? pl.vx + 15 : 120;
-                if (pl.vx < 0)
-                    pl.code = 108;
-                else
-                    pl.code = 105 + Math.floor(pl.counter["running"] / 2);
-            };
-            return PlayerRunningRight;
-        })(States.AbstractState);
-        States.PlayerRunningRight = PlayerRunningRight;
-        var PlayerInterialMoveOnGround = (function (_super) {
-            __extends(PlayerInterialMoveOnGround, _super);
-            function PlayerInterialMoveOnGround() {
-                _super.apply(this, arguments);
-            }
-            PlayerInterialMoveOnGround.prototype.enter = function (sm) {
-                console.log("move interial ");
-            };
-            PlayerInterialMoveOnGround.prototype.update = function (sm) {
-                var pl = sm.pl;
-                if (pl.vx < 0) {
-                    pl.surface.reverse_horizontal = false;
-                    pl.counter["running"]++;
-                    if (pl.counter["running"] > 3)
-                        pl.counter["running"] = 0;
-                    if (pl.flags["isRunning"])
-                        pl.code = 107;
-                    else
-                        pl.code = 103 + Math.floor(pl.counter["running"] / 2);
-                }
-                else if (pl.vx > 0) {
+                if (pl.flags["isOnGround"]) {
                     pl.surface.reverse_horizontal = true;
                     pl.counter["running"]++;
                     if (pl.counter["running"] > 3)
                         pl.counter["running"] = 0;
-                    if (pl.flags["isRunning"])
-                        pl.code = 107;
-                    else
-                        pl.code = 103 + Math.floor(pl.counter["running"] / 2);
-                }
-                // 摩擦を受ける
-                if (pl.vx > 0) {
-                    pl.vx -= 5;
+                    pl.vx = (pl.vx + 15 < 120) ? pl.vx + 15 : 120;
                     if (pl.vx < 0)
-                        pl.vx = 0;
+                        pl.code = 108;
+                    else
+                        pl.code = 105 + Math.floor(pl.counter["running"] / 2);
                 }
-                else if (pl.vx < 0) {
-                    pl.vx += 5;
-                    if (pl.vx > 0)
-                        pl.vx = 0;
-                }
-                if (pl.vx == 0) {
-                    sm.pl.flags["isRunning"] = false;
-                    pl.code = 100;
+                else {
+                    if (pl.vx < 60)
+                        pl.vx += 10;
                 }
             };
-            return PlayerInterialMoveOnGround;
+            return PlayerRunningRight;
         })(States.AbstractState);
-        States.PlayerInterialMoveOnGround = PlayerInterialMoveOnGround;
+        States.PlayerRunningRight = PlayerRunningRight;
+        var PlayerJumping = (function (_super) {
+            __extends(PlayerJumping, _super);
+            function PlayerJumping() {
+                _super.apply(this, arguments);
+            }
+            PlayerJumping.prototype.enter = function (sm) {
+                var pl = sm.pl;
+                pl.flags["isJumping"] = true;
+                pl.flags["isOnGround"] = false;
+                var speed = Math.abs(pl.vx);
+                if (speed == 0) {
+                    pl.vy = -150;
+                    pl.counter["jump_level"] = 1;
+                }
+                else if (speed < 60) {
+                    pl.vy = -230;
+                    pl.counter["jump_level"] = 2;
+                }
+                else if (speed == 60) {
+                    pl.vy = -260;
+                    pl.counter["jump_level"] = 3;
+                }
+                else if (speed < 120) {
+                    pl.vy = -290;
+                    pl.counter["jump_level"] = 4;
+                }
+                else {
+                    // 貫通防止
+                    if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1) != null) {
+                        pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1).dispatchEvent(new Game.SpriteEvent("onhit", pl));
+                    }
+                    else if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1) != null) {
+                        pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1).dispatchEvent(new Game.SpriteEvent("onhit", pl));
+                    }
+                    else {
+                        pl.vy = -340;
+                        pl.counter["jump_level"] = 5;
+                    }
+                }
+                sm.pop(); // 即座にもとのStateに戻す
+            };
+            return PlayerJumping;
+        })(States.AbstractState);
+        States.PlayerJumping = PlayerJumping;
+        var PlayerInterialMove = (function (_super) {
+            __extends(PlayerInterialMove, _super);
+            function PlayerInterialMove() {
+                _super.apply(this, arguments);
+            }
+            PlayerInterialMove.prototype.enter = function (sm) {
+                console.log("move interial ");
+            };
+            PlayerInterialMove.prototype.update = function (sm) {
+                var pl = sm.pl;
+                if (pl.flags["isOnGround"]) {
+                    if (pl.vx < 0) {
+                        pl.surface.reverse_horizontal = false;
+                        pl.counter["running"]++;
+                        if (pl.counter["running"] > 3)
+                            pl.counter["running"] = 0;
+                        if (pl.flags["isRunning"])
+                            pl.code = 107;
+                        else
+                            pl.code = 103 + Math.floor(pl.counter["running"] / 2);
+                    }
+                    else if (pl.vx > 0) {
+                        pl.surface.reverse_horizontal = true;
+                        pl.counter["running"]++;
+                        if (pl.counter["running"] > 3)
+                            pl.counter["running"] = 0;
+                        if (pl.flags["isRunning"])
+                            pl.code = 107;
+                        else
+                            pl.code = 103 + Math.floor(pl.counter["running"] / 2);
+                    }
+                    // 摩擦を受ける
+                    if (pl.vx > 0) {
+                        pl.vx -= 5;
+                        if (pl.vx < 0)
+                            pl.vx = 0;
+                    }
+                    else if (pl.vx < 0) {
+                        pl.vx += 5;
+                        if (pl.vx > 0)
+                            pl.vx = 0;
+                    }
+                    if (pl.vx == 0) {
+                        sm.pl.flags["isRunning"] = false;
+                        sm.pl.flags["isWalking"] = false;
+                        pl.code = 100;
+                    }
+                }
+                else {
+                }
+            };
+            return PlayerInterialMove;
+        })(States.AbstractState);
+        States.PlayerInterialMove = PlayerInterialMove;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
 var Game;
@@ -568,6 +692,9 @@ var Game;
                 this.ss.add(this.player);
                 for (var i = 0; i < 8; i++) {
                     this.ss.add(new Game.Block1(128 + i * 32, 160, sm.game.assets.image, "pattern"));
+                }
+                for (var i = 0; i < 12; i++) {
+                    this.ss.add(new Game.Block1(64 + i * 32, 256, sm.game.assets.image, "pattern"));
                 }
             };
             Stage.prototype.update = function (sm) {
