@@ -37,23 +37,64 @@
 
             // 外力を受けない移動
             this.moving.update();
-            this.x += this.vx / 10;
             this.y += this.vy / 10;
+            this.checkCollisionWithBlocksVertical(); // 接触判定
+            this.x += this.vx / 10;
+            this.checkCollisionWithBlocksHorizontal(); // 接触判定
 
-            // 接触判定
-            this.checkOnGround();
+            this.fixPatternCode();
+
         }
-        checkOnGround() {
+        fixPatternCode() {
+            if (this.flags["isOnGround"]) { // 地上にいる
+            }
+            else {
+                if (this.flags["isJumping"]) { // ジャンプ中のパターン画像
+                    if (this.vy <= 0) this.code = 101;
+                    if (this.vy > 0) this.code = 102;
+                }
+                else { // ジャンプ中ではなく地上にいる
+                    if (this.flags["isOnGround"]) {
+                        if (this.vx == 0 && !this.flags["isRunning"] && !this.flags["isWalking"]) { // 立ち止まる
+                            this.counter["ptc_slippingonair"] = 0;
+                        }
+                        else if (this.flags["isRunning"]) {
+                            this.counter["ptc_slippingonair"] = 105;
+                        }
+                        else if (this.flags["isWalking"]) {
+                            this.counter["ptc_slippingonair"] = 103;
+                        }
+                    }
+                    else { // 滑り落ちる
+                        if (this.counter["ptc_slippingonair"] != 0) {
+                            this.code = this.counter["ptc_slippingonair"];
+                        }
+                    }
+                }
+            }
+        }
+        checkCollisionWithBlocksVertical() {
             this.flags["isOnGround"] = false;
             // check
             var blocks = this.ss.GetBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
 
-            console.log(blocks);
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
                 if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
                     this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                    b.dispatchEvent(new SpriteEvent("onhit", this));
+                    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "vertical"));
+                }
+            }
+        }
+        checkCollisionWithBlocksHorizontal() {
+            // check
+            var blocks = this.ss.GetBlocks(this.x, this.y, this.width, this.height);
+
+            for (var i = 0; i < blocks.length; i++) {
+                var b = blocks[i];
+                if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
+                    this.y <= b.y + b.height && this.y + this.height >= b.y) {
+                    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "horizontal"));
                 }
             }
         }
@@ -128,29 +169,6 @@
                 else { // 地上にいない
                     pl.vy += 25; // 重力を受ける
                     if (pl.vy > 160) pl.vy = 160;
-
-                    if (pl.flags["isJumping"]) { // ジャンプ中のパターン画像
-                        if (pl.vy < 0) pl.code = 101;
-                        if (pl.vy > 0) pl.code = 102;
-                    }
-                    else { // ジャンプ中ではなく地上にいる
-                        if (pl.flags["isOnGround"]) {
-                            if (pl.vx == 0 && !pl.flags["isRunning"] && !pl.flags["isWalking"]) { // 立ち止まる
-                                pl.counter["ptc_slippingonair"] = 0;
-                            }
-                            else if (pl.flags["isRunning"]) {
-                                pl.counter["ptc_slippingonair"] = 105;
-                            }
-                            else if (pl.flags["isWalking"]) {
-                                pl.counter["ptc_slippingonair"] = 103;
-                            }
-                        }
-                        else { // 滑り落ちる
-                            if (pl.counter["ptc_slippingonair"] != 0) {
-                                pl.code = pl.counter["ptc_slippingonair"];
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -263,16 +281,17 @@
                 else {
                     // 貫通防止
                     if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1) != null) {
-                        pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1).dispatchEvent(new SpriteEvent("onhit", pl));
+                        pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1).dispatchEvent(new SpriteCollisionEvent("onhit", pl,"vertical"));
                     }
                     else if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1) != null) {
-                        pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1).dispatchEvent(new SpriteEvent("onhit", pl));
+                        pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1).dispatchEvent(new SpriteCollisionEvent("onhit", pl,"vertival"));
                     }
                     else {
                         pl.vy = -340;
                         pl.counter["jump_level"] = 5;
                     }
                 }
+                pl.checkCollisionWithBlocksVertical();
                 sm.pop(); // 即座にもとのStateに戻す
             }
         }

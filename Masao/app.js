@@ -65,13 +65,41 @@ var Game;
         };
         Block.prototype.onHit = function (e) {
             var s = e.sprite;
-            if (s.vy < 0)
-                return;
-            if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y <= s.y + s.height && this.y + this.height >= s.y) {
-                console.log("onground");
-                s.dispatchEvent(new Game.Event("onground"));
-                s.y = this.y - s.height;
-                s.vy = 0;
+            if (e.dir == "vertical" || e.dir == "up" || e.dir == "down") {
+                // up
+                if (s.vy < 0 && e.dir != "down") {
+                    if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y < s.y + s.height && this.y + this.height >= s.y) {
+                        s.y = this.y + this.height;
+                        s.vy = 0;
+                    }
+                }
+                else if (s.vy >= 0 && e.dir != "up") {
+                    // down || //
+                    if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y <= s.y + s.height && this.y + this.height >= s.y) {
+                        console.log("onground");
+                        s.dispatchEvent(new Game.Event("onground"));
+                        s.y = this.y - s.height;
+                        s.vy = 0;
+                    }
+                }
+            }
+            else if (e.dir == "horizontal" || e.dir == "left" || e.dir == "right") {
+                if (s.vx > 0 && e.dir != "left") {
+                    // right
+                    if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y <= s.y + s.height && this.y + this.height >= s.y) {
+                        s.x = this.x - s.width / 2 - 1;
+                        s.vx = 0;
+                    }
+                }
+                else if (s.vx < 0 && e.dir != "right") {
+                    // left
+                    if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y <= s.y + s.height && this.y + this.height >= s.y) {
+                        s.x = this.x + this.width - s.width / 2 + 1;
+                        s.vx = 0;
+                    }
+                }
+            }
+            else {
             }
         };
         return Block;
@@ -99,6 +127,21 @@ var Game;
         return Block2;
     })(Block);
     Game.Block2 = Block2;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var SpriteCollisionEvent = (function (_super) {
+        __extends(SpriteCollisionEvent, _super);
+        function SpriteCollisionEvent(type, sprite, dir) {
+            if (dir === void 0) { dir = "none"; }
+            _super.call(this, type, sprite);
+            this.type = type;
+            this.sprite = sprite;
+            this.dir = dir;
+        }
+        return SpriteCollisionEvent;
+    })(Game.SpriteEvent);
+    Game.SpriteCollisionEvent = SpriteCollisionEvent;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
@@ -260,20 +303,60 @@ var Game;
             //this.externalForce();
             // 外力を受けない移動
             this.moving.update();
-            this.x += this.vx / 10;
             this.y += this.vy / 10;
-            // 接触判定
-            this.checkOnGround();
+            this.checkCollisionWithBlocksVertical(); // 接触判定
+            this.x += this.vx / 10;
+            this.checkCollisionWithBlocksHorizontal(); // 接触判定
+            this.fixPatternCode();
         };
-        Player.prototype.checkOnGround = function () {
+        Player.prototype.fixPatternCode = function () {
+            if (this.flags["isOnGround"]) {
+            }
+            else {
+                if (this.flags["isJumping"]) {
+                    if (this.vy <= 0)
+                        this.code = 101;
+                    if (this.vy > 0)
+                        this.code = 102;
+                }
+                else {
+                    if (this.flags["isOnGround"]) {
+                        if (this.vx == 0 && !this.flags["isRunning"] && !this.flags["isWalking"]) {
+                            this.counter["ptc_slippingonair"] = 0;
+                        }
+                        else if (this.flags["isRunning"]) {
+                            this.counter["ptc_slippingonair"] = 105;
+                        }
+                        else if (this.flags["isWalking"]) {
+                            this.counter["ptc_slippingonair"] = 103;
+                        }
+                    }
+                    else {
+                        if (this.counter["ptc_slippingonair"] != 0) {
+                            this.code = this.counter["ptc_slippingonair"];
+                        }
+                    }
+                }
+            }
+        };
+        Player.prototype.checkCollisionWithBlocksVertical = function () {
             this.flags["isOnGround"] = false;
             // check
             var blocks = this.ss.GetBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
-            console.log(blocks);
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
                 if (this.x <= b.x + b.width && this.x + this.width >= b.x && this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                    b.dispatchEvent(new Game.SpriteEvent("onhit", this));
+                    b.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, "vertical"));
+                }
+            }
+        };
+        Player.prototype.checkCollisionWithBlocksHorizontal = function () {
+            // check
+            var blocks = this.ss.GetBlocks(this.x, this.y, this.width, this.height);
+            for (var i = 0; i < blocks.length; i++) {
+                var b = blocks[i];
+                if (this.x <= b.x + b.width && this.x + this.width >= b.x && this.y <= b.y + b.height && this.y + this.height >= b.y) {
+                    b.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, "horizontal"));
                 }
             }
         };
@@ -353,30 +436,6 @@ var Game;
                     pl.vy += 25; // 重力を受ける
                     if (pl.vy > 160)
                         pl.vy = 160;
-                    if (pl.flags["isJumping"]) {
-                        if (pl.vy < 0)
-                            pl.code = 101;
-                        if (pl.vy > 0)
-                            pl.code = 102;
-                    }
-                    else {
-                        if (pl.flags["isOnGround"]) {
-                            if (pl.vx == 0 && !pl.flags["isRunning"] && !pl.flags["isWalking"]) {
-                                pl.counter["ptc_slippingonair"] = 0;
-                            }
-                            else if (pl.flags["isRunning"]) {
-                                pl.counter["ptc_slippingonair"] = 105;
-                            }
-                            else if (pl.flags["isWalking"]) {
-                                pl.counter["ptc_slippingonair"] = 103;
-                            }
-                        }
-                        else {
-                            if (pl.counter["ptc_slippingonair"] != 0) {
-                                pl.code = pl.counter["ptc_slippingonair"];
-                            }
-                        }
-                    }
                 }
             };
             return PlayerGlobalMove;
@@ -535,16 +594,17 @@ var Game;
                 else {
                     // 貫通防止
                     if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1) != null) {
-                        pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1).dispatchEvent(new Game.SpriteEvent("onhit", pl));
+                        pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1).dispatchEvent(new Game.SpriteCollisionEvent("onhit", pl, "vertical"));
                     }
                     else if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1) != null) {
-                        pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1).dispatchEvent(new Game.SpriteEvent("onhit", pl));
+                        pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1).dispatchEvent(new Game.SpriteCollisionEvent("onhit", pl, "vertival"));
                     }
                     else {
                         pl.vy = -340;
                         pl.counter["jump_level"] = 5;
                     }
                 }
+                pl.checkCollisionWithBlocksVertical();
                 sm.pop(); // 即座にもとのStateに戻す
             };
             return PlayerJumping;
@@ -693,6 +753,7 @@ var Game;
                 for (var i = 0; i < 8; i++) {
                     this.ss.add(new Game.Block1(128 + i * 32, 160, sm.game.assets.image, "pattern"));
                 }
+                this.ss.add(new Game.Block1(128, 192, sm.game.assets.image, "pattern"));
                 for (var i = 0; i < 12; i++) {
                     this.ss.add(new Game.Block1(64 + i * 32, 256, sm.game.assets.image, "pattern"));
                 }
