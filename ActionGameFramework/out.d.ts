@@ -199,6 +199,13 @@ declare module Game {
         width: number;
         height: number;
         code: number;
+        leftt: number;
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+        centerx: number;
+        centery: number;
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, code?: number, dx?: number, dy?: number);
         update(): void;
         kill(): void;

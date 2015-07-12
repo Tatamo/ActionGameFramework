@@ -809,6 +809,70 @@ var Game;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Sprite.prototype, "leftt", {
+            get: function () {
+                return this.x;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Sprite.prototype, "left", {
+            set: function (v) {
+                this.x = v;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Sprite.prototype, "right", {
+            get: function () {
+                return this.x + this.width - 1;
+            },
+            set: function (v) {
+                this.x = v - this.width + 1;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Sprite.prototype, "top", {
+            get: function () {
+                return this.y;
+            },
+            set: function (v) {
+                this.y = v;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Sprite.prototype, "bottom", {
+            get: function () {
+                return this.y + this.height - 1;
+            },
+            set: function (v) {
+                this.y = v - this.height + 1;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Sprite.prototype, "centerx", {
+            get: function () {
+                return this.x + (this.width - 1) / 2;
+            },
+            set: function (v) {
+                this.x = v - (this.width + 1) / 2;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Sprite.prototype, "centery", {
+            get: function () {
+                return this.y + (this.height - 1) / 2;
+            },
+            set: function (v) {
+                this.y = v - (this.height + 1) / 2;
+            },
+            enumerable: true,
+            configurable: true
+        });
         /*// Surfaceの初期化
         setsurface(screen: Surface) {
         }*/

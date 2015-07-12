@@ -42,6 +42,19 @@ module Game {
         set code(c: number) {
             this.surface.code = c;
         }
+        get leftt(): number { return this.x; }
+        set left(v: number) { this.x = v; }
+        get right(): number { return this.x + this.width - 1; }
+        set right(v: number) { this.x = v - this.width + 1; }
+        get top(): number { return this.y; }
+        set top(v: number) { this.y = v; }
+        get bottom(): number { return this.y + this.height - 1; }
+        set bottom(v: number) { this.y = v - this.height + 1; }
+        get centerx(): number { return this.x + (this.width - 1) / 2; }
+        set centerx(v: number) { this.x = v - (this.width + 1) / 2; }
+        get centery(): number { return this.y + (this.height - 1) / 2; }
+        set centery(v: number) { this.y = v - (this.height + 1) / 2; }
+
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {
             super();
 
@@ -53,7 +66,7 @@ module Game {
             this.vy = 0;
 
             this.ss = null;
-            this.surface = new PatternSurface(imagemanager,label,code,dx,dy);
+            this.surface = new PatternSurface(imagemanager, label, code, dx, dy);
         }
         /*// Surfaceの初期化
         setsurface(screen: Surface) {
@@ -80,8 +93,8 @@ module Game {
             this.ss.remove(this);
         }
     }
-    export class SpriteEvent extends Event{
-        constructor(public type:string, public sprite:Sprite){
+    export class SpriteEvent extends Event {
+        constructor(public type: string, public sprite: Sprite) {
             super(type);
         }
     }
@@ -94,14 +107,14 @@ module Game {
         draw();
     }
     // TODO: sort
-    export class Group implements IGroup{
+    export class Group implements IGroup {
         screen: Surface;
         private _sprites: Array<ISprite>;
         constructor(screen: Surface) {
             this._sprites = new Array<ISprite>();
             this.screen = screen;
         }
-        add(sprite:ISprite) {
+        add(sprite: ISprite) {
             this._sprites.push(sprite);
         }
         remove(sprite: ISprite) {
@@ -127,7 +140,7 @@ module Game {
         }
         draw() {
             for (var i = 0; i < this._sprites.length; i++) {
-                this.screen.drawSurface(this._sprites[i].surface,Math.round(this._sprites[i].x),Math.round(this._sprites[i].y));
+                this.screen.drawSurface(this._sprites[i].surface, Math.round(this._sprites[i].x), Math.round(this._sprites[i].y));
             }
         }
     }
