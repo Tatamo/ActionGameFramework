@@ -75,7 +75,7 @@ var Game;
                 }
                 else if (s.vy >= 0 && e.dir != "up") {
                     // down || //
-                    if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y <= s.y + s.height && this.y + this.height >= s.y) {
+                    if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y <= s.y + s.height && this.y + this.height > s.y) {
                         console.log("onground");
                         s.dispatchEvent(new Game.Event("onground"));
                         s.y = this.y - s.height;
@@ -84,19 +84,23 @@ var Game;
                 }
             }
             else if (e.dir == "horizontal" || e.dir == "left" || e.dir == "right") {
-                if (s.vx > 0 && e.dir != "left") {
+                if (s.vx > 0) {
                     // right
-                    if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y <= s.y + s.height && this.y + this.height >= s.y) {
-                        s.x = this.x - s.width / 2 - 1;
-                        s.vx = 0;
-                    }
+                    if (e.dir != "left")
+                        if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y <= s.y + s.height && this.y + this.height >= s.y) {
+                            s.x = this.x - s.width / 2 - 1;
+                            s.vx = 0;
+                        }
                 }
-                else if (s.vx < 0 && e.dir != "right") {
+                else if (s.vx < 0) {
                     // left
-                    if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y <= s.y + s.height && this.y + this.height >= s.y) {
-                        s.x = this.x + this.width - s.width / 2 + 1;
-                        s.vx = 0;
-                    }
+                    if (e.dir != "right")
+                        if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y <= s.y + s.height && this.y + this.height >= s.y) {
+                            s.x = this.x + this.width - s.width / 2 + 1;
+                            s.vx = 0;
+                        }
+                }
+                else {
                 }
             }
             else {
@@ -303,10 +307,10 @@ var Game;
             //this.externalForce();
             // 外力を受けない移動
             this.moving.update();
-            this.y += this.vy / 10;
-            this.checkCollisionWithBlocksVertical(); // 接触判定
             this.x += this.vx / 10;
             this.checkCollisionWithBlocksHorizontal(); // 接触判定
+            this.y += this.vy / 10;
+            this.checkCollisionWithBlocksVertical(); // 接触判定
             this.fixPatternCode();
         };
         Player.prototype.fixPatternCode = function () {
@@ -396,7 +400,7 @@ var Game;
                 this.counter["able2runningRight"] = 1;
             }
             if (this.flags["isOnGround"]) {
-                if (this.gk.isOnDown(90)) {
+                if (this.gk.isDown(90) && this.gk.getCount(90) < 5) {
                     this.moving.push(new States.PlayerJumping());
                 }
             }
@@ -575,29 +579,29 @@ var Game;
                 pl.flags["isJumping"] = true;
                 pl.flags["isOnGround"] = false;
                 var speed = Math.abs(pl.vx);
-                if (speed == 0) {
-                    pl.vy = -150;
-                    pl.counter["jump_level"] = 1;
+                // 貫通防止
+                if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1) != null) {
+                    pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1).dispatchEvent(new Game.SpriteCollisionEvent("onhit", pl, "vertical"));
                 }
-                else if (speed < 60) {
-                    pl.vy = -230;
-                    pl.counter["jump_level"] = 2;
-                }
-                else if (speed == 60) {
-                    pl.vy = -260;
-                    pl.counter["jump_level"] = 3;
-                }
-                else if (speed < 120) {
-                    pl.vy = -290;
-                    pl.counter["jump_level"] = 4;
+                else if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1) != null) {
+                    pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1).dispatchEvent(new Game.SpriteCollisionEvent("onhit", pl, "vertival"));
                 }
                 else {
-                    // 貫通防止
-                    if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1) != null) {
-                        pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1).dispatchEvent(new Game.SpriteCollisionEvent("onhit", pl, "vertical"));
+                    if (speed == 0) {
+                        pl.vy = -150;
+                        pl.counter["jump_level"] = 1;
                     }
-                    else if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1) != null) {
-                        pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1).dispatchEvent(new Game.SpriteCollisionEvent("onhit", pl, "vertival"));
+                    else if (speed < 60) {
+                        pl.vy = -230;
+                        pl.counter["jump_level"] = 2;
+                    }
+                    else if (speed == 60) {
+                        pl.vy = -260;
+                        pl.counter["jump_level"] = 3;
+                    }
+                    else if (speed < 120) {
+                        pl.vy = -290;
+                        pl.counter["jump_level"] = 4;
                     }
                     else {
                         pl.vy = -340;
@@ -756,6 +760,9 @@ var Game;
                 this.ss.add(new Game.Block1(128, 192, sm.game.assets.image, "pattern"));
                 for (var i = 0; i < 12; i++) {
                     this.ss.add(new Game.Block1(64 + i * 32, 256, sm.game.assets.image, "pattern"));
+                }
+                for (var i = 0; i < 8; i++) {
+                    this.ss.add(new Game.Block1(128 + i * 32, 96, sm.game.assets.image, "pattern"));
                 }
                 this.player = new Game.Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
                 this.ss.add(this.player);

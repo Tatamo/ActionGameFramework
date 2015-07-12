@@ -37,10 +37,10 @@
 
             // 外力を受けない移動
             this.moving.update();
-            this.y += this.vy / 10;
-            this.checkCollisionWithBlocksVertical(); // 接触判定
             this.x += this.vx / 10;
             this.checkCollisionWithBlocksHorizontal(); // 接触判定
+            this.y += this.vy / 10;
+            this.checkCollisionWithBlocksVertical(); // 接触判定
 
             this.fixPatternCode();
 
@@ -139,7 +139,7 @@
                 this.counter["able2runningRight"] = 1;
             }
             if (this.flags["isOnGround"]) { // 地上にいる
-                if (this.gk.isOnDown(90)) {
+                if (this.gk.isDown(90) && this.gk.getCount(90) < 5) {
                     this.moving.push(new States.PlayerJumping());
                 }
             }
@@ -262,29 +262,29 @@
                 pl.flags["isJumping"] = true;
                 pl.flags["isOnGround"] = false;
                 var speed = Math.abs(pl.vx);
-                if (speed == 0) {
-                    pl.vy = -150;
-                    pl.counter["jump_level"] = 1;
+                // 貫通防止
+                if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1) != null) {
+                    pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1).dispatchEvent(new SpriteCollisionEvent("onhit", pl, "vertical"));
                 }
-                else if (speed < 60) {
-                    pl.vy = -230;
-                    pl.counter["jump_level"] = 2;
-                }
-                else if (speed == 60) {
-                    pl.vy = -260;
-                    pl.counter["jump_level"] = 3;
-                }
-                else if (speed < 120) {
-                    pl.vy = -290;
-                    pl.counter["jump_level"] = 4;
+                else if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1) != null) {
+                    pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1).dispatchEvent(new SpriteCollisionEvent("onhit", pl, "vertival"));
                 }
                 else {
-                    // 貫通防止
-                    if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1) != null) {
-                        pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1).dispatchEvent(new SpriteCollisionEvent("onhit", pl,"vertical"));
+                    if (speed == 0) {
+                        pl.vy = -150;
+                        pl.counter["jump_level"] = 1;
                     }
-                    else if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1) != null) {
-                        pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1).dispatchEvent(new SpriteCollisionEvent("onhit", pl,"vertival"));
+                    else if (speed < 60) {
+                        pl.vy = -230;
+                        pl.counter["jump_level"] = 2;
+                    }
+                    else if (speed == 60) {
+                        pl.vy = -260;
+                        pl.counter["jump_level"] = 3;
+                    }
+                    else if (speed < 120) {
+                        pl.vy = -290;
+                        pl.counter["jump_level"] = 4;
                     }
                     else {
                         pl.vy = -340;

@@ -24,7 +24,7 @@
                 else if (s.vy >= 0 && e.dir != "up") {
                     // down || //
                     if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && // spriteのx中心点との判定
-                        this.y <= s.y + s.height && this.y + this.height >= s.y) {
+                        this.y <= s.y + s.height && this.y + this.height > s.y) {
                         console.log("onground");
                         s.dispatchEvent(new Event("onground"));
                         s.y = this.y - s.height;
@@ -33,21 +33,25 @@
                 }
             }
             else if (e.dir == "horizontal" || e.dir == "left" || e.dir == "right") {
-                if (s.vx > 0 && e.dir != "left") {
+                if (s.vx > 0) {
                     // right
-                    if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && // spriteのx中心点との判定
-                        this.y <= s.y + s.height && this.y + this.height >= s.y) {
-                        s.x = this.x - s.width / 2 - 1;
-                        s.vx = 0;
-                    }
+                    if (e.dir != "left")
+                        if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && // spriteのx中心点との判定
+                            this.y <= s.y + s.height && this.y + this.height >= s.y) {
+                            s.x = this.x - s.width / 2 - 1;
+                            s.vx = 0;
+                        }
                 }
-                else if (s.vx < 0 && e.dir != "right") {
+                else if (s.vx < 0) {
                     // left
-                    if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && // spriteのx中心点との判定
-                        this.y <= s.y + s.height && this.y + this.height >= s.y) {
-                        s.x = this.x + this.width - s.width / 2 + 1;
-                        s.vx = 0;
-                    }
+                    if (e.dir != "right")
+                        if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && // spriteのx中心点との判定
+                            this.y <= s.y + s.height && this.y + this.height >= s.y) {
+                            s.x = this.x + this.width - s.width / 2 + 1;
+                            s.vx = 0;
+                        }
+                }
+                else { // UNDONE
                 }
             }
             else {
