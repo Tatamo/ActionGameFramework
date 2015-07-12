@@ -33,7 +33,10 @@
             try { return BlockData[x / 32, y / 32]; }
             catch { return null; }
         }*/
-        GetBlocks(x: number, y: number,width:number,height:number):Array<ISprite> {
+        getBlock(x: number, y: number):ISprite {
+            return this.MapBlocks.getByXY(Math.floor(x / 32), Math.floor(y / 32));
+        }
+        getBlocks(x: number, y: number,width:number,height:number):Array<ISprite> {
             return this.MapBlocks.getByRectReal(x, y, width, height);
         }
     }

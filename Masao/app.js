@@ -68,17 +68,19 @@ var Game;
             if (e.dir == "vertical" || e.dir == "up" || e.dir == "down") {
                 // up
                 if (s.vy < 0 && e.dir != "down") {
-                    if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y < s.y + s.height && this.y + this.height >= s.y) {
-                        s.y = this.y + this.height;
+                    if (this.x <= s.centerx && this.x + this.width > s.centerx && this.y < s.y + s.height && this.y + this.height >= s.y) {
+                        s.y = this.bottom + 1;
                         s.vy = 0;
                     }
                 }
                 else if (s.vy >= 0 && e.dir != "up") {
                     // down || //
-                    if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y <= s.y + s.height && this.y + this.height > s.y) {
+                    //if (Math.floor(s.centerx / this.width) == Math.floor(this.x / this.width) && // spriteのx中心点との判定
+                    //if (this.x <= s.centerx && this.right >= s.centerx && // spriteのx中心点との判定
+                    if (this.x <= s.centerx && this.x + this.width > s.centerx && this.y <= s.y + s.height && this.y + this.height > s.y) {
                         console.log("onground");
                         s.dispatchEvent(new Game.Event("onground"));
-                        s.y = this.y - s.height;
+                        s.bottom = this.y - 1;
                         s.vy = 0;
                     }
                 }
@@ -87,20 +89,26 @@ var Game;
                 if (s.vx > 0) {
                     // right
                     if (e.dir != "left")
-                        if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y <= s.y + s.height && this.y + this.height >= s.y) {
-                            s.x = this.x - s.width / 2 - 1;
+                        if (this.x <= s.centerx && this.x + this.width > s.centerx && this.y <= s.y + s.height && this.y + this.height > s.y) {
+                            s.x = this.x - (s.width - 1) / 2 - 1;
                             s.vx = 0;
                         }
                 }
                 else if (s.vx < 0) {
                     // left
                     if (e.dir != "right")
-                        if (this.x <= s.x + s.width / 2 && this.x + this.width >= s.x + s.width / 2 && this.y <= s.y + s.height && this.y + this.height >= s.y) {
-                            s.x = this.x + this.width - s.width / 2 + 1;
+                        if (this.x <= s.centerx && this.x + this.width > s.centerx && this.y <= s.y + s.height && this.y + this.height > s.y) {
+                            s.x = this.right - (s.width - 1) / 2 + 1;
                             s.vx = 0;
                         }
                 }
                 else {
+                    if (this.x <= s.centerx && this.x + this.width > s.centerx && this.y <= s.y + s.height && this.y + this.height > s.y) {
+                        if (s.centerx < this.centerx)
+                            s.x = this.x - (s.width - 1) / 2 - 1;
+                        else
+                            s.x = this.x + this.width - (s.width - 1) / 2 + 1;
+                    }
                 }
             }
             else {
@@ -308,9 +316,43 @@ var Game;
             // 外力を受けない移動
             this.moving.update();
             this.x += this.vx / 10;
+            var muki_x = 0;
+            if (this.vx > 0)
+                muki_x = 1;
+            else if (this.vx < 0)
+                muki_x = -1;
             this.checkCollisionWithBlocksHorizontal(); // 接触判定
+            var tmp_bottom = this.bottom;
+            var tmp_top = this.top;
             this.y += this.vy / 10;
             this.checkCollisionWithBlocksVertical(); // 接触判定
+            // 補正
+            if (this.vy > 0) {
+                if (tmp_bottom < this.bottom) {
+                    if (this.getHitBlock(this.centerx + muki_x, tmp_bottom + 1) == null) {
+                        if (this.getHitBlock(this.centerx + muki_x, this.bottom + 1) != null) {
+                            this.x += muki_x;
+                            this.checkCollisionWithBlocksVertical();
+                            this.vy = 0;
+                            //_ptc = 103;
+                            this.counter["running"] = 1;
+                        }
+                    }
+                }
+            }
+            else if (this.vy < 0) {
+                if (tmp_top > this.top) {
+                    if (this.getHitBlock(this.centerx + muki_x, tmp_top) == null) {
+                        if (this.getHitBlock(this.centerx + muki_x, this.top) != null) {
+                            this.x += muki_x;
+                            this.checkCollisionWithBlocksVertical();
+                            this.vy = 0;
+                            //_ptc = 103;
+                            this.counter["running"] = 1;
+                        }
+                    }
+                }
+            }
             this.fixPatternCode();
         };
         Player.prototype.fixPatternCode = function () {
@@ -346,7 +388,7 @@ var Game;
         Player.prototype.checkCollisionWithBlocksVertical = function () {
             this.flags["isOnGround"] = false;
             // check
-            var blocks = this.ss.GetBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
+            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
                 if (this.x <= b.x + b.width && this.x + this.width >= b.x && this.y <= b.y + b.height && this.y + this.height >= b.y) {
@@ -356,13 +398,21 @@ var Game;
         };
         Player.prototype.checkCollisionWithBlocksHorizontal = function () {
             // check
-            var blocks = this.ss.GetBlocks(this.x, this.y, this.width, this.height);
+            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
                 if (this.x <= b.x + b.width && this.x + this.width >= b.x && this.y <= b.y + b.height && this.y + this.height >= b.y) {
                     b.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, "horizontal"));
                 }
             }
+        };
+        // 指定した座標地点にブロックがある場合、そのブロックを返す。
+        // そうでない場合、nullを返す。
+        Player.prototype.getHitBlock = function (x, y) {
+            var b = this.ss.getBlock(x, y);
+            if (b)
+                return b;
+            return null;
         };
         Player.prototype.checkInput = function () {
             //if (this.gk.isDown(37) && this.gk.isDown(39)) { } // 左右同時に押されていたらとりあえず何もしないことに
@@ -701,7 +751,10 @@ var Game;
             try { return BlockData[x / 32, y / 32]; }
             catch { return null; }
         }*/
-        SpriteSystem.prototype.GetBlocks = function (x, y, width, height) {
+        SpriteSystem.prototype.getBlock = function (x, y) {
+            return this.MapBlocks.getByXY(Math.floor(x / 32), Math.floor(y / 32));
+        };
+        SpriteSystem.prototype.getBlocks = function (x, y, width, height) {
             return this.MapBlocks.getByRectReal(x, y, width, height);
         };
         return SpriteSystem;
@@ -758,13 +811,14 @@ var Game;
                     this.ss.add(new Game.Block1(128 + i * 32, 160, sm.game.assets.image, "pattern"));
                 }
                 this.ss.add(new Game.Block1(128, 192, sm.game.assets.image, "pattern"));
+                this.ss.add(new Game.Block1(128, 128, sm.game.assets.image, "pattern"));
                 for (var i = 0; i < 12; i++) {
                     this.ss.add(new Game.Block1(64 + i * 32, 256, sm.game.assets.image, "pattern"));
                 }
                 for (var i = 0; i < 8; i++) {
                     this.ss.add(new Game.Block1(128 + i * 32, 96, sm.game.assets.image, "pattern"));
                 }
-                this.player = new Game.Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
+                this.player = new Game.Player(sm.game.gamekey, 64, 224, sm.game.assets.image, "pattern");
                 this.ss.add(this.player);
             };
             Stage.prototype.update = function (sm) {

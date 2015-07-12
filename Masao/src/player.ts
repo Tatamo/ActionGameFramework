@@ -38,9 +38,42 @@
             // 外力を受けない移動
             this.moving.update();
             this.x += this.vx / 10;
+            var muki_x = 0;
+            if (this.vx > 0) muki_x = 1;
+            else if (this.vx < 0) muki_x = -1;
             this.checkCollisionWithBlocksHorizontal(); // 接触判定
+            var tmp_bottom = this.bottom;
+            var tmp_top = this.top;
             this.y += this.vy / 10;
             this.checkCollisionWithBlocksVertical(); // 接触判定
+
+            // 補正
+            if (this.vy > 0) { // 下降中
+                if (tmp_bottom < this.bottom) {
+                    if (this.getHitBlock(this.centerx + muki_x, tmp_bottom + 1) == null) { // 移動前 自機の足元にブロックが無い
+                        if (this.getHitBlock(this.centerx + muki_x, this.bottom + 1) != null) { // 移動後 自機の足元にブロックがある
+                            this.x += muki_x;
+                            this.checkCollisionWithBlocksVertical();
+                            this.vy = 0;
+                            //_ptc = 103;
+                            this.counter["running"] = 1;
+                        }
+                    }
+                }
+            }
+            else if (this.vy < 0) { // 上昇中
+                if (tmp_top > this.top) {
+                    if (this.getHitBlock(this.centerx + muki_x, tmp_top) == null) { // 移動前 自機の頭にブロックが無い
+                        if (this.getHitBlock(this.centerx + muki_x, this.top) != null) { // 移動後 自機の頭にブロックがある
+                            this.x += muki_x;
+                            this.checkCollisionWithBlocksVertical();
+                            this.vy = 0;
+                            //_ptc = 103;
+                            this.counter["running"] = 1;
+                        }
+                    }
+                }
+            }
 
             this.fixPatternCode();
 
@@ -76,7 +109,7 @@
         checkCollisionWithBlocksVertical() {
             this.flags["isOnGround"] = false;
             // check
-            var blocks = this.ss.GetBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
+            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
 
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
@@ -88,7 +121,7 @@
         }
         checkCollisionWithBlocksHorizontal() {
             // check
-            var blocks = this.ss.GetBlocks(this.x, this.y, this.width, this.height);
+            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
 
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
@@ -97,6 +130,13 @@
                     b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "horizontal"));
                 }
             }
+        }
+        // 指定した座標地点にブロックがある場合、そのブロックを返す。
+        // そうでない場合、nullを返す。
+        getHitBlock(x: number, y: number): ISprite {
+            var b: ISprite = this.ss.getBlock(x, y);
+            if (b) return b;
+            return null;
         }
         checkInput() {
             //if (this.gk.isDown(37) && this.gk.isDown(39)) { } // 左右同時に押されていたらとりあえず何もしないことに
