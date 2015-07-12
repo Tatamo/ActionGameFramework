@@ -315,6 +315,11 @@ var Game;
             //this.externalForce();
             // 外力を受けない移動
             this.moving.update();
+            if (this.flags["isOnGround"]) {
+                if (this.gk.isDown(90) && this.gk.getCount(90) < 5) {
+                    this.moving.push(new States.PlayerJumping());
+                }
+            }
             this.x += this.vx / 10;
             var muki_x = 0;
             if (this.vx > 0)
@@ -448,11 +453,6 @@ var Game;
             }
             if (this.gk.isOnDown(39)) {
                 this.counter["able2runningRight"] = 1;
-            }
-            if (this.flags["isOnGround"]) {
-                if (this.gk.isDown(90) && this.gk.getCount(90) < 5) {
-                    this.moving.push(new States.PlayerJumping());
-                }
             }
         };
         return Player;
@@ -807,7 +807,7 @@ var Game;
             }
             Stage.prototype.enter = function (sm) {
                 this.ss = new Game.SpriteSystem(sm.game.screen);
-                for (var i = 0; i < 8; i++) {
+                for (var i = 0; i < 6; i++) {
                     this.ss.add(new Game.Block1(128 + i * 32, 160, sm.game.assets.image, "pattern"));
                 }
                 this.ss.add(new Game.Block1(128, 192, sm.game.assets.image, "pattern"));
@@ -815,8 +815,8 @@ var Game;
                 for (var i = 0; i < 12; i++) {
                     this.ss.add(new Game.Block1(64 + i * 32, 256, sm.game.assets.image, "pattern"));
                 }
-                for (var i = 0; i < 8; i++) {
-                    this.ss.add(new Game.Block1(128 + i * 32, 96, sm.game.assets.image, "pattern"));
+                for (var i = 0; i < 6; i++) {
+                    this.ss.add(new Game.Block1(128 + (i + 6) * 32, 96, sm.game.assets.image, "pattern"));
                 }
                 this.player = new Game.Player(sm.game.gamekey, 64, 224, sm.game.assets.image, "pattern");
                 this.ss.add(this.player);

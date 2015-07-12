@@ -8,7 +8,7 @@
             }
             enter(sm: GameStateMachine) {
                 this.ss = new SpriteSystem(sm.game.screen);
-                for (var i: number = 0; i < 8; i++) {
+                for (var i: number = 0; i < 6; i++) {
                     this.ss.add(new Block1(128 + i * 32, 160, sm.game.assets.image, "pattern"));
                 }
                 this.ss.add(new Block1(128, 192, sm.game.assets.image, "pattern"));
@@ -16,8 +16,8 @@
                 for (var i: number = 0; i < 12; i++) {
                     this.ss.add(new Block1(64 + i * 32, 256, sm.game.assets.image, "pattern"));
                 }
-                for (var i: number = 0; i < 8; i++) {
-                    this.ss.add(new Block1(128 + i * 32, 96, sm.game.assets.image, "pattern"));
+                for (var i: number = 0; i < 6; i++) {
+                    this.ss.add(new Block1(128 + (i+6) * 32, 96, sm.game.assets.image, "pattern"));
                 }
                 this.player = new Player(sm.game.gamekey, 64, 224, sm.game.assets.image, "pattern");
                 this.ss.add(this.player);

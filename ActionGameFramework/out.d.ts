@@ -40,6 +40,46 @@ declare module Game {
     }
 }
 declare module Game {
+    interface IEventDispatcher {
+        addEventHandler(type: string, handler: (e: Event) => void): any;
+        removeEventHandler(type: string, handler: (e: Event) => void): any;
+        clearEventHandler(type: string): any;
+        dispatchEvent(e: Event): any;
+    }
+    class EventDispatcher implements IEventDispatcher {
+        private _handlers;
+        constructor();
+        addEventHandler(type: string, handler: (e: Event) => void): void;
+        removeEventHandler(type: string, handler: (e: Event) => void): void;
+        clearEventHandler(type: string): void;
+        dispatchEvent(e: Event): void;
+    }
+    class Event {
+        type: string;
+        constructor(type: string);
+    }
+}
+declare module Game {
+    class GameKey {
+        keys: {
+            [key: number]: number;
+        };
+        releasedkeys: {
+            [key: number]: number;
+        };
+        private keepreleasedtime;
+        constructor();
+        setEvent(el: HTMLElement): void;
+        init(): void;
+        update(): void;
+        KeyDown(key: number): void;
+        KeyUp(key: number): void;
+        isDown(key: number): boolean;
+        isOnDown(key: number): boolean;
+        getCount(key: number): number;
+    }
+}
+declare module Game {
     class AssetsManagerManager {
         loader: Loader;
         image: ImageManager;
@@ -99,46 +139,6 @@ declare module Game {
         regist_image(label: string, path: string): void;
         regist_pattern(label: string, path: string, c_width: number, c_height: number): void;
         load(): void;
-    }
-}
-declare module Game {
-    interface IEventDispatcher {
-        addEventHandler(type: string, handler: (e: Event) => void): any;
-        removeEventHandler(type: string, handler: (e: Event) => void): any;
-        clearEventHandler(type: string): any;
-        dispatchEvent(e: Event): any;
-    }
-    class EventDispatcher implements IEventDispatcher {
-        private _handlers;
-        constructor();
-        addEventHandler(type: string, handler: (e: Event) => void): void;
-        removeEventHandler(type: string, handler: (e: Event) => void): void;
-        clearEventHandler(type: string): void;
-        dispatchEvent(e: Event): void;
-    }
-    class Event {
-        type: string;
-        constructor(type: string);
-    }
-}
-declare module Game {
-    class GameKey {
-        keys: {
-            [key: number]: number;
-        };
-        releasedkeys: {
-            [key: number]: number;
-        };
-        private keepreleasedtime;
-        constructor();
-        setEvent(el: HTMLElement): void;
-        init(): void;
-        update(): void;
-        KeyDown(key: number): void;
-        KeyUp(key: number): void;
-        isDown(key: number): boolean;
-        isOnDown(key: number): boolean;
-        getCount(key: number): number;
     }
 }
 declare module Game {

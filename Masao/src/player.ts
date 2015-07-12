@@ -37,6 +37,13 @@
 
             // 外力を受けない移動
             this.moving.update();
+
+            if (this.flags["isOnGround"]) { // 地上にいる
+                if (this.gk.isDown(90) && this.gk.getCount(90) < 5) {
+                    this.moving.push(new States.PlayerJumping());
+                }
+            }
+
             this.x += this.vx / 10;
             var muki_x = 0;
             if (this.vx > 0) muki_x = 1;
@@ -177,11 +184,6 @@
             }
             if (this.gk.isOnDown(39)) {
                 this.counter["able2runningRight"] = 1;
-            }
-            if (this.flags["isOnGround"]) { // 地上にいる
-                if (this.gk.isDown(90) && this.gk.getCount(90) < 5) {
-                    this.moving.push(new States.PlayerJumping());
-                }
             }
         }
     }
