@@ -112,6 +112,7 @@
             this._reverse_horizontal = false;
             this._reverse_vertical = false;
             var i = this._im.getwide(label, code, dx, dy);
+            this._i = i;
             super(i.width, i.height);
             this.context.drawImage(i, 0, 0, i.width, i.height, 0, 0, i.width, i.height);
         }
