@@ -365,9 +365,9 @@ var Game;
             }
             else {
                 if (this.flags["isJumping"]) {
-                    if (this.vy <= 0)
+                    if (this.vy <= 25)
                         this.code = 101;
-                    if (this.vy > 0)
+                    else
                         this.code = 102;
                 }
                 else {
@@ -816,9 +816,12 @@ var Game;
                     this.ss.add(new Game.Block1(64 + i * 32, 256, sm.game.assets.image, "pattern"));
                 }
                 for (var i = 0; i < 6; i++) {
-                    this.ss.add(new Game.Block1(128 + (i + 6) * 32, 96, sm.game.assets.image, "pattern"));
+                    this.ss.add(new Game.Block1(128 + i * 32, 96, sm.game.assets.image, "pattern"));
                 }
-                this.player = new Game.Player(sm.game.gamekey, 64, 224, sm.game.assets.image, "pattern");
+                for (var i = 0; i < 3; i++) {
+                    this.ss.add(new Game.Block1(192 + i * 32, 224, sm.game.assets.image, "pattern"));
+                }
+                this.player = new Game.Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
                 this.ss.add(this.player);
             };
             Stage.prototype.update = function (sm) {

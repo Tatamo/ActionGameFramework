@@ -90,8 +90,8 @@
             }
             else {
                 if (this.flags["isJumping"]) { // ジャンプ中のパターン画像
-                    if (this.vy <= 0) this.code = 101;
-                    if (this.vy > 0) this.code = 102;
+                    if (this.vy <= 25) this.code = 101;
+                    else this.code = 102;
                 }
                 else { // ジャンプ中ではなく地上にいる
                     if (this.flags["isOnGround"]) {
