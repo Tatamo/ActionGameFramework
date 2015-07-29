@@ -295,7 +295,6 @@ var Game;
             this.counter["able2runningRight"] = 0;
             this.counter["running"] = 0;
             this.counter["jump_level"] = 0;
-            this.counter["ptc_slippingonair"] = 0;
             this.flags = {};
             this.flags["isRunning"] = false;
             this.flags["isWalking"] = false;
@@ -371,21 +370,14 @@ var Game;
                         this.code = 102;
                 }
                 else {
-                    if (this.flags["isOnGround"]) {
-                        if (this.vx == 0 && !this.flags["isRunning"] && !this.flags["isWalking"]) {
-                            this.counter["ptc_slippingonair"] = 0;
-                        }
-                        else if (this.flags["isRunning"]) {
-                            this.counter["ptc_slippingonair"] = 105;
-                        }
-                        else if (this.flags["isWalking"]) {
-                            this.counter["ptc_slippingonair"] = 103;
-                        }
+                    if (this.vx == 0 && !this.flags["isRunning"] && !this.flags["isWalking"]) {
+                        this.code = 0;
+                    }
+                    else if (Math.abs(this.vx) > 60) {
+                        this.code = 105;
                     }
                     else {
-                        if (this.counter["ptc_slippingonair"] != 0) {
-                            this.code = this.counter["ptc_slippingonair"];
-                        }
+                        this.code = 103;
                     }
                 }
             }

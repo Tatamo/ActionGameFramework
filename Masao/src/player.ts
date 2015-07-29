@@ -16,7 +16,6 @@
             this.counter["able2runningRight"] = 0;
             this.counter["running"] = 0;
             this.counter["jump_level"] = 0;
-            this.counter["ptc_slippingonair"] = 0;
             this.flags = {};
             this.flags["isRunning"] = false;
             this.flags["isWalking"] = false;
@@ -93,22 +92,15 @@
                     if (this.vy <= 25) this.code = 101;
                     else this.code = 102;
                 }
-                else { // ジャンプ中ではなく地上にいる
-                    if (this.flags["isOnGround"]) {
-                        if (this.vx == 0 && !this.flags["isRunning"] && !this.flags["isWalking"]) { // 立ち止まる
-                            this.counter["ptc_slippingonair"] = 0;
-                        }
-                        else if (this.flags["isRunning"]) {
-                            this.counter["ptc_slippingonair"] = 105;
-                        }
-                        else if (this.flags["isWalking"]) {
-                            this.counter["ptc_slippingonair"] = 103;
-                        }
+                else {
+                    if (this.vx == 0 && !this.flags["isRunning"] && !this.flags["isWalking"]) { // 立ち止まる
+                        this.code = 0;
                     }
-                    else { // 滑り落ちる
-                        if (this.counter["ptc_slippingonair"] != 0) {
-                            this.code = this.counter["ptc_slippingonair"];
-                        }
+                    else if (Math.abs(this.vx) > 60) {
+                        this.code = 105;
+                    }
+                    else {
+                        this.code = 103;
                     }
                 }
             }
