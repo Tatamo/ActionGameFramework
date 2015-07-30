@@ -146,125 +146,6 @@ var Game;
     })();
     Game.AbstractDataGroup = AbstractDataGroup;
 })(Game || (Game = {}));
-var Game;
-(function (Game) {
-    var EventDispatcher = (function () {
-        function EventDispatcher() {
-            this._handlers = {};
-        }
-        // イベントハンドラの追加
-        EventDispatcher.prototype.addEventHandler = function (type, handler) {
-            if (!this._handlers[type]) {
-                this._handlers[type] = [handler.bind(this)];
-            }
-            else {
-                this._handlers[type].push(handler.bind(this));
-            }
-        };
-        // イベントハンドラの削除
-        EventDispatcher.prototype.removeEventHandler = function (type, handler) {
-            if (!this._handlers[type]) {
-                return;
-            }
-            for (var i = this._handlers[type].length; i >= 0; i--) {
-                if (this._handlers[type][i] == handler) {
-                    this._handlers[type].splice(i, 1);
-                }
-            }
-        };
-        // すべてのイベントハンドラを削除
-        EventDispatcher.prototype.clearEventHandler = function (type) {
-            this._handlers[type] = [];
-        };
-        // イベントの発火
-        EventDispatcher.prototype.dispatchEvent = function (e) {
-            if (!this._handlers[e.type])
-                return;
-            for (var i = 0; i < this._handlers[e.type].length; i++) {
-                var e;
-                this._handlers[e.type][i](e);
-            }
-        };
-        return EventDispatcher;
-    })();
-    Game.EventDispatcher = EventDispatcher;
-    var Event = (function () {
-        function Event(type) {
-            this.type = type;
-        }
-        return Event;
-    })();
-    Game.Event = Event;
-})(Game || (Game = {}));
-var Game;
-(function (Game) {
-    var GameKey = (function () {
-        function GameKey() {
-            this.keepreleasedtime = 64;
-            this.init();
-        }
-        // キー入力を受け付けるイベントハンドラを登録する
-        GameKey.prototype.setEvent = function (el) {
-            var _this = this;
-            console.log(el);
-            el.addEventListener("keydown", function (e) {
-                _this.KeyDown(e.keyCode);
-            });
-            el.addEventListener("keyup", function (e) {
-                _this.KeyUp(e.keyCode);
-            });
-        };
-        GameKey.prototype.init = function () {
-            this.keys = {};
-            this.releasedkeys = {};
-        };
-        GameKey.prototype.update = function () {
-            for (var key in this.keys) {
-                this.keys[key] += 1;
-            }
-            var rks = {};
-            for (var key in this.releasedkeys) {
-                if (this.releasedkeys[key] + 1 <= this.keepreleasedtime) {
-                    rks[key] = this.releasedkeys[key] + 1;
-                }
-            }
-            this.releasedkeys = rks;
-        };
-        GameKey.prototype.KeyDown = function (key) {
-            console.log(key);
-            if (!(key in this.keys)) {
-                this.keys[key] = 0;
-            }
-        };
-        GameKey.prototype.KeyUp = function (key) {
-            if (key in this.keys) {
-                delete this.keys[key];
-            }
-            this.releasedkeys[key] = 0;
-        };
-        // 押されているかどうかの判定をします
-        GameKey.prototype.isDown = function (key) {
-            if (key in this.keys)
-                return true;
-            return false;
-        };
-        // 押された瞬間かどうかの判定をします
-        GameKey.prototype.isOnDown = function (key) {
-            if (key in this.keys && this.keys[key] == 1)
-                return true;
-            return false;
-        };
-        // 押された時間を取得します 押されていない場合は-1
-        GameKey.prototype.getCount = function (key) {
-            if (key in this.keys) {
-                return this.keys[key];
-            }
-            return -1;
-        };
-        return GameKey;
-    })();
-    Game.GameKey = GameKey;
-})(Game || (Game = {}));
 /// <reference path="datadictionary.ts"/>
 var Game;
 (function (Game) {
@@ -628,6 +509,161 @@ var Game;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
+    // 読み込まれたマップの管理
+    var Config = (function () {
+        function Config(map, image, config) {
+            if (config === void 0) { config = {}; }
+            this.initconfig();
+            this.initmap(map);
+            this.image = image;
+            this.config = config;
+        }
+        Config.prototype.initconfig = function () {
+            this.config = {};
+            this.config["screen_width"] = 512;
+            this.config["screen_height"] = 320;
+            this.config["mapchip_width"] = 32;
+            this.config["mapchip_height"] = 32;
+            this.config["map_width"] = 180;
+            this.config["map_height"] = 30;
+        };
+        Config.prototype.initmap = function (map) {
+            this.rawmap = map;
+            this.map = [];
+            for (var i = 0; i < map.length; i += 1) {
+                if (i < this.config["map_height"]) {
+                    this.map[i] = map[i];
+                }
+                else {
+                    this.map[i % this.config["map_height"]] += map[i];
+                }
+            }
+        };
+        return Config;
+    })();
+    Game.Config = Config;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var EventDispatcher = (function () {
+        function EventDispatcher() {
+            this._handlers = {};
+        }
+        // イベントハンドラの追加
+        EventDispatcher.prototype.addEventHandler = function (type, handler) {
+            if (!this._handlers[type]) {
+                this._handlers[type] = [handler.bind(this)];
+            }
+            else {
+                this._handlers[type].push(handler.bind(this));
+            }
+        };
+        // イベントハンドラの削除
+        EventDispatcher.prototype.removeEventHandler = function (type, handler) {
+            if (!this._handlers[type]) {
+                return;
+            }
+            for (var i = this._handlers[type].length; i >= 0; i--) {
+                if (this._handlers[type][i] == handler) {
+                    this._handlers[type].splice(i, 1);
+                }
+            }
+        };
+        // すべてのイベントハンドラを削除
+        EventDispatcher.prototype.clearEventHandler = function (type) {
+            this._handlers[type] = [];
+        };
+        // イベントの発火
+        EventDispatcher.prototype.dispatchEvent = function (e) {
+            if (!this._handlers[e.type])
+                return;
+            for (var i = 0; i < this._handlers[e.type].length; i++) {
+                var e;
+                this._handlers[e.type][i](e);
+            }
+        };
+        return EventDispatcher;
+    })();
+    Game.EventDispatcher = EventDispatcher;
+    var Event = (function () {
+        function Event(type) {
+            this.type = type;
+        }
+        return Event;
+    })();
+    Game.Event = Event;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var GameKey = (function () {
+        function GameKey() {
+            this.keepreleasedtime = 64;
+            this.init();
+        }
+        // キー入力を受け付けるイベントハンドラを登録する
+        GameKey.prototype.setEvent = function (el) {
+            var _this = this;
+            console.log(el);
+            el.addEventListener("keydown", function (e) {
+                _this.KeyDown(e.keyCode);
+            });
+            el.addEventListener("keyup", function (e) {
+                _this.KeyUp(e.keyCode);
+            });
+        };
+        GameKey.prototype.init = function () {
+            this.keys = {};
+            this.releasedkeys = {};
+        };
+        GameKey.prototype.update = function () {
+            for (var key in this.keys) {
+                this.keys[key] += 1;
+            }
+            var rks = {};
+            for (var key in this.releasedkeys) {
+                if (this.releasedkeys[key] + 1 <= this.keepreleasedtime) {
+                    rks[key] = this.releasedkeys[key] + 1;
+                }
+            }
+            this.releasedkeys = rks;
+        };
+        GameKey.prototype.KeyDown = function (key) {
+            console.log(key);
+            if (!(key in this.keys)) {
+                this.keys[key] = 0;
+            }
+        };
+        GameKey.prototype.KeyUp = function (key) {
+            if (key in this.keys) {
+                delete this.keys[key];
+            }
+            this.releasedkeys[key] = 0;
+        };
+        // 押されているかどうかの判定をします
+        GameKey.prototype.isDown = function (key) {
+            if (key in this.keys)
+                return true;
+            return false;
+        };
+        // 押された瞬間かどうかの判定をします
+        GameKey.prototype.isOnDown = function (key) {
+            if (key in this.keys && this.keys[key] == 1)
+                return true;
+            return false;
+        };
+        // 押された時間を取得します 押されていない場合は-1
+        GameKey.prototype.getCount = function (key) {
+            if (key in this.keys) {
+                return this.keys[key];
+            }
+            return -1;
+        };
+        return GameKey;
+    })();
+    Game.GameKey = GameKey;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
     // TODO:
     // Surfaceのサブクラスとして、メインスクリーン専用のDisplayクラスの追加を検討
     // ダブルバッファリング等々の機能追加
@@ -941,7 +977,7 @@ var Game;
         };
         Group.prototype.draw = function () {
             for (var i = 0; i < this._sprites.length; i++) {
-                this.screen.drawSurface(this._sprites[i].surface, Math.round(this._sprites[i].x), Math.round(this._sprites[i].y));
+                this.screen.drawSurface(this._sprites[i].surface, Math.round(this._sprites[i].x), Math.round(this._sprites[i].y - 640));
             }
         };
         return Group;
@@ -1070,7 +1106,103 @@ var Game;
             this.statemachine = new _Game.GameStateMachine(this);
             this.gamekey = new _Game.GameKey();
             this.assets = new _Game.AssetsManagerManager();
-            //this.config = new Config(map, image, config);
+            var map = [
+                "aa..........................................................",
+                "a...........................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................999.............",
+                "............................................999.............",
+                "............................................................",
+                "............................................aaa.............",
+                "............................................................",
+                "............................................................",
+                "...............................99...........................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "...12...............12.....9.9...aaa.....aa.aaaaaaaa...12...",
+                ".............B............aaaaa..............9.aaaaa........",
+                ".........aaaaa..........................B...aaaaaaaa........",
+                "....9.9.............................aaaaa...9.9aa999........",
+                "....aaa...............B.............9.9.9...aaaaaaaa........",
+                "...........aaaaaa..aaaaaa....................9.aaaaa........",
+                ".A........aaaaaaa..aaaaaa............D......aaaaaaaa........",
+                "bbbbbbbbbbbbbbbbb..bbbbbb.bbbbbbbbbbbbbbbbbbbbbbbbbb5bbbbbb.",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "...12....12.....12.....12....12....12.......................",
+                "............................................................",
+                "............................................................",
+                "...................O........................................",
+                ".................aaaa...................feef................",
+                ".............aaaaaaaaaaa................e..e..............E.",
+                "..........O..aaaaaaaaaaa.O.....O........feefeef..feeeefeeeef",
+                "..bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.......e..e..e..e....e....e",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "............................................................",
+                "........................................................8...",
+                "..................99........12.....12....12....12.......a...",
+                "..................dd...................................aaa..",
+                "..e.ef...................9.9.9.9......................aaaaa.",
+                "..e..e.............................................F.aaaaaaa",
+                "..e..e.......E..............................aaaaaaaaaaaaaaaa",
+                "..e..e.feeefeeef..99...................F....aaaaaaaaaaaaaaaa",
+                "..feef.e...e...e..dd...aaaaaaaaaaaaaaaaaaa..aaaaaaaaaaaaaaaa"
+            ];
+            var image = {
+                "title": "title.gif",
+                "pattern": "pattern.gif"
+            };
+            this.config = new _Game.Config(map, image, {});
         }
         // 指定した要素の子要素としてゲーム画面を追加します
         Game.prototype.setparent = function (el) {

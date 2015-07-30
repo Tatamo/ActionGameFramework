@@ -1,13 +1,17 @@
 ﻿module Game {
     export module States {
         export class Stage extends GameState {
-            player: Player;
+            //player: Player;
             ss: SpriteSystem;
+            mm: MapGenerator;
             constructor() {
                 super();
             }
             enter(sm: GameStateMachine) {
                 this.ss = new SpriteSystem(sm.game.screen);
+                this.mm = new MapGenerator(this.ss);
+                this.mm.generateMap(sm.game.config.map, 32, 32, sm.game);
+                /*
                 for (var i: number = 0; i < 6; i++) {
                     this.ss.add(new Block1(128 + i * 32, 160, sm.game.assets.image, "pattern"));
                 }
@@ -23,7 +27,7 @@
                     this.ss.add(new Block1(192 + i * 32, 224, sm.game.assets.image, "pattern"));
                 }
                 this.player = new Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
-                this.ss.add(this.player);
+                this.ss.add(this.player);*/
             }
             update(sm: GameStateMachine) {
                 // 背景色で埋めてみる

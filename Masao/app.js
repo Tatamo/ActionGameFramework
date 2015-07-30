@@ -277,6 +277,50 @@ var Game;
         return MapGroup;
     })();
     Game.MapGroup = MapGroup;
+    // マップの管理
+    var MapGenerator = (function () {
+        function MapGenerator(ss) {
+            this.setSS(ss);
+            this.initLookupTable();
+        }
+        // to overridden
+        MapGenerator.prototype.initLookupTable = function () {
+            this.lookup = {};
+            this.lookup["A"] = Game.Player;
+            this.lookup["a"] = Game.Block1;
+            this.lookup["b"] = Game.Block2;
+            /*this.lookup["c"] = Block3;
+            this.lookup["d"] = Block4;
+            this.lookup["e"] = Block5;
+            this.lookup["f"] = Block6;*/
+        };
+        MapGenerator.prototype.setSS = function (ss) {
+            this.ss = ss;
+        };
+        // SpriteSystem内にマップを生成します
+        // UNDONE:unique Entity(ex:"A")
+        MapGenerator.prototype.generateMap = function (map, swidth, sheight, game) {
+            for (var i = 0; i < map.length; i += 1) {
+                for (var ii = 0; ii < map[i].length; ii += 1) {
+                    var e = this.lookup[map[i][ii]];
+                    if (e != undefined) {
+                        //e(this.ss,swidth,sheight);
+                        //new e(this.ss, swidth * ii, sheight * i, game);
+                        //console.log(e);
+                        if (e != Game.Player)
+                            this.ss.add(new e(swidth * ii, sheight * i, game.assets.image, "pattern"));
+                        else
+                            this.ss.add(new e(game.gamekey, swidth * ii, sheight * i, game.assets.image, "pattern"));
+                    }
+                }
+            }
+        };
+        MapGenerator.prototype.getEntity = function (code) {
+            return this.lookup[code];
+        };
+        return MapGenerator;
+    })();
+    Game.MapGenerator = MapGenerator;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
@@ -799,22 +843,25 @@ var Game;
             }
             Stage.prototype.enter = function (sm) {
                 this.ss = new Game.SpriteSystem(sm.game.screen);
-                for (var i = 0; i < 6; i++) {
-                    this.ss.add(new Game.Block1(128 + i * 32, 160, sm.game.assets.image, "pattern"));
+                this.mm = new Game.MapGenerator(this.ss);
+                this.mm.generateMap(sm.game.config.map, 32, 32, sm.game);
+                /*
+                for (var i: number = 0; i < 6; i++) {
+                    this.ss.add(new Block1(128 + i * 32, 160, sm.game.assets.image, "pattern"));
                 }
-                this.ss.add(new Game.Block1(128, 192, sm.game.assets.image, "pattern"));
-                this.ss.add(new Game.Block1(128, 128, sm.game.assets.image, "pattern"));
-                for (var i = 0; i < 12; i++) {
-                    this.ss.add(new Game.Block1(64 + i * 32, 256, sm.game.assets.image, "pattern"));
+                this.ss.add(new Block1(128, 192, sm.game.assets.image, "pattern"));
+                this.ss.add(new Block1(128, 128, sm.game.assets.image, "pattern"));
+                for (var i: number = 0; i < 12; i++) {
+                    this.ss.add(new Block1(64 + i * 32, 256, sm.game.assets.image, "pattern"));
                 }
-                for (var i = 0; i < 6; i++) {
-                    this.ss.add(new Game.Block1(128 + i * 32, 96, sm.game.assets.image, "pattern"));
+                for (var i: number = 0; i < 6; i++) {
+                    this.ss.add(new Block1(128 + i * 32, 96, sm.game.assets.image, "pattern"));
                 }
-                for (var i = 0; i < 3; i++) {
-                    this.ss.add(new Game.Block1(192 + i * 32, 224, sm.game.assets.image, "pattern"));
+                for (var i: number = 0; i < 3; i++) {
+                    this.ss.add(new Block1(192 + i * 32, 224, sm.game.assets.image, "pattern"));
                 }
-                this.player = new Game.Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
-                this.ss.add(this.player);
+                this.player = new Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
+                this.ss.add(this.player);*/
             };
             Stage.prototype.update = function (sm) {
                 // 背景色で埋めてみる

@@ -97,4 +97,47 @@
             }
         }
     }
+    	// マップの管理
+    export class MapGenerator {
+        private ss: ISpriteSystem;
+        private lookup: { [key: string]: any };
+        public map: Array<Array<number>>;
+        constructor(ss: ISpriteSystem) {
+            this.setSS(ss);
+            this.initLookupTable();
+        }
+        // to overridden
+        private initLookupTable() {
+            this.lookup = {};
+            this.lookup["A"] = Player;
+            this.lookup["a"] = Block1;
+            this.lookup["b"] = Block2;
+            /*this.lookup["c"] = Block3;
+            this.lookup["d"] = Block4;
+            this.lookup["e"] = Block5;
+            this.lookup["f"] = Block6;*/
+        }
+        setSS(ss: ISpriteSystem) {
+            this.ss = ss;
+        }
+        // SpriteSystem内にマップを生成します
+        // UNDONE:unique Entity(ex:"A")
+        generateMap(map: Array<string>, swidth: number, sheight: number, game) {
+            for (var i = 0; i < map.length; i += 1) {
+                for (var ii = 0; ii < map[i].length; ii += 1) {
+                    var e = this.lookup[map[i][ii]];
+                    if (e != undefined) {
+                        //e(this.ss,swidth,sheight);
+                        //new e(this.ss, swidth * ii, sheight * i, game);
+                        //console.log(e);
+                        if (e != Player) this.ss.add(new e(swidth * ii, sheight * i, game.assets.image, "pattern"));
+                        else this.ss.add(new e(game.gamekey,swidth * ii, sheight * i, game.assets.image, "pattern"));
+                    }
+                }
+            }
+        }
+        getEntity(code: string): Function {
+            return this.lookup[code];
+        }
+    }
 }

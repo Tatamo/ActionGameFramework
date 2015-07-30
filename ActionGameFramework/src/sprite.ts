@@ -140,7 +140,7 @@ module Game {
         }
         draw() {
             for (var i = 0; i < this._sprites.length; i++) {
-                this.screen.drawSurface(this._sprites[i].surface, Math.round(this._sprites[i].x), Math.round(this._sprites[i].y));
+                this.screen.drawSurface(this._sprites[i].surface, Math.round(this._sprites[i].x), Math.round(this._sprites[i].y-640));
             }
         }
     }
