@@ -250,7 +250,7 @@ declare module Game {
         remove(sprite: ISprite): void;
         remove_all(): void;
         update(): void;
-        draw(): void;
+        draw(view_x?: number, view_y?: number): void;
     }
 }
 declare module Game {

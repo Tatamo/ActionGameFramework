@@ -122,7 +122,7 @@ var Game;
         function Block1() {
             _super.apply(this, arguments);
         }
-        Block1.prototype.initPattern = function () {
+        Block1.prototype.initPatternCode = function () {
             this.code = 20;
         };
         return Block1;
@@ -133,12 +133,56 @@ var Game;
         function Block2() {
             _super.apply(this, arguments);
         }
-        Block2.prototype.initPattern = function () {
+        Block2.prototype.initPatternCode = function () {
             this.code = 21;
         };
         return Block2;
     })(Block);
     Game.Block2 = Block2;
+    var Block3 = (function (_super) {
+        __extends(Block3, _super);
+        function Block3() {
+            _super.apply(this, arguments);
+        }
+        Block3.prototype.initPatternCode = function () {
+            this.code = 22;
+        };
+        return Block3;
+    })(Block);
+    Game.Block3 = Block3;
+    var Block4 = (function (_super) {
+        __extends(Block4, _super);
+        function Block4() {
+            _super.apply(this, arguments);
+        }
+        Block4.prototype.initPatternCode = function () {
+            this.code = 23;
+        };
+        return Block4;
+    })(Block);
+    Game.Block4 = Block4;
+    var Block5 = (function (_super) {
+        __extends(Block5, _super);
+        function Block5() {
+            _super.apply(this, arguments);
+        }
+        Block5.prototype.initPatternCode = function () {
+            this.code = 24;
+        };
+        return Block5;
+    })(Block);
+    Game.Block5 = Block5;
+    var Block6 = (function (_super) {
+        __extends(Block6, _super);
+        function Block6() {
+            _super.apply(this, arguments);
+        }
+        Block6.prototype.initPatternCode = function () {
+            this.code = 25;
+        };
+        return Block6;
+    })(Block);
+    Game.Block6 = Block6;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
@@ -289,10 +333,10 @@ var Game;
             this.lookup["A"] = Game.Player;
             this.lookup["a"] = Game.Block1;
             this.lookup["b"] = Game.Block2;
-            /*this.lookup["c"] = Block3;
-            this.lookup["d"] = Block4;
-            this.lookup["e"] = Block5;
-            this.lookup["f"] = Block6;*/
+            this.lookup["c"] = Game.Block3;
+            this.lookup["d"] = Game.Block4;
+            this.lookup["e"] = Game.Block5;
+            this.lookup["f"] = Game.Block6;
         };
         MapGenerator.prototype.setSS = function (ss) {
             this.ss = ss;
@@ -309,8 +353,10 @@ var Game;
                         //console.log(e);
                         if (e != Game.Player)
                             this.ss.add(new e(swidth * ii, sheight * i, game.assets.image, "pattern"));
-                        else
-                            this.ss.add(new e(game.gamekey, swidth * ii, sheight * i, game.assets.image, "pattern"));
+                        else {
+                            this.player = new e(game.gamekey, swidth * ii, sheight * i, game.assets.image, "pattern");
+                            this.ss.add(this.player); // この場合より右下のAがplayerとなり本家と挙動が異なる
+                        }
                     }
                 }
             }
@@ -402,6 +448,8 @@ var Game;
                 }
             }
             this.fixPatternCode();
+            //this.x = Math.floor(this.x);
+            //this.y = Math.floor(this.y);
         };
         Player.prototype.fixPatternCode = function () {
             if (this.flags["isOnGround"]) {
@@ -862,13 +910,18 @@ var Game;
                 }
                 this.player = new Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
                 this.ss.add(this.player);*/
+                this.player = this.mm.player;
+                this.view_x = 0;
+                this.view_y = 0;
             };
             Stage.prototype.update = function (sm) {
                 // 背景色で埋めてみる
                 sm.game.screen.context.fillStyle = "rgb(0,255,255)";
                 sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
                 this.ss.AllSprites.update();
-                this.ss.AllSprites.draw();
+                this.view_x = Math.round(this.player.x - 160);
+                this.view_y = Math.round(this.player.y - 64);
+                this.ss.AllSprites.draw(this.view_x, this.view_y);
                 if (sm.game.gamekey.isOnDown(80)) {
                     sm.push(new States.Pause(sm)); // ポーズ
                 }

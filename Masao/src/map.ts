@@ -102,6 +102,7 @@
         private ss: ISpriteSystem;
         private lookup: { [key: string]: any };
         public map: Array<Array<number>>;
+        public player: Player;
         constructor(ss: ISpriteSystem) {
             this.setSS(ss);
             this.initLookupTable();
@@ -112,10 +113,10 @@
             this.lookup["A"] = Player;
             this.lookup["a"] = Block1;
             this.lookup["b"] = Block2;
-            /*this.lookup["c"] = Block3;
+            this.lookup["c"] = Block3;
             this.lookup["d"] = Block4;
             this.lookup["e"] = Block5;
-            this.lookup["f"] = Block6;*/
+            this.lookup["f"] = Block6;
         }
         setSS(ss: ISpriteSystem) {
             this.ss = ss;
@@ -131,7 +132,10 @@
                         //new e(this.ss, swidth * ii, sheight * i, game);
                         //console.log(e);
                         if (e != Player) this.ss.add(new e(swidth * ii, sheight * i, game.assets.image, "pattern"));
-                        else this.ss.add(new e(game.gamekey,swidth * ii, sheight * i, game.assets.image, "pattern"));
+                        else {
+                            this.player = new e(game.gamekey, swidth * ii, sheight * i, game.assets.image, "pattern");
+                            this.ss.add(this.player); // この場合より右下のAがplayerとなり本家と挙動が異なる
+                        }
                     }
                 }
             }

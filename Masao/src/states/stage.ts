@@ -1,9 +1,11 @@
 ﻿module Game {
     export module States {
         export class Stage extends GameState {
-            //player: Player;
+            player: Player;
             ss: SpriteSystem;
             mm: MapGenerator;
+            view_x: number;
+            view_y: number;
             constructor() {
                 super();
             }
@@ -28,6 +30,9 @@
                 }
                 this.player = new Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
                 this.ss.add(this.player);*/
+                this.player = this.mm.player;
+                this.view_x = 0;
+                this.view_y = 0;
             }
             update(sm: GameStateMachine) {
                 // 背景色で埋めてみる
@@ -35,7 +40,9 @@
                 sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
 
                 this.ss.AllSprites.update();
-                this.ss.AllSprites.draw();
+                this.view_x = Math.round(this.player.x-160);
+                this.view_y = Math.round(this.player.y-64);
+                this.ss.AllSprites.draw(this.view_x,this.view_y);
 
                 if (sm.game.gamekey.isOnDown(80)) { // Pキー
                     sm.push(new Pause(sm)); // ポーズ

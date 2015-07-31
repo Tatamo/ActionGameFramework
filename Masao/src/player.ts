@@ -82,7 +82,8 @@
             }
 
             this.fixPatternCode();
-
+            //this.x = Math.floor(this.x);
+            //this.y = Math.floor(this.y);
         }
         fixPatternCode() {
             if (this.flags["isOnGround"]) { // 地上にいる

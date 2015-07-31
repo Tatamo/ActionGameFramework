@@ -975,9 +975,20 @@ var Game;
                 sps[i].update();
             }
         };
-        Group.prototype.draw = function () {
+        Group.prototype.draw = function (view_x, view_y) {
+            if (view_x === void 0) { view_x = 0; }
+            if (view_y === void 0) { view_y = 0; }
+            // 補正 ハードコーディング
+            if (view_x < 0)
+                view_x = 0;
+            if (view_y < 0)
+                view_y = 0;
+            if (view_x > 32 * 180 - 512)
+                view_x = 32 * 180 - 512;
+            if (view_y > 32 * 30 - 320)
+                view_y = 32 * 30 - 320;
             for (var i = 0; i < this._sprites.length; i++) {
-                this.screen.drawSurface(this._sprites[i].surface, Math.round(this._sprites[i].x), Math.round(this._sprites[i].y - 640));
+                this.screen.drawSurface(this._sprites[i].surface, Math.round(this._sprites[i].x) - view_x, Math.round(this._sprites[i].y - view_y));
             }
         };
         return Group;

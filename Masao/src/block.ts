@@ -66,9 +66,21 @@
         }
     }
     export class Block1 extends Block {
-        initPattern() { this.code = 20; }
+        initPatternCode() { this.code = 20; }
     }
     export class Block2 extends Block {
-        initPattern() { this.code = 21; }
+        initPatternCode() { this.code = 21; }
+    }
+    export class Block3 extends Block {
+        initPatternCode() { this.code = 22; }
+    }
+    export class Block4 extends Block {
+        initPatternCode() { this.code = 23; }
+    }
+    export class Block5 extends Block {
+        initPatternCode() { this.code = 24; }
+    }
+    export class Block6 extends Block {
+        initPatternCode() { this.code = 25; }
     }
 }
