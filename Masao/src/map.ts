@@ -111,6 +111,7 @@
         private initLookupTable() {
             this.lookup = {};
             this.lookup["A"] = Player;
+            this.lookup["B"] = Kame;
             this.lookup["a"] = Block1;
             this.lookup["b"] = Block2;
             this.lookup["c"] = Block3;

@@ -186,6 +186,81 @@ var Game;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
+    var Entity = (function (_super) {
+        __extends(Entity, _super);
+        function Entity(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, 0, dx, dy);
+            this.counter = {};
+            this.flags = {};
+            this.z = 256;
+        }
+        return Entity;
+    })(Game.Sprite);
+    Game.Entity = Entity;
+    var Kame = (function (_super) {
+        __extends(Kame, _super);
+        function Kame(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.moving = new EntityStateMachine(this);
+            this.moving.push(new States.KameWalking());
+            this.code = 140;
+            this.counter["ac"] = 0;
+        }
+        Kame.prototype.update = function () {
+            this.moving.update();
+            this.x += this.vx / 10;
+            this.y += this.vy / 10;
+        };
+        return Kame;
+    })(Entity);
+    Game.Kame = Kame;
+    var EntityStateMachine = (function (_super) {
+        __extends(EntityStateMachine, _super);
+        function EntityStateMachine(e, parent) {
+            if (parent === void 0) { parent = null; }
+            _super.call(this, parent);
+            this.e = e;
+        }
+        return EntityStateMachine;
+    })(Game.StateMachine);
+    Game.EntityStateMachine = EntityStateMachine;
+    var States;
+    (function (States) {
+        var KameWalking = (function (_super) {
+            __extends(KameWalking, _super);
+            function KameWalking() {
+                _super.apply(this, arguments);
+            }
+            KameWalking.prototype.enter = function (sm) {
+            };
+            KameWalking.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
+                if (e.counter["ac"] < 2)
+                    e.code = 140;
+                else
+                    e.code = 141;
+                if (!e.reverse_horizontal) {
+                    e.vx = -40;
+                }
+                else {
+                    e.vx = 40;
+                }
+                if (e.ss.MapBlocks.getByXYReal(e.centerx + e.vx / 10, e.y + e.height + 1) == null) {
+                    e.reverse_horizontal = !e.reverse_horizontal;
+                }
+            };
+            return KameWalking;
+        })(States.AbstractState);
+        States.KameWalking = KameWalking;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
     var SpriteCollisionEvent = (function (_super) {
         __extends(SpriteCollisionEvent, _super);
         function SpriteCollisionEvent(type, sprite, dir) {
@@ -331,6 +406,7 @@ var Game;
         MapGenerator.prototype.initLookupTable = function () {
             this.lookup = {};
             this.lookup["A"] = Game.Player;
+            this.lookup["B"] = Game.Kame;
             this.lookup["a"] = Game.Block1;
             this.lookup["b"] = Game.Block2;
             this.lookup["c"] = Game.Block3;
@@ -592,7 +668,7 @@ var Game;
             PlayerWalkingLeft.prototype.update = function (sm) {
                 var pl = sm.pl;
                 if (pl.flags["isOnGround"]) {
-                    pl.surface.reverse_horizontal = false;
+                    pl.reverse_horizontal = false;
                     pl.counter["running"]++;
                     if (pl.counter["running"] > 3)
                         pl.counter["running"] = 0;
@@ -623,7 +699,7 @@ var Game;
             PlayerRunningLeft.prototype.update = function (sm) {
                 var pl = sm.pl;
                 if (pl.flags["isOnGround"]) {
-                    pl.surface.reverse_horizontal = false;
+                    pl.reverse_horizontal = false;
                     pl.counter["running"]++;
                     if (pl.counter["running"] > 3)
                         pl.counter["running"] = 0;
@@ -654,7 +730,7 @@ var Game;
             PlayerWalkingRight.prototype.update = function (sm) {
                 var pl = sm.pl;
                 if (pl.flags["isOnGround"]) {
-                    pl.surface.reverse_horizontal = true;
+                    pl.reverse_horizontal = true;
                     pl.counter["running"]++;
                     if (pl.counter["running"] > 3)
                         pl.counter["running"] = 0;
@@ -685,7 +761,7 @@ var Game;
             PlayerRunningRight.prototype.update = function (sm) {
                 var pl = sm.pl;
                 if (pl.flags["isOnGround"]) {
-                    pl.surface.reverse_horizontal = true;
+                    pl.reverse_horizontal = true;
                     pl.counter["running"]++;
                     if (pl.counter["running"] > 3)
                         pl.counter["running"] = 0;
@@ -760,7 +836,7 @@ var Game;
                 var pl = sm.pl;
                 if (pl.flags["isOnGround"]) {
                     if (pl.vx < 0) {
-                        pl.surface.reverse_horizontal = false;
+                        pl.reverse_horizontal = false;
                         pl.counter["running"]++;
                         if (pl.counter["running"] > 3)
                             pl.counter["running"] = 0;
@@ -770,7 +846,7 @@ var Game;
                             pl.code = 103 + Math.floor(pl.counter["running"] / 2);
                     }
                     else if (pl.vx > 0) {
-                        pl.surface.reverse_horizontal = true;
+                        pl.reverse_horizontal = true;
                         pl.counter["running"]++;
                         if (pl.counter["running"] > 3)
                             pl.counter["running"] = 0;

@@ -216,7 +216,7 @@
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
                 if (pl.flags["isOnGround"]) { // 地上にいる
-                    pl.surface.reverse_horizontal = false;
+                    pl.reverse_horizontal = false;
                     pl.counter["running"]++;
                     if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                     pl.vx = (pl.vx - 15 > -60) ? pl.vx - 15 : -60;
@@ -237,7 +237,7 @@
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
                 if (pl.flags["isOnGround"]) { // 地上にいる
-                    pl.surface.reverse_horizontal = false;
+                    pl.reverse_horizontal = false;
                     pl.counter["running"]++;
                     if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                     pl.vx = (pl.vx - 15 > -120) ? pl.vx - 15 : -120;
@@ -258,7 +258,7 @@
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
                 if (pl.flags["isOnGround"]) { // 地上にいる
-                    pl.surface.reverse_horizontal = true;
+                    pl.reverse_horizontal = true;
                     pl.counter["running"]++;
                     if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                     pl.vx = (pl.vx + 15 < 60) ? pl.vx + 15 : 60;
@@ -279,7 +279,7 @@
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
                 if (pl.flags["isOnGround"]) { // 地上にいる
-                    pl.surface.reverse_horizontal = true;
+                    pl.reverse_horizontal = true;
                     pl.counter["running"]++;
                     if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                     pl.vx = (pl.vx + 15 < 120) ? pl.vx + 15 : 120;
@@ -338,7 +338,7 @@
                 var pl = sm.pl;
                 if (pl.flags["isOnGround"]) { // 地上にいる
                     if (pl.vx < 0) {
-                        pl.surface.reverse_horizontal = false;
+                        pl.reverse_horizontal = false;
                         pl.counter["running"]++;
                         if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                         if (pl.flags["isRunning"]) pl.code = 107;
@@ -346,7 +346,7 @@
                         //muki_x = false;
                     }
                     else if (pl.vx > 0) {
-                        pl.surface.reverse_horizontal = true;
+                        pl.reverse_horizontal = true;
                         pl.counter["running"]++;
                         if (pl.counter["running"] > 3) pl.counter["running"] = 0;
                         if (pl.flags["isRunning"]) pl.code = 107;

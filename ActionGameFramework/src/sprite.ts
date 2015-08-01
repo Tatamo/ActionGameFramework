@@ -9,6 +9,8 @@ module Game {
         width: number;
         height: number;
         code: number;
+        reverse_horizontal: boolean;
+        reverse_vertical: boolean;
         ss: ISpriteSystem;
         surface: Surface;
         update();
@@ -42,6 +44,10 @@ module Game {
         set code(c: number) {
             this.surface.code = c;
         }
+        get reverse_horizontal(): boolean { return this.surface.reverse_horizontal; }
+        set reverse_horizontal(f: boolean) { this.surface.reverse_horizontal = f; }
+        get reverse_vertical(): boolean { return this.surface.reverse_vertical; }
+        set reverse_vertical(f: boolean) { this.surface.reverse_vertical = f; }
         get leftt(): number { return this.x; }
         set left(v: number) { this.x = v; }
         get right(): number { return this.x + this.width - 1; }
