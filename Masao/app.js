@@ -478,11 +478,6 @@ var Game;
             //this.externalForce();
             // 外力を受けない移動
             this.moving.update();
-            if (this.flags["isOnGround"]) {
-                if (this.gk.isDown(90) && this.gk.getCount(90) < 5) {
-                    this.moving.push(new States.PlayerJumping());
-                }
-            }
             this.x += this.vx / 10;
             var muki_x = 0;
             if (this.vx > 0)
@@ -606,6 +601,11 @@ var Game;
                 this.counter["able2runningRight"] = 0;
             else if (this.counter["able2runningRight"] > 0)
                 this.counter["able2runningRight"] += 1;
+            if (this.flags["isOnGround"]) {
+                if (this.gk.isDown(90) && this.gk.getCount(90) < 5) {
+                    this.moving.push(new States.PlayerJumping());
+                }
+            }
             if (this.gk.isOnDown(37)) {
                 this.counter["able2runningLeft"] = 1;
             }
@@ -782,7 +782,9 @@ var Game;
             function PlayerJumping() {
                 _super.apply(this, arguments);
             }
-            PlayerJumping.prototype.enter = function (sm) {
+            PlayerJumping.prototype.update = function (sm) {
+                sm.pop(); // 即座にもとのStateに戻す
+                sm.update(); // もとのStateのupdateを先に行う
                 var pl = sm.pl;
                 pl.flags["isJumping"] = true;
                 pl.flags["isOnGround"] = false;
@@ -817,7 +819,6 @@ var Game;
                     }
                 }
                 pl.checkCollisionWithBlocksVertical();
-                sm.pop(); // 即座にもとのStateに戻す
             };
             return PlayerJumping;
         })(States.AbstractState);

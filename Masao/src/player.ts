@@ -34,14 +34,9 @@
             this.checkInput();
             //this.externalForce();
 
+
             // 外力を受けない移動
             this.moving.update();
-
-            if (this.flags["isOnGround"]) { // 地上にいる
-                if (this.gk.isDown(90) && this.gk.getCount(90) < 5) {
-                    this.moving.push(new States.PlayerJumping());
-                }
-            }
 
             this.x += this.vx / 10;
             var muki_x = 0;
@@ -171,6 +166,11 @@
             if (this.counter["able2runningRight"] >= 8) this.counter["able2runningRight"] = 0;
             else if (this.counter["able2runningRight"] > 0) this.counter["able2runningRight"] += 1;
 
+            if (this.flags["isOnGround"]) { // 地上にいる
+                if (this.gk.isDown(90) && this.gk.getCount(90) < 5) { // ジャンプ判定
+                    this.moving.push(new States.PlayerJumping());
+                }
+            }
 
             if (this.gk.isOnDown(37)) { // ステート遷移判定より後で処理
                 this.counter["able2runningLeft"] = 1;
@@ -292,7 +292,9 @@
             }
         }
         export class PlayerJumping extends AbstractState {
-            enter(sm: PlayerStateMachine) {
+            update(sm: PlayerStateMachine) {
+                sm.pop(); // 即座にもとのStateに戻す
+                sm.update(); // もとのStateのupdateを先に行う
                 var pl = sm.pl;
                 pl.flags["isJumping"] = true;
                 pl.flags["isOnGround"] = false;
@@ -327,7 +329,6 @@
                     }
                 }
                 pl.checkCollisionWithBlocksVertical();
-                sm.pop(); // 即座にもとのStateに戻す
             }
         }
         export class PlayerInterialMove extends AbstractState {
