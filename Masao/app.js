@@ -244,14 +244,12 @@ var Game;
                     e.code = 140;
                 else
                     e.code = 141;
-                if (!e.reverse_horizontal) {
-                    e.vx = -40;
-                }
-                else {
-                    e.vx = 40;
-                }
-                if (e.ss.MapBlocks.getByXYReal(e.centerx + e.vx / 10, e.y + e.height + 1) == null) {
+                e.vx = e.reverse_horizontal ? 30 : -30;
+                // TODO: 反転時に本家と座標がずれるのを修正
+                if (e.ss.MapBlocks.getByXYReal((e.reverse_horizontal ? e.right : e.x) + e.vx / 10, e.y + e.height + 1) == null) {
                     e.reverse_horizontal = !e.reverse_horizontal;
+                    //e.x = e.ss.MapBlocks.getByXYReal(e.centerx, e.y + e.height + 1).x;
+                    e.vx = e.reverse_horizontal ? 30 : -30;
                 }
             };
             return KameWalking;
