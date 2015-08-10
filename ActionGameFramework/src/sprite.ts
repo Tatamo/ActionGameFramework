@@ -106,7 +106,7 @@ module Game {
         }
     }
     export class SpriteEvent extends Event {
-        constructor(public type: string, public sprite: Sprite) {
+        constructor(public type: string, public sprite: ISprite) {
             super(type);
         }
     }

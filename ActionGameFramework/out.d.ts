@@ -241,8 +241,8 @@ declare module Game {
     }
     class SpriteEvent extends Event {
         type: string;
-        sprite: Sprite;
-        constructor(type: string, sprite: Sprite);
+        sprite: ISprite;
+        constructor(type: string, sprite: ISprite);
     }
     interface IGroup {
         screen: Surface;
