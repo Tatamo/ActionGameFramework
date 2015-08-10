@@ -5,6 +5,7 @@
     export class MapGroup implements IGroup {
         screen: Surface;
         private _map: Array<Array<ISprite>>;
+        private _sprites: Array<ISprite>;
         private _width: number;
         private _height: number;
         private _chipwidth: number;
@@ -20,6 +21,7 @@
                     this._map[i].push(null);
                 }
             }
+            this._sprites = [];
             this._width = width;
             this._height = height;
             this.setChipSize(chipwidth, chipwidth); // 32*32サイズのSpriteを保管 TODO:変更可能に
@@ -31,7 +33,10 @@
         add(sprite: ISprite) {
             var nx = Math.floor(sprite.x / this.chipwidth);
             var ny = Math.floor(sprite.y / this.chipheight);
-            if (!this._map[ny] || !this._map[ny][nx]) this._map[ny][nx] = sprite;
+            if (!this._map[ny] || !this._map[ny][nx]) {
+                this._map[ny][nx] = sprite;
+                this._sprites.push(sprite);
+            }
             else throw new Error("sprite already registered")
         }
         getByXY(nx: number, ny: number): ISprite {
@@ -81,6 +86,9 @@
                     if (this._map[i][ii]) this.remove(this._map[i][ii]);
                 }
             }
+        }
+        get_all() {
+            return this._sprites.slice(0);
         }
         update() {
             for (var i = 0; i < this._height; i++) {

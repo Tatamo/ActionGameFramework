@@ -203,6 +203,12 @@ declare module Game {
         code: number;
         reverse_horizontal: boolean;
         reverse_vertical: boolean;
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+        centerx: number;
+        centery: number;
         ss: ISpriteSystem;
         surface: Surface;
         update(): any;

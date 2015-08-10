@@ -291,6 +291,7 @@ var Game;
                     this._map[i].push(null);
                 }
             }
+            this._sprites = [];
             this._width = width;
             this._height = height;
             this.setChipSize(chipwidth, chipwidth); // 32*32サイズのSpriteを保管 TODO:変更可能に
@@ -316,8 +317,10 @@ var Game;
         MapGroup.prototype.add = function (sprite) {
             var nx = Math.floor(sprite.x / this.chipwidth);
             var ny = Math.floor(sprite.y / this.chipheight);
-            if (!this._map[ny] || !this._map[ny][nx])
+            if (!this._map[ny] || !this._map[ny][nx]) {
                 this._map[ny][nx] = sprite;
+                this._sprites.push(sprite);
+            }
             else
                 throw new Error("sprite already registered");
         };
@@ -374,6 +377,9 @@ var Game;
                         this.remove(this._map[i][ii]);
                 }
             }
+        };
+        MapGroup.prototype.get_all = function () {
+            return this._sprites.slice(0);
         };
         MapGroup.prototype.update = function () {
             for (var i = 0; i < this._height; i++) {
