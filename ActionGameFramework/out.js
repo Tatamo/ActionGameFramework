@@ -988,6 +988,9 @@ var Game;
                 this.remove(this._sprites[i]);
             }
         };
+        Group.prototype.get_all = function () {
+            return this._sprites.slice(0);
+        };
         Group.prototype.update = function () {
             // 処理中にthis._spritesの要素が変化する可能性があるため、配列のコピーを回す
             var sps = this._sprites.slice(0);

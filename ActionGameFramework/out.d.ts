@@ -243,6 +243,7 @@ declare module Game {
         add(sprite: ISprite): any;
         remove(sprite: ISprite): any;
         remove_all(): any;
+        get_all(): Array<ISprite>;
         update(): any;
         draw(): any;
     }
@@ -253,6 +254,7 @@ declare module Game {
         add(sprite: ISprite): void;
         remove(sprite: ISprite): void;
         remove_all(): void;
+        get_all(): Array<ISprite>;
         update(): void;
         draw(view_x?: number, view_y?: number): void;
     }

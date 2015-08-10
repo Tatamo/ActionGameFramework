@@ -109,6 +109,7 @@ module Game {
         add(sprite: ISprite);
         remove(sprite: ISprite);
         remove_all();
+        get_all():Array<ISprite>;
         update();
         draw();
     }
@@ -136,6 +137,9 @@ module Game {
             for (var i = this._sprites.length - 1; i >= 0; i--) {
                 this.remove(this._sprites[i]);
             }
+        }
+        get_all(): Array<ISprite> {
+            return this._sprites.slice(0);
         }
         update() {
             // 処理中にthis._spritesの要素が変化する可能性があるため、配列のコピーを回す
