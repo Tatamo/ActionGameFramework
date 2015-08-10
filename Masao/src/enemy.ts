@@ -18,11 +18,15 @@
             this.moving.push(new States.KameWalking());
             this.code = 140;
             this.counter["ac"] = 0;
+            this.addEventHandler("onstamped", this.onStamped);
         }
         update() {
             this.moving.update();
             this.x += this.vx/10;
             this.y += this.vy/10;
+        }
+        private onStamped(e: SpriteCollisionEvent) {
+            this.moving.replace(new States.KameStamped());
         }
     }
     export class EntityStateMachine extends StateMachine {
@@ -49,6 +53,42 @@
                     e.reverse_horizontal = !e.reverse_horizontal;
                     //e.x = e.ss.MapBlocks.getByXYReal(e.centerx, e.y + e.height + 1).x;
                     e.vx = e.reverse_horizontal ? 30 : -30;
+                }
+                this.checkCollisionWithPlayer(sm);
+            }
+            // プレイヤーとの当たり判定
+            checkCollisionWithPlayer(sm: EntityStateMachine) {
+                var e = sm.e;
+                var players = sm.e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p:ISprite = players[i];
+                    if (e.x < p.right && e.right > p.x &&
+                        e.y < p.bottom && e.bottom > p.y) { // プレイヤーと接触した
+                        if (p.vy <= 0 ||
+                            (!(e.x < p.right - p.vx / 10 && e.right > p.x - p.vx / 10) &&
+                                e.y < p.bottom - p.vy / 10 && e.bottom > p.y - p.vy / 10)) { // プレイヤーにダメージ
+
+                        }
+                        else { // 踏まれる
+                            e.dispatchEvent(new SpriteCollisionEvent("onstamped", p));
+                            p.dispatchEvent(new Event("onstamp"));
+                        }
+                    }
+                }
+            }
+        }
+        export class KameStamped extends AbstractState {
+            enter(sm: EntityStateMachine) {
+                sm.e.counter["ac"] = 0;
+            }
+            update(sm: EntityStateMachine) {
+                var e = sm.e;
+                e.counter["ac"] += 1;
+                e.code = 142;
+                e.vx = 0;
+                e.vy = 0;
+                if (e.counter["ac"] >= 10) {
+                    e.kill();
                 }
             }
         }

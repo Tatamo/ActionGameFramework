@@ -23,11 +23,15 @@
             this.flags["isOnGround"] = false;
             this.z = 128;
             this.addEventHandler("onground", this.onGround);
+            this.addEventHandler("onstamp", this.onStamp);
         }
         private onGround(e: Event) {
             this.flags["isOnGround"] = true;
             this.flags["isJumping"] = false;
             this.counter["jump_level"] = 0;
+        }
+        private onStamp(e: Event) {
+            this.vy = -30;
         }
         update() {
             // 入力の更新

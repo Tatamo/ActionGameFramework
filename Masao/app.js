@@ -209,11 +209,15 @@ var Game;
             this.moving.push(new States.KameWalking());
             this.code = 140;
             this.counter["ac"] = 0;
+            this.addEventHandler("onstamped", this.onStamped);
         }
         Kame.prototype.update = function () {
             this.moving.update();
             this.x += this.vx / 10;
             this.y += this.vy / 10;
+        };
+        Kame.prototype.onStamped = function (e) {
+            this.moving.replace(new States.KameStamped());
         };
         return Kame;
     })(Entity);
@@ -251,10 +255,48 @@ var Game;
                     //e.x = e.ss.MapBlocks.getByXYReal(e.centerx, e.y + e.height + 1).x;
                     e.vx = e.reverse_horizontal ? 30 : -30;
                 }
+                this.checkCollisionWithPlayer(sm);
+            };
+            // プレイヤーとの当たり判定
+            KameWalking.prototype.checkCollisionWithPlayer = function (sm) {
+                var e = sm.e;
+                var players = sm.e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (e.x < p.right && e.right > p.x && e.y < p.bottom && e.bottom > p.y) {
+                        if (p.vy <= 0 || (!(e.x < p.right - p.vx / 10 && e.right > p.x - p.vx / 10) && e.y < p.bottom - p.vy / 10 && e.bottom > p.y - p.vy / 10)) {
+                        }
+                        else {
+                            e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
+                            p.dispatchEvent(new Game.Event("onstamp"));
+                        }
+                    }
+                }
             };
             return KameWalking;
         })(States.AbstractState);
         States.KameWalking = KameWalking;
+        var KameStamped = (function (_super) {
+            __extends(KameStamped, _super);
+            function KameStamped() {
+                _super.apply(this, arguments);
+            }
+            KameStamped.prototype.enter = function (sm) {
+                sm.e.counter["ac"] = 0;
+            };
+            KameStamped.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] += 1;
+                e.code = 142;
+                e.vx = 0;
+                e.vy = 0;
+                if (e.counter["ac"] >= 10) {
+                    e.kill();
+                }
+            };
+            return KameStamped;
+        })(States.AbstractState);
+        States.KameStamped = KameStamped;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
 var Game;
@@ -472,11 +514,15 @@ var Game;
             this.flags["isOnGround"] = false;
             this.z = 128;
             this.addEventHandler("onground", this.onGround);
+            this.addEventHandler("onstamp", this.onStamp);
         }
         Player.prototype.onGround = function (e) {
             this.flags["isOnGround"] = true;
             this.flags["isJumping"] = false;
             this.counter["jump_level"] = 0;
+        };
+        Player.prototype.onStamp = function (e) {
+            this.vy = -30;
         };
         Player.prototype.update = function () {
             // 入力の更新
