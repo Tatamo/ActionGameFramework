@@ -4,6 +4,7 @@
         public counter: { [key: string]: number; };
         public flags: { [key: string]: boolean; };
         public moving: PlayerStateMachine;
+        public special: PlayerStateMachine;
         public ss: SpriteSystem;
         constructor(input: GameKey, x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
             super(x, y, imagemanager, label, 100, dx, dy);
@@ -11,37 +12,72 @@
             this.moving = new PlayerStateMachine(this);
             this.moving.setGlobalState(new States.PlayerGlobalMove());
             this.moving.push(new States.PlayerInterialMove());
+            this.special = new PlayerStateMachine(this);
+            this.special.push(new States.PlayerWithoutSpecialMove());
             this.counter = {};
             this.counter["able2runningLeft"] = 0;
             this.counter["able2runningRight"] = 0;
             this.counter["running"] = 0;
             this.counter["jump_level"] = 0;
+            this.counter["waiting"] = 0;
+            this.counter["dying"] = 0;
             this.flags = {};
-            this.flags["isRunning"] = false;
-            this.flags["isWalking"] = false;
-            this.flags["isJumping"] = false;
-            this.flags["isOnGround"] = false;
+            this.flags["isAlive"] = true; // まだミスをしていない状態
+            this.flags["isRunning"] = false; // 走っている状態
+            this.flags["isWalking"] = false; // 歩いている状態
+            this.flags["isJumping"] = false; // ジャンプによって空中にいる状態
+            this.flags["isStamping"] = false; // 敵を踏んだ状態
+            this.flags["isOnGround"] = false; // 地面の上にいる状態
             this.z = 128;
             this.addEventHandler("onground", this.onGround);
             this.addEventHandler("onstamp", this.onStamp);
+            this.addEventHandler("miss", this.onMiss);
+        }
+        public get alive(): boolean {
+            return this.flags["isAlive"];
         }
         private onGround(e: Event) {
             this.flags["isOnGround"] = true;
             this.flags["isJumping"] = false;
+            this.flags["isStamping"] = false;
             this.counter["jump_level"] = 0;
         }
         private onStamp(e: Event) {
-            this.vy = -30;
+            this.moving.push(new States.PlayerStamping());
+        }
+        private onMiss(e: PlayerMissEvent) {
+            if (e.mode == 1) {
+                this.moving.replace(new States.PlayerDyingDirect());
+            }
+            else if (e.mode == 2) {
+                this.moving.replace(new States.PlayerDyingInDirect());
+            }
         }
         update() {
-            // 入力の更新
-            this.checkInput();
-            //this.externalForce();
+            if (this.flags["isAlive"]) {
+                // 入力の更新
+                this.checkInput();
+                //this.externalForce();
 
+                // 外力を受けない移動
+                this.moving.update();
+                this.special.update();
+                // 移動の確定
+                if (this.counter["waiting"] <= 0) this.move();
+                else this.counter["waiting"] -= 1;
 
-            // 外力を受けない移動
-            this.moving.update();
-
+                this.fixPatternCode();
+                //this.x = Math.floor(this.x);
+                //this.y = Math.floor(this.y);
+            }
+            else {
+                this.moving.update();
+                this.x += this.vx / 10;
+                this.y += this.vy / 10;
+            }
+        }
+        // 速度に応じて自機の座標を移動させる
+        private move() {
             this.x += this.vx / 10;
             var muki_x = 0;
             if (this.vx > 0) muki_x = 1;
@@ -79,28 +115,29 @@
                     }
                 }
             }
-
-            this.fixPatternCode();
-            //this.x = Math.floor(this.x);
-            //this.y = Math.floor(this.y);
         }
-        fixPatternCode() {
-            if (this.flags["isOnGround"]) { // 地上にいる
+        private fixPatternCode() {
+            if (this.flags["isStamping"]) {
+                this.code = 109;
             }
             else {
-                if (this.flags["isJumping"]) { // ジャンプ中のパターン画像
-                    if (this.vy <= 25) this.code = 101;
-                    else this.code = 102;
+                if (this.flags["isOnGround"]) { // 地上にいる
                 }
                 else {
-                    if (this.vx == 0 && !this.flags["isRunning"] && !this.flags["isWalking"]) { // 立ち止まる
-                        this.code = 0;
-                    }
-                    else if (Math.abs(this.vx) > 60) {
-                        this.code = 105;
+                    if (this.flags["isJumping"]) { // ジャンプ中のパターン画像
+                        if (this.vy <= 25) this.code = 101;
+                        else this.code = 102;
                     }
                     else {
-                        this.code = 103;
+                        if (this.vx == 0 && !this.flags["isRunning"] && !this.flags["isWalking"]) { // 立ち止まった状態で落下
+                            this.code = 100;
+                        }
+                        else if (Math.abs(this.vx) > 60) {
+                            this.code = 105;
+                        }
+                        else {
+                            this.code = 103;
+                        }
                     }
                 }
             }
@@ -191,6 +228,12 @@
             this.pl = pl;
         }
     }
+    export class PlayerMissEvent extends Event {
+        constructor(public type: string, public mode: number) {
+            // mode 1:直接 2:間接
+            super(type);
+        }
+    }
     export module States {
         /*export interface IPlayerMovingState extends State { // 不要説 てか不要
             enter(sm: PlayerStateMachine);
@@ -202,12 +245,17 @@
         export class PlayerGlobalMove extends AbstractState {
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
-
-                if (pl.flags["isOnGround"]) { // 地上にいる
-                }
-                else { // 地上にいない
-                    pl.vy += 25; // 重力を受ける
-                    if (pl.vy > 160) pl.vy = 160;
+                if (pl.flags["isAlive"]) {
+                    if (pl.flags["isOnGround"]) { // 地上にいる
+                    }
+                    else { // 地上にいない
+                        if (pl.counter["waiting"] > 0) { // 硬直中
+                        }
+                        else {
+                            pl.vy += 25; // 重力を受ける
+                            if (pl.vy > 160) pl.vy = 160;
+                        }
+                    }
                 }
             }
         }
@@ -219,16 +267,21 @@
             }
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
-                if (pl.flags["isOnGround"]) { // 地上にいる
-                    pl.reverse_horizontal = false;
-                    pl.counter["running"]++;
-                    if (pl.counter["running"] > 3) pl.counter["running"] = 0;
-                    pl.vx = (pl.vx - 15 > -60) ? pl.vx - 15 : -60;
-                    if (pl.vx > 0) pl.code = 108;
-                    else pl.code = 103 + Math.floor(pl.counter["running"] / 2);
+                if (pl.counter["waiting"] > 0) { // 硬直中
+                    pl.vx = (pl.vx - 10 > -60) ? pl.vx - 10 : -60;
                 }
-                else { // 地上にいない
-                    if (pl.vx > -60) pl.vx -= 10;
+                else {
+                    if (pl.flags["isOnGround"]) { // 地上にいる
+                        pl.reverse_horizontal = false;
+                        pl.counter["running"]++;
+                        if (pl.counter["running"] > 3) pl.counter["running"] = 0;
+                        pl.vx = (pl.vx - 15 > -60) ? pl.vx - 15 : -60;
+                        if (pl.vx > 0) pl.code = 108;
+                        else pl.code = 103 + Math.floor(pl.counter["running"] / 2);
+                    }
+                    else { // 地上にいない
+                        if (pl.vx > -60) pl.vx -= 10;
+                    }
                 }
             }
         }
@@ -240,16 +293,21 @@
             }
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
-                if (pl.flags["isOnGround"]) { // 地上にいる
-                    pl.reverse_horizontal = false;
-                    pl.counter["running"]++;
-                    if (pl.counter["running"] > 3) pl.counter["running"] = 0;
-                    pl.vx = (pl.vx - 15 > -120) ? pl.vx - 15 : -120;
-                    if (pl.vx > 0) pl.code = 108;
-                    else pl.code = 105 + Math.floor(pl.counter["running"] / 2);
+                if (pl.counter["waiting"] > 0) { // 硬直中
+                    pl.vx = (pl.vx - 10 > -60) ? pl.vx - 10 : -60;
                 }
-                else { // 地上にいない
-                    if (pl.vx > -60) pl.vx -= 10;
+                else {
+                    if (pl.flags["isOnGround"]) { // 地上にいる
+                        pl.reverse_horizontal = false;
+                        pl.counter["running"]++;
+                        if (pl.counter["running"] > 3) pl.counter["running"] = 0;
+                        pl.vx = (pl.vx - 15 > -120) ? pl.vx - 15 : -120;
+                        if (pl.vx > 0) pl.code = 108;
+                        else pl.code = 105 + Math.floor(pl.counter["running"] / 2);
+                    }
+                    else { // 地上にいない
+                        if (pl.vx > -60) pl.vx -= 10;
+                    }
                 }
             }
         }
@@ -261,16 +319,21 @@
             }
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
-                if (pl.flags["isOnGround"]) { // 地上にいる
-                    pl.reverse_horizontal = true;
-                    pl.counter["running"]++;
-                    if (pl.counter["running"] > 3) pl.counter["running"] = 0;
-                    pl.vx = (pl.vx + 15 < 60) ? pl.vx + 15 : 60;
-                    if (pl.vx < 0) pl.code = 108;
-                    else pl.code = 103 + Math.floor(pl.counter["running"] / 2);
+                if (pl.counter["waiting"] > 0) { // 硬直中
+                    pl.vx = (pl.vx + 10 < 60) ? pl.vx + 10 : 60;
                 }
-                else { // 地上にいない
-                    if (pl.vx < 60) pl.vx += 10;
+                else {
+                    if (pl.flags["isOnGround"]) { // 地上にいる
+                        pl.reverse_horizontal = true;
+                        pl.counter["running"]++;
+                        if (pl.counter["running"] > 3) pl.counter["running"] = 0;
+                        pl.vx = (pl.vx + 15 < 60) ? pl.vx + 15 : 60;
+                        if (pl.vx < 0) pl.code = 108;
+                        else pl.code = 103 + Math.floor(pl.counter["running"] / 2);
+                    }
+                    else { // 地上にいない
+                        if (pl.vx < 60) pl.vx += 10;
+                    }
                 }
             }
         }
@@ -282,16 +345,21 @@
             }
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
-                if (pl.flags["isOnGround"]) { // 地上にいる
-                    pl.reverse_horizontal = true;
-                    pl.counter["running"]++;
-                    if (pl.counter["running"] > 3) pl.counter["running"] = 0;
-                    pl.vx = (pl.vx + 15 < 120) ? pl.vx + 15 : 120;
-                    if (pl.vx < 0) pl.code = 108;
-                    else pl.code = 105 + Math.floor(pl.counter["running"] / 2);
+                if (pl.counter["waiting"] > 0) { // 硬直中
+                    pl.vx = (pl.vx + 10 < 60) ? pl.vx + 10 : 60;
                 }
-                else { // 地上にいない
-                    if (pl.vx < 60) pl.vx += 10;
+                else {
+                    if (pl.flags["isOnGround"]) { // 地上にいる
+                        pl.reverse_horizontal = true;
+                        pl.counter["running"]++;
+                        if (pl.counter["running"] > 3) pl.counter["running"] = 0;
+                        pl.vx = (pl.vx + 15 < 120) ? pl.vx + 15 : 120;
+                        if (pl.vx < 0) pl.code = 108;
+                        else pl.code = 105 + Math.floor(pl.counter["running"] / 2);
+                    }
+                    else { // 地上にいない
+                        if (pl.vx < 60) pl.vx += 10;
+                    }
                 }
             }
         }
@@ -300,6 +368,7 @@
                 sm.pop(); // 即座にもとのStateに戻す
                 sm.update(); // もとのStateのupdateを先に行う
                 var pl = sm.pl;
+                if (pl.counter["waiting"] > 0) return; // 硬直中
                 pl.flags["isJumping"] = true;
                 pl.flags["isOnGround"] = false;
                 var speed = Math.abs(pl.vx);
@@ -307,7 +376,8 @@
                 /*if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1) != null) {
                     pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1).dispatchEvent(new SpriteCollisionEvent("onhit", pl, "vertical"));
                 }
-                else */if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1) != null) {
+                else */
+                if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1) != null) {
                     pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1).dispatchEvent(new SpriteCollisionEvent("onhit", pl, "vertival"));
                 }
                 else {
@@ -377,6 +447,71 @@
                 }
                 else { // 地上にいない
                 }
+            }
+        }
+        export class PlayerDyingDirect extends AbstractState {
+            enter(sm: PlayerStateMachine) {
+                console.log("dying");
+                var pl = sm.pl;
+                pl.flags["isAlive"] = false;
+                pl.counter["dying"] = 0;
+            }
+            update(sm: PlayerStateMachine) {
+                var pl = sm.pl;
+                if (pl.counter["dying"] == 0) {
+                    pl.vx = 0;
+                    pl.vy = -250; // 跳ね上がる
+                }
+                pl.vy += 25; // 重力を受ける
+                if (pl.vy > 80) pl.vy = 80;
+                pl.counter["dying"] += 1;
+                pl.code = 110 + pl.counter["dying"] % 4;
+                if (pl.y > 320 * 3) {
+                    pl.kill();
+                    pl.dispatchEvent(new Event("ondie"));
+                }
+            }
+        }
+        export class PlayerDyingInDirect extends AbstractState {
+            enter(sm: PlayerStateMachine) {
+                console.log("dying");
+                var pl = sm.pl;
+                pl.flags["isAlive"] = false;
+                pl.counter["dying"] = 0;
+            }
+            update(sm: PlayerStateMachine) {
+                var pl = sm.pl;
+                if (pl.counter["dying"] == 0) {
+                    pl.vx = 0;
+                }
+                pl.vy = 0; // その場で回転する
+                pl.counter["dying"] += 1;
+                pl.code = 110 + pl.counter["dying"] % 4;
+                if (pl.counter["dying"] >= 16) pl.vy = 80;
+                if (pl.y > 320 * 3) {
+                    pl.kill();
+                    pl.dispatchEvent(new Event("ondie"));
+                }
+            }
+        }
+        export class PlayerStamping extends AbstractState {
+            private wait: number;
+            enter(sm: PlayerStateMachine) {
+                console.log("stamping");
+                sm.pl.flags["isStamping"] = true;
+                sm.pl.counter["waiting"] = 5;
+                sm.pl.vy = -160;
+                //sm.pl.vy = -220;
+            }
+            update(sm: PlayerStateMachine) {
+                sm.pop();
+                sm.update();
+            }
+        }
+        export class PlayerWithoutSpecialMove extends AbstractState {
+            enter(sm: PlayerStateMachine) {
+            }
+            update(sm: PlayerStateMachine) {
             }
         }
     }

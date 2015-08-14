@@ -59,18 +59,22 @@
             // プレイヤーとの当たり判定
             checkCollisionWithPlayer(sm: EntityStateMachine) {
                 var e = sm.e;
-                var players = sm.e.ss.Players.get_all();
+                var players = <Array<Player>>sm.e.ss.Players.get_all();
                 for (var i = 0; i < players.length; i++) {
-                    var p:ISprite = players[i];
-                    if (e.x < p.right && e.right > p.x &&
+                    var p = players[i];
+                    if (p.flags["isAlive"] && e.x < p.right && e.right > p.x &&
                         e.y < p.bottom && e.bottom > p.y) { // プレイヤーと接触した
-                        if (p.vy <= 0 ||
+                        /*if (p.vy <= 0 ||
                             (!(e.x < p.right - p.vx / 10 && e.right > p.x - p.vx / 10) &&
                                 e.y < p.bottom - p.vy / 10 && e.bottom > p.y - p.vy / 10)) { // プレイヤーにダメージ
-
+                            p.dispatchEvent(new PlayerMissEvent("miss", 1));
+                        }*/
+                        if (p.vy <= 0) { // プレイヤーにダメージ
+                            p.dispatchEvent(new PlayerMissEvent("miss", 1));
                         }
                         else { // 踏まれる
                             e.dispatchEvent(new SpriteCollisionEvent("onstamped", p));
+                            p.y = e.y - p.height + 32 - 12;
                             p.dispatchEvent(new Event("onstamp"));
                         }
                     }
@@ -80,6 +84,7 @@
         export class KameStamped extends AbstractState {
             enter(sm: EntityStateMachine) {
                 sm.e.counter["ac"] = 0;
+                sm.e.code = 142;
             }
             update(sm: EntityStateMachine) {
                 var e = sm.e;

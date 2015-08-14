@@ -115,6 +115,7 @@ module Game {
                 "..feef.e...e...e..dd...aaaaaaaaaaaaaaaaaaa..aaaaaaaaaaaaaaaa"
             ]
             var image: { [key: string]: any; } = {
+                "gameover": "gameover.gif",
                 "title": "title.gif",
                 "pattern": "pattern.gif"
             };

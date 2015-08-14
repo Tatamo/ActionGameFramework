@@ -34,6 +34,7 @@
                     this.player = new Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
                     this.ss.add(this.player);*/
                     this.player = this.mm.player;
+                    this.player.addEventHandler("ondie",(e: Event) => { sm.replace(new GameOver()); });
                     this.view_x = 0;
                     this.view_y = 0;
                     this.is_initialized = true;

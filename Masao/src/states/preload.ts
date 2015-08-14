@@ -7,6 +7,7 @@
                 var assets = sm.game.assets;
 
                 assets.image.regist_image("title", "title.gif");
+                assets.image.regist_image("gameover", "gameover.gif");
                 assets.image.regist_pattern("pattern", "pattern.gif", 32, 32);
                 assets.load();
 

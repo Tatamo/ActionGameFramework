@@ -1233,6 +1233,7 @@ var Game;
                 "..feef.e...e...e..dd...aaaaaaaaaaaaaaaaaaa..aaaaaaaaaaaaaaaa"
             ];
             var image = {
+                "gameover": "gameover.gif",
                 "title": "title.gif",
                 "pattern": "pattern.gif"
             };
