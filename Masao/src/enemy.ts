@@ -10,27 +10,6 @@
             this.flags = {};
             this.z = 256;
         }
-    }
-    export class Kame extends Entity {
-        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
-            super(x, y, imagemanager, label, dx, dy);
-            this.moving = new EntityStateMachine(this);
-            this.moving.push(new States.KameWalking());
-            this.code = 140;
-            this.counter["ac"] = 0;
-            this.addEventHandler("onstamped", this.onStamped);
-            this.addEventHandler("onhit", this.onHit);
-        }
-        update() {
-            this.moving.update();
-            this.move();
-        }
-        private move() {
-            this.x += this.vx / 10;
-            this.checkCollisionWithBlocksHorizontal(); // 接触判定
-            this.y += this.vy / 10;
-            this.checkCollisionWithBlocksVertical(); // 接触判定
-        }
         checkCollisionWithBlocksVertical() {
             this.flags["isOnGround"] = false;
             // check
@@ -55,6 +34,27 @@
                     b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "horizontal", "edge"));
                 }
             }
+        }
+    }
+    export class Kame extends Entity {
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
+            super(x, y, imagemanager, label, dx, dy);
+            this.moving = new EntityStateMachine(this);
+            this.moving.push(new States.KameWalking());
+            this.code = 140;
+            this.counter["ac"] = 0;
+            this.addEventHandler("onstamped", this.onStamped);
+            this.addEventHandler("onhit", this.onHit);
+        }
+        update() {
+            this.moving.update();
+            this.move();
+        }
+        private move() {
+            this.x += this.vx / 10;
+            this.checkCollisionWithBlocksHorizontal(); // 接触判定
+            this.y += this.vy / 10;
+            this.checkCollisionWithBlocksVertical(); // 接触判定
         }
         private onStamped(e: SpriteCollisionEvent) {
             this.moving.replace(new States.KameStamped());

@@ -237,6 +237,27 @@ var Game;
             this.flags = {};
             this.z = 256;
         }
+        Entity.prototype.checkCollisionWithBlocksVertical = function () {
+            this.flags["isOnGround"] = false;
+            // check
+            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
+            for (var i = 0; i < blocks.length; i++) {
+                var b = blocks[i];
+                if (this.x <= b.x + b.width && this.x + this.width >= b.x && this.y <= b.y + b.height && this.y + this.height >= b.y) {
+                    b.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, "vertical", "edge"));
+                }
+            }
+        };
+        Entity.prototype.checkCollisionWithBlocksHorizontal = function () {
+            // check
+            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
+            for (var i = 0; i < blocks.length; i++) {
+                var b = blocks[i];
+                if (this.x <= b.x + b.width && this.x + this.width >= b.x && this.y <= b.y + b.height && this.y + this.height >= b.y) {
+                    b.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, "horizontal", "edge"));
+                }
+            }
+        };
         return Entity;
     })(Game.Sprite);
     Game.Entity = Entity;
@@ -262,27 +283,6 @@ var Game;
             this.checkCollisionWithBlocksHorizontal(); // 接触判定
             this.y += this.vy / 10;
             this.checkCollisionWithBlocksVertical(); // 接触判定
-        };
-        Kame.prototype.checkCollisionWithBlocksVertical = function () {
-            this.flags["isOnGround"] = false;
-            // check
-            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
-            for (var i = 0; i < blocks.length; i++) {
-                var b = blocks[i];
-                if (this.x <= b.x + b.width && this.x + this.width >= b.x && this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                    b.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, "vertical", "edge"));
-                }
-            }
-        };
-        Kame.prototype.checkCollisionWithBlocksHorizontal = function () {
-            // check
-            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
-            for (var i = 0; i < blocks.length; i++) {
-                var b = blocks[i];
-                if (this.x <= b.x + b.width && this.x + this.width >= b.x && this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                    b.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, "horizontal", "edge"));
-                }
-            }
         };
         Kame.prototype.onStamped = function (e) {
             this.moving.replace(new States.KameStamped());
@@ -654,12 +654,12 @@ var Game;
         };
         // 速度に応じて自機の座標を移動させる
         Player.prototype.move = function () {
-            this.x += this.vx / 10;
             var muki_x = 0;
             if (this.vx > 0)
                 muki_x = 1;
             else if (this.vx < 0)
                 muki_x = -1;
+            this.x += this.vx / 10;
             this.checkCollisionWithBlocksHorizontal(); // 接触判定
             var tmp_bottom = this.bottom;
             var tmp_top = this.top;
@@ -670,7 +670,7 @@ var Game;
                 if (tmp_bottom < this.bottom) {
                     if (this.getHitBlock(this.centerx + muki_x, tmp_bottom + 1) == null) {
                         if (this.getHitBlock(this.centerx + muki_x, this.bottom + 1) != null) {
-                            this.x += muki_x;
+                            this.x += muki_x; // トンネルに入れるようにする
                             this.checkCollisionWithBlocksVertical();
                             this.vy = 0;
                             //_ptc = 103;
@@ -1001,27 +1001,30 @@ var Game;
                 sm.pop(); // 即座にもとのStateに戻す
                 sm.update(); // もとのStateのupdateを先に行う
                 var pl = sm.pl;
+                pl.checkCollisionWithBlocksHorizontal();
                 if (pl.counter["waiting"] > 0)
                     return; // 硬直中
                 pl.flags["isJumping"] = true;
                 pl.flags["isOnGround"] = false;
                 var speed = Math.abs(pl.vx);
-                // 貫通防止
-                /*if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1) != null) {
-                    pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2, pl.y - 1).dispatchEvent(new SpriteCollisionEvent("onhit", pl, "vertical"));
-                }
-                else */
-                if (pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1) != null) {
-                    pl.ss.MapBlocks.getByXYReal(pl.x + pl.width / 2 + pl.vx / 10, pl.y - 1).dispatchEvent(new Game.SpriteCollisionEvent("onhit", pl, "vertival"));
-                }
-                else {
+                /*// 貫通防止
+                if (pl.ss.MapBlocks.getByXYReal(pl.centerx + pl.vx / 10, pl.y - 1) != null) {
+                    pl.ss.MapBlocks.getByXYReal(pl.centerx + pl.vx / 10, pl.y - 1).dispatchEvent(new SpriteCollisionEvent("onhit", pl, "vertival"));
+                }*/
+                if (pl.ss.MapBlocks.getByXYReal(pl.centerx + pl.vx / 10, pl.y - 1) == null || pl.ss.MapBlocks.getByXYReal(pl.centerx, pl.y - 1) == null) {
                     if (speed == 0) {
                         pl.vy = -150;
                         pl.counter["jump_level"] = 1;
                     }
                     else if (speed < 60) {
-                        pl.vy = -230;
-                        pl.counter["jump_level"] = 2;
+                        if (pl.ss.MapBlocks.getByXYReal(pl.centerx + (pl.vx > 0 ? 1 : -1), pl.centery) != null) {
+                            pl.vy = -150;
+                            pl.counter["jump_level"] = 1;
+                        }
+                        else {
+                            pl.vy = -230;
+                            pl.counter["jump_level"] = 2;
+                        }
                     }
                     else if (speed == 60) {
                         pl.vy = -260;
