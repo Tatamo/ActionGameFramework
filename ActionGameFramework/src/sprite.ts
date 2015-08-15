@@ -54,7 +54,7 @@ module Game {
         set reverse_horizontal(f: boolean) { this.surface.reverse_horizontal = f; }
         get reverse_vertical(): boolean { return this.surface.reverse_vertical; }
         set reverse_vertical(f: boolean) { this.surface.reverse_vertical = f; }
-        get leftt(): number { return this.x; }
+        get left(): number { return this.x; }
         set left(v: number) { this.x = v; }
         get right(): number { return this.x + this.width - 1; }
         set right(v: number) { this.x = v - this.width + 1; }

@@ -151,7 +151,7 @@
                 var b = blocks[i];
                 if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
                     this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "vertical"));
+                    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "vertical", "edge"));
                 }
             }
         }
@@ -163,7 +163,7 @@
                 var b = blocks[i];
                 if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
                     this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "horizontal"));
+                    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "horizontal", "center"));
                 }
             }
         }

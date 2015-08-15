@@ -8,25 +8,6 @@ declare class Greeter {
 }
 declare var game: Game.Game;
 declare module Game {
-    class Config {
-        rawmap: Array<string>;
-        map: Array<string>;
-        image: {
-            [key: string]: any;
-        };
-        config: {
-            [key: string]: any;
-        };
-        constructor(map: Array<string>, image: {
-            [key: string]: any;
-        }, config?: {
-            [key: string]: any;
-        });
-        initconfig(): void;
-        initmap(map: Array<string>): void;
-    }
-}
-declare module Game {
     class Dictionary<T> implements WeakMap<any, T> {
         private datalist;
         constructor();
@@ -56,46 +37,6 @@ declare module Game {
         add(value: T): void;
         sort(): void;
         del(value: T): void;
-    }
-}
-declare module Game {
-    interface IEventDispatcher {
-        addEventHandler(type: string, handler: (e: Event) => void): any;
-        removeEventHandler(type: string, handler: (e: Event) => void): any;
-        clearEventHandler(type: string): any;
-        dispatchEvent(e: Event): any;
-    }
-    class EventDispatcher implements IEventDispatcher {
-        private _handlers;
-        constructor();
-        addEventHandler(type: string, handler: (e: Event) => void): void;
-        removeEventHandler(type: string, handler: (e: Event) => void): void;
-        clearEventHandler(type: string): void;
-        dispatchEvent(e: Event): void;
-    }
-    class Event {
-        type: string;
-        constructor(type: string);
-    }
-}
-declare module Game {
-    class GameKey {
-        keys: {
-            [key: number]: number;
-        };
-        releasedkeys: {
-            [key: number]: number;
-        };
-        private keepreleasedtime;
-        constructor();
-        setEvent(el: HTMLElement): void;
-        init(): void;
-        update(): void;
-        KeyDown(key: number): void;
-        KeyUp(key: number): void;
-        isDown(key: number): boolean;
-        isOnDown(key: number): boolean;
-        getCount(key: number): number;
     }
 }
 declare module Game {
@@ -158,6 +99,65 @@ declare module Game {
         regist_image(label: string, path: string): void;
         regist_pattern(label: string, path: string, c_width: number, c_height: number): void;
         load(): void;
+    }
+}
+declare module Game {
+    class Config {
+        rawmap: Array<string>;
+        map: Array<string>;
+        image: {
+            [key: string]: any;
+        };
+        config: {
+            [key: string]: any;
+        };
+        constructor(map: Array<string>, image: {
+            [key: string]: any;
+        }, config?: {
+            [key: string]: any;
+        });
+        initconfig(): void;
+        initmap(map: Array<string>): void;
+    }
+}
+declare module Game {
+    interface IEventDispatcher {
+        addEventHandler(type: string, handler: (e: Event) => void): any;
+        removeEventHandler(type: string, handler: (e: Event) => void): any;
+        clearEventHandler(type: string): any;
+        dispatchEvent(e: Event): any;
+    }
+    class EventDispatcher implements IEventDispatcher {
+        private _handlers;
+        constructor();
+        addEventHandler(type: string, handler: (e: Event) => void): void;
+        removeEventHandler(type: string, handler: (e: Event) => void): void;
+        clearEventHandler(type: string): void;
+        dispatchEvent(e: Event): void;
+    }
+    class Event {
+        type: string;
+        constructor(type: string);
+    }
+}
+declare module Game {
+    class GameKey {
+        keys: {
+            [key: number]: number;
+        };
+        releasedkeys: {
+            [key: number]: number;
+        };
+        private keepreleasedtime;
+        constructor();
+        setEvent(el: HTMLElement): void;
+        init(): void;
+        update(): void;
+        KeyDown(key: number): void;
+        KeyUp(key: number): void;
+        isDown(key: number): boolean;
+        isOnDown(key: number): boolean;
+        getCount(key: number): number;
     }
 }
 declare module Game {
@@ -228,7 +228,6 @@ declare module Game {
         code: number;
         reverse_horizontal: boolean;
         reverse_vertical: boolean;
-        leftt: number;
         left: number;
         right: number;
         top: number;
