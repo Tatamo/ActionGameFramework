@@ -270,13 +270,13 @@ var Game;
                                 e.y < p.bottom - p.vy / 10 && e.bottom > p.y - p.vy / 10)) { // プレイヤーにダメージ
                             p.dispatchEvent(new PlayerMissEvent("miss", 1));
                         }*/
-                        if (p.vy <= 0) {
-                            p.dispatchEvent(new Game.PlayerMissEvent("miss", 1));
-                        }
-                        else {
+                        if (p.vy > 0 && p.y <= e.y && e.y <= p.bottom) {
                             e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
                             p.y = e.y - p.height + 32 - 12;
                             p.dispatchEvent(new Game.Event("onstamp"));
+                        }
+                        else {
+                            p.dispatchEvent(new Game.PlayerMissEvent("miss", 1));
                         }
                     }
                 }
