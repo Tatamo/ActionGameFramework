@@ -68,9 +68,9 @@ var Game;
             var s = e.sprite;
             if (e.dir == "vertical" || e.dir == "up" || e.dir == "down") {
                 if (e.mode == "edge") {
-                    // up
                     if (s.vy < 0 && e.dir != "down") {
-                        if (this.x <= s.centerx && this.x + this.width > s.centerx && this.y < s.y + s.height && this.y + this.height >= s.y) {
+                        // up
+                        if (this.x < s.right && this.right > s.x && this.y < s.bottom + 1 && this.bottom + 1 >= s.y) {
                             s.y = this.bottom + 1;
                             s.vy = 0;
                             s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, e.dir));
@@ -78,9 +78,7 @@ var Game;
                     }
                     else if (s.vy >= 0 && e.dir != "up") {
                         // down || //
-                        //if (Math.floor(s.centerx / this.width) == Math.floor(this.x / this.width) && // spriteのx中心点との判定
-                        //if (this.x <= s.centerx && this.right >= s.centerx && // spriteのx中心点との判定
-                        if (this.x <= s.centerx && this.x + this.width > s.centerx && this.y <= s.y + s.height && this.y + this.height > s.y) {
+                        if (this.x < s.right && this.right > s.x && this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
                             console.log("onground");
                             s.dispatchEvent(new Game.Event("onground"));
                             s.bottom = this.y - 1;
@@ -90,6 +88,26 @@ var Game;
                     }
                 }
                 else if (e.mode == "center") {
+                    if (s.vy < 0 && e.dir != "down") {
+                        // up
+                        if (this.x <= s.centerx && this.right + 1 > s.centerx && this.y < s.bottom + 1 && this.bottom + 1 >= s.y) {
+                            s.y = this.bottom + 1;
+                            s.vy = 0;
+                            s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, e.dir));
+                        }
+                    }
+                    else if (s.vy >= 0 && e.dir != "up") {
+                        // down || //
+                        //if (Math.floor(s.centerx / this.width) == Math.floor(this.x / this.width) && // spriteのx中心点との判定
+                        //if (this.x <= s.centerx && this.right >= s.centerx && // spriteのx中心点との判定
+                        if (this.x <= s.centerx && this.right + 1 > s.centerx && this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
+                            console.log("onground");
+                            s.dispatchEvent(new Game.Event("onground"));
+                            s.bottom = this.y - 1;
+                            s.vy = 0;
+                            s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, e.dir));
+                        }
+                    }
                 }
             }
             else if (e.dir == "horizontal" || e.dir == "left" || e.dir == "right") {
@@ -97,7 +115,7 @@ var Game;
                     if (s.vx > 0) {
                         // right
                         if (e.dir != "left")
-                            if (this.x <= s.right && this.right >= s.x && this.y <= s.y + s.height && this.y + this.height > s.y) {
+                            if (this.x <= s.right && this.right >= s.x && this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
                                 s.right = this.x;
                                 s.vx = 0;
                                 s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, e.dir));
@@ -106,14 +124,14 @@ var Game;
                     else if (s.vx < 0) {
                         // left
                         if (e.dir != "right")
-                            if (this.x <= s.right && this.right >= s.x && this.y <= s.y + s.height && this.y + this.height > s.y) {
+                            if (this.x <= s.right && this.right >= s.x && this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
                                 s.x = this.right + 1;
                                 s.vx = 0;
                                 s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, e.dir));
                             }
                     }
                     else {
-                        if (this.x <= s.right && this.right >= s.x && this.y <= s.y + s.height && this.y + this.height > s.y) {
+                        if (this.x <= s.right && this.right >= s.x && this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
                             if (s.centerx < this.centerx)
                                 s.right = this.x;
                             else
@@ -126,7 +144,7 @@ var Game;
                     if (s.vx > 0) {
                         // right
                         if (e.dir != "left")
-                            if (this.x <= s.centerx && this.x + this.width > s.centerx && this.y <= s.y + s.height && this.y + this.height > s.y) {
+                            if (this.x <= s.centerx && this.right + 1 > s.centerx && this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
                                 s.x = this.x - (s.width - 1) / 2 - 1;
                                 s.vx = 0;
                                 s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, e.dir));
@@ -135,14 +153,14 @@ var Game;
                     else if (s.vx < 0) {
                         // left
                         if (e.dir != "right")
-                            if (this.x <= s.centerx && this.x + this.width > s.centerx && this.y <= s.y + s.height && this.y + this.height > s.y) {
+                            if (this.x <= s.centerx && this.right + 1 > s.centerx && this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
                                 s.x = this.right - (s.width - 1) / 2 + 1;
                                 s.vx = 0;
                                 s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, e.dir));
                             }
                     }
                     else {
-                        if (this.x <= s.centerx && this.x + this.width > s.centerx && this.y <= s.y + s.height && this.y + this.height > s.y) {
+                        if (this.x <= s.centerx && this.right + 1 > s.centerx && this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
                             if (s.centerx < this.centerx)
                                 s.x = this.x - (s.width - 1) / 2 - 1;
                             else
@@ -728,7 +746,7 @@ var Game;
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
                 if (this.x <= b.x + b.width && this.x + this.width >= b.x && this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                    b.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, "vertical", "edge"));
+                    b.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, "vertical", "center"));
                 }
             }
         };

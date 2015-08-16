@@ -152,7 +152,7 @@
                 var b = blocks[i];
                 if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
                     this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "vertical", "edge"));
+                    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "vertical", "center"));
                 }
             }
         }
@@ -384,7 +384,7 @@
                         pl.counter["jump_level"] = 1;
                     }
                     else if (speed < 60) {
-                        if (pl.ss.MapBlocks.getByXYReal(pl.centerx + (pl.vx > 0 ? 1 : -1), pl.centery) != null) {
+                        if (pl.ss.MapBlocks.getByXYReal(pl.centerx + (pl.vx > 0 ? 1 : -1), pl.centery) != null) { // 斜め床の場合、これでは不十分
                             pl.vy = -150;
                             pl.counter["jump_level"] = 1;
                         }
