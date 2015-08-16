@@ -94,7 +94,7 @@
                 if (tmp_bottom < this.bottom) {
                     if (this.getHitBlock(this.centerx + muki_x, tmp_bottom + 1) == null) { // 移動前 自機の足元にブロックが無い
                         if (this.getHitBlock(this.centerx + muki_x, this.bottom + 1) != null) { // 移動後 自機の足元にブロックがある
-                            this.x += muki_x; // トンネルに入れるようにする
+                            if (this.flags["isWalking"] || this.flags["isRunning"]) this.x += muki_x; // トンネルに入れるようにする
                             this.checkCollisionWithBlocksVertical();
                             this.vy = 0;
                             //_ptc = 103;
@@ -107,7 +107,7 @@
                 if (tmp_top > this.top) {
                     if (this.getHitBlock(this.centerx + muki_x, tmp_top) == null) { // 移動前 自機の頭にブロックが無い
                         if (this.getHitBlock(this.centerx + muki_x, this.top) != null) { // 移動後 自機の頭にブロックがある
-                            this.x += muki_x;
+                            if (this.flags["isWalking"] || this.flags["isRunning"]) this.x += muki_x; // トンネルに入れるようにする
                             this.checkCollisionWithBlocksVertical();
                             this.vy = 0;
                             //_ptc = 103;

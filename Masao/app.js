@@ -688,7 +688,8 @@ var Game;
                 if (tmp_bottom < this.bottom) {
                     if (this.getHitBlock(this.centerx + muki_x, tmp_bottom + 1) == null) {
                         if (this.getHitBlock(this.centerx + muki_x, this.bottom + 1) != null) {
-                            this.x += muki_x; // トンネルに入れるようにする
+                            if (this.flags["isWalking"] || this.flags["isRunning"])
+                                this.x += muki_x; // トンネルに入れるようにする
                             this.checkCollisionWithBlocksVertical();
                             this.vy = 0;
                             //_ptc = 103;
@@ -701,7 +702,8 @@ var Game;
                 if (tmp_top > this.top) {
                     if (this.getHitBlock(this.centerx + muki_x, tmp_top) == null) {
                         if (this.getHitBlock(this.centerx + muki_x, this.top) != null) {
-                            this.x += muki_x;
+                            if (this.flags["isWalking"] || this.flags["isRunning"])
+                                this.x += muki_x; // トンネルに入れるようにする
                             this.checkCollisionWithBlocksVertical();
                             this.vy = 0;
                             //_ptc = 103;
