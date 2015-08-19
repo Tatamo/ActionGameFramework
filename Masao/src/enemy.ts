@@ -60,7 +60,6 @@
             this.moving.replace(new States.KameStamped());
         }
         private onHit(e: SpriteCollisionEvent) {
-            console.log("kame_onhit");
             if (e.dir == "horizontal") {
                 this.reverse_horizontal = !this.reverse_horizontal;
             }

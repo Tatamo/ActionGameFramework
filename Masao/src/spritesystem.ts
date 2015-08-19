@@ -26,7 +26,7 @@
         }
         public remove(s: ISprite) {
             for (var i = 0; i < this.groups.length; i++) {
-                this.groups[i].remove(s);
+                this.groups[i].remove(s)
             }
         }
         /*public virtual Block GetBlock(int x, int y) {

@@ -3,10 +3,11 @@
         public gk: GameKey; // TODO:疎結合に
         public counter: { [key: string]: number; };
         public flags: { [key: string]: boolean; };
+        public sjump_effects: Array<PlayerSuperJumpEffect>;
         public moving: PlayerStateMachine;
         public special: PlayerStateMachine;
         public ss: SpriteSystem;
-        constructor(input: GameKey, x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
+        constructor(input: GameKey, x: number, y: number, public imagemanager: ImageManager, public label: string, dx: number = 1, dy: number = 1) {
             super(x, y, imagemanager, label, 100, dx, dy);
             this.gk = input;
             this.moving = new PlayerStateMachine(this);
@@ -21,6 +22,7 @@
             this.counter["jump_level"] = 0;
             this.counter["waiting"] = 0;
             this.counter["dying"] = 0;
+            this.counter["superjump_effect"] = -1;
             this.flags = {};
             this.flags["isAlive"] = true; // まだミスをしていない状態
             this.flags["isRunning"] = false; // 走っている状態
@@ -28,6 +30,7 @@
             this.flags["isJumping"] = false; // ジャンプによって空中にいる状態
             this.flags["isStamping"] = false; // 敵を踏んだ状態
             this.flags["isOnGround"] = false; // 地面の上にいる状態
+            this.sjump_effects = [];
             this.z = 128;
             this.addEventHandler("onground", this.onGround);
             this.addEventHandler("onstamp", this.onStamp);
@@ -41,11 +44,13 @@
             this.flags["isJumping"] = false;
             this.flags["isStamping"] = false;
             this.counter["jump_level"] = 0;
+            if (this.counter["superjump_effect"] >= 0) this.counter["superjump_effect"] = 100;
         }
         private onStamp(e: Event) {
             this.moving.push(new States.PlayerStamping());
         }
         private onMiss(e: PlayerMissEvent) {
+            this.dispatchEvent(new Event("onground")); // ほぼスーパージャンプのエフェクトを消すためだけ
             if (e.mode == 1) {
                 this.moving.replace(new States.PlayerDyingDirect());
             }
@@ -73,7 +78,7 @@
             else {
                 this.moving.update();
                 this.x += this.vx / 10;
-                this.y += this.vy / 10;
+                this.y += this.vy > -320 ? this.vy / 10 : -32;
             }
         }
         // 速度に応じて自機の座標を移動させる
@@ -86,7 +91,7 @@
 
             var tmp_bottom = this.bottom;
             var tmp_top = this.top;
-            this.y += this.vy / 10;
+            this.y += this.vy > -320 ? this.vy / 10 : -32;
             this.checkCollisionWithBlocksVertical(); // 接触判定
 
             // 補正
@@ -258,6 +263,31 @@
                         }
                     }
                 }
+                if (pl.counter["superjump_effect"] >= 0) {
+                    var del = (s: PlayerSuperJumpEffect) => { if (s) s.kill(); };
+                    var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, 1, 1, pl.code, pl.reverse_horizontal);
+                    pl.ss.add(effect);
+                    pl.sjump_effects.push(effect);
+                    del(pl.sjump_effects.shift());
+                    if (pl.counter["superjump_effect"] < 9) {
+                        pl.counter["superjump_effect"] += 1;
+                        if (pl.vy > 0) pl.counter["superjump_effect"] = 9;
+                    }
+                    else {
+                        if (pl.counter["superjump_effect"] >= 100) {
+                            pl.counter["superjump_effect"] = -1;
+                            while (pl.sjump_effects.length > 0) {
+                                del(pl.sjump_effects.shift());
+                            }
+                        }
+                        else if (pl.counter["superjump_effect"] >= 9) {
+                            del(pl.sjump_effects.shift());
+                            if (pl.sjump_effects.length == 0) {
+                                pl.counter["superjump_effect"] = 100;
+                            }
+                        }
+                    }
+                }
             }
         }
         export class PlayerWalkingLeft extends AbstractState {
@@ -404,6 +434,10 @@
                     else {
                         pl.vy = -340;
                         pl.counter["jump_level"] = 5;
+                        pl.counter["superjump_effect"] = 1;
+                        var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, 1, 1, 101, pl.reverse_horizontal);
+                        pl.ss.add(effect);
+                        pl.sjump_effects=[null,null,null,null,null,effect];
                     }
                 }
                 pl.checkCollisionWithBlocksVertical();
@@ -506,6 +540,7 @@
                 sm.pl.counter["waiting"] = 5;
                 sm.pl.vy = -160;
                 //sm.pl.vy = -220;
+                if (sm.pl.counter["superjump_effect"] >= 0) sm.pl.counter["superjump_effect"] = 100;
             }
             update(sm: PlayerStateMachine) {
                 sm.pop();
@@ -517,6 +552,17 @@
             }
             update(sm: PlayerStateMachine) {
             }
+        }
+    }
+    export class PlayerSuperJumpEffect extends Sprite {
+        public ss: SpriteSystem;
+        constructor(x: number, y: number, imagemanager: ImageManager, private label: string, dx: number, dy: number, code: number, reverse_horizontal:boolean) {
+            super(x, y, imagemanager, label, 100, dx, dy);
+            this.code = code;
+            this.z = 129;
+            this.reverse_horizontal = reverse_horizontal;
+        }
+        update() {
         }
     }
 }

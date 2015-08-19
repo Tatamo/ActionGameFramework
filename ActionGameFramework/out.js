@@ -24,42 +24,6 @@ window.onload = function () {
     game.setparent(el);
     game.start();
 };
-var Game;
-(function (Game) {
-    // 読み込まれたマップの管理
-    var Config = (function () {
-        function Config(map, image, config) {
-            if (config === void 0) { config = {}; }
-            this.initconfig();
-            this.initmap(map);
-            this.image = image;
-            this.config = config;
-        }
-        Config.prototype.initconfig = function () {
-            this.config = {};
-            this.config["screen_width"] = 512;
-            this.config["screen_height"] = 320;
-            this.config["mapchip_width"] = 32;
-            this.config["mapchip_height"] = 32;
-            this.config["map_width"] = 180;
-            this.config["map_height"] = 30;
-        };
-        Config.prototype.initmap = function (map) {
-            this.rawmap = map;
-            this.map = [];
-            for (var i = 0; i < map.length; i += 1) {
-                if (i < this.config["map_height"]) {
-                    this.map[i] = map[i];
-                }
-                else {
-                    this.map[i % this.config["map_height"]] += map[i];
-                }
-            }
-        };
-        return Config;
-    })();
-    Game.Config = Config;
-})(Game || (Game = {}));
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -181,125 +145,6 @@ var Game;
         return AbstractDataGroup;
     })();
     Game.AbstractDataGroup = AbstractDataGroup;
-})(Game || (Game = {}));
-var Game;
-(function (Game) {
-    var EventDispatcher = (function () {
-        function EventDispatcher() {
-            this._handlers = {};
-        }
-        // イベントハンドラの追加
-        EventDispatcher.prototype.addEventHandler = function (type, handler) {
-            if (!this._handlers[type]) {
-                this._handlers[type] = [handler.bind(this)];
-            }
-            else {
-                this._handlers[type].push(handler.bind(this));
-            }
-        };
-        // イベントハンドラの削除
-        EventDispatcher.prototype.removeEventHandler = function (type, handler) {
-            if (!this._handlers[type]) {
-                return;
-            }
-            for (var i = this._handlers[type].length; i >= 0; i--) {
-                if (this._handlers[type][i] == handler) {
-                    this._handlers[type].splice(i, 1);
-                }
-            }
-        };
-        // すべてのイベントハンドラを削除
-        EventDispatcher.prototype.clearEventHandler = function (type) {
-            this._handlers[type] = [];
-        };
-        // イベントの発火
-        EventDispatcher.prototype.dispatchEvent = function (e) {
-            if (!this._handlers[e.type])
-                return;
-            for (var i = 0; i < this._handlers[e.type].length; i++) {
-                var e;
-                this._handlers[e.type][i](e);
-            }
-        };
-        return EventDispatcher;
-    })();
-    Game.EventDispatcher = EventDispatcher;
-    var Event = (function () {
-        function Event(type) {
-            this.type = type;
-        }
-        return Event;
-    })();
-    Game.Event = Event;
-})(Game || (Game = {}));
-var Game;
-(function (Game) {
-    var GameKey = (function () {
-        function GameKey() {
-            this.keepreleasedtime = 64;
-            this.init();
-        }
-        // キー入力を受け付けるイベントハンドラを登録する
-        GameKey.prototype.setEvent = function (el) {
-            var _this = this;
-            console.log(el);
-            el.addEventListener("keydown", function (e) {
-                _this.KeyDown(e.keyCode);
-            });
-            el.addEventListener("keyup", function (e) {
-                _this.KeyUp(e.keyCode);
-            });
-        };
-        GameKey.prototype.init = function () {
-            this.keys = {};
-            this.releasedkeys = {};
-        };
-        GameKey.prototype.update = function () {
-            for (var key in this.keys) {
-                this.keys[key] += 1;
-            }
-            var rks = {};
-            for (var key in this.releasedkeys) {
-                if (this.releasedkeys[key] + 1 <= this.keepreleasedtime) {
-                    rks[key] = this.releasedkeys[key] + 1;
-                }
-            }
-            this.releasedkeys = rks;
-        };
-        GameKey.prototype.KeyDown = function (key) {
-            console.log(key);
-            if (!(key in this.keys)) {
-                this.keys[key] = 0;
-            }
-        };
-        GameKey.prototype.KeyUp = function (key) {
-            if (key in this.keys) {
-                delete this.keys[key];
-            }
-            this.releasedkeys[key] = 0;
-        };
-        // 押されているかどうかの判定をします
-        GameKey.prototype.isDown = function (key) {
-            if (key in this.keys)
-                return true;
-            return false;
-        };
-        // 押された瞬間かどうかの判定をします
-        GameKey.prototype.isOnDown = function (key) {
-            if (key in this.keys && this.keys[key] == 1)
-                return true;
-            return false;
-        };
-        // 押された時間を取得します 押されていない場合は-1
-        GameKey.prototype.getCount = function (key) {
-            if (key in this.keys) {
-                return this.keys[key];
-            }
-            return -1;
-        };
-        return GameKey;
-    })();
-    Game.GameKey = GameKey;
 })(Game || (Game = {}));
 /// <reference path="datadictionary.ts"/>
 var Game;
@@ -661,6 +506,161 @@ var Game;
         };
         return PatternImageGenerator;
     })();
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    // 読み込まれたマップの管理
+    var Config = (function () {
+        function Config(map, image, config) {
+            if (config === void 0) { config = {}; }
+            this.initconfig();
+            this.initmap(map);
+            this.image = image;
+            this.config = config;
+        }
+        Config.prototype.initconfig = function () {
+            this.config = {};
+            this.config["screen_width"] = 512;
+            this.config["screen_height"] = 320;
+            this.config["mapchip_width"] = 32;
+            this.config["mapchip_height"] = 32;
+            this.config["map_width"] = 180;
+            this.config["map_height"] = 30;
+        };
+        Config.prototype.initmap = function (map) {
+            this.rawmap = map;
+            this.map = [];
+            for (var i = 0; i < map.length; i += 1) {
+                if (i < this.config["map_height"]) {
+                    this.map[i] = map[i];
+                }
+                else {
+                    this.map[i % this.config["map_height"]] += map[i];
+                }
+            }
+        };
+        return Config;
+    })();
+    Game.Config = Config;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var EventDispatcher = (function () {
+        function EventDispatcher() {
+            this._handlers = {};
+        }
+        // イベントハンドラの追加
+        EventDispatcher.prototype.addEventHandler = function (type, handler) {
+            if (!this._handlers[type]) {
+                this._handlers[type] = [handler.bind(this)];
+            }
+            else {
+                this._handlers[type].push(handler.bind(this));
+            }
+        };
+        // イベントハンドラの削除
+        EventDispatcher.prototype.removeEventHandler = function (type, handler) {
+            if (!this._handlers[type]) {
+                return;
+            }
+            for (var i = this._handlers[type].length; i >= 0; i--) {
+                if (this._handlers[type][i] == handler) {
+                    this._handlers[type].splice(i, 1);
+                }
+            }
+        };
+        // すべてのイベントハンドラを削除
+        EventDispatcher.prototype.clearEventHandler = function (type) {
+            this._handlers[type] = [];
+        };
+        // イベントの発火
+        EventDispatcher.prototype.dispatchEvent = function (e) {
+            if (!this._handlers[e.type])
+                return;
+            for (var i = 0; i < this._handlers[e.type].length; i++) {
+                var e;
+                this._handlers[e.type][i](e);
+            }
+        };
+        return EventDispatcher;
+    })();
+    Game.EventDispatcher = EventDispatcher;
+    var Event = (function () {
+        function Event(type) {
+            this.type = type;
+        }
+        return Event;
+    })();
+    Game.Event = Event;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var GameKey = (function () {
+        function GameKey() {
+            this.keepreleasedtime = 64;
+            this.init();
+        }
+        // キー入力を受け付けるイベントハンドラを登録する
+        GameKey.prototype.setEvent = function (el) {
+            var _this = this;
+            console.log(el);
+            el.addEventListener("keydown", function (e) {
+                _this.KeyDown(e.keyCode);
+            });
+            el.addEventListener("keyup", function (e) {
+                _this.KeyUp(e.keyCode);
+            });
+        };
+        GameKey.prototype.init = function () {
+            this.keys = {};
+            this.releasedkeys = {};
+        };
+        GameKey.prototype.update = function () {
+            for (var key in this.keys) {
+                this.keys[key] += 1;
+            }
+            var rks = {};
+            for (var key in this.releasedkeys) {
+                if (this.releasedkeys[key] + 1 <= this.keepreleasedtime) {
+                    rks[key] = this.releasedkeys[key] + 1;
+                }
+            }
+            this.releasedkeys = rks;
+        };
+        GameKey.prototype.KeyDown = function (key) {
+            console.log(key);
+            if (!(key in this.keys)) {
+                this.keys[key] = 0;
+            }
+        };
+        GameKey.prototype.KeyUp = function (key) {
+            if (key in this.keys) {
+                delete this.keys[key];
+            }
+            this.releasedkeys[key] = 0;
+        };
+        // 押されているかどうかの判定をします
+        GameKey.prototype.isDown = function (key) {
+            if (key in this.keys)
+                return true;
+            return false;
+        };
+        // 押された瞬間かどうかの判定をします
+        GameKey.prototype.isOnDown = function (key) {
+            if (key in this.keys && this.keys[key] == 1)
+                return true;
+            return false;
+        };
+        // 押された時間を取得します 押されていない場合は-1
+        GameKey.prototype.getCount = function (key) {
+            if (key in this.keys) {
+                return this.keys[key];
+            }
+            return -1;
+        };
+        return GameKey;
+    })();
+    Game.GameKey = GameKey;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {

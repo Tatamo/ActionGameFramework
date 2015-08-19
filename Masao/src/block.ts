@@ -27,7 +27,6 @@
                         // down || //
                         if (this.x < s.right && this.right > s.x && // spriteのx中心点との判定
                             this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
-                            console.log("onground");
                             s.dispatchEvent(new Event("onground"));
                             s.bottom = this.y - 1;
                             s.vy = 0;
@@ -51,7 +50,6 @@
                         //if (this.x <= s.centerx && this.right >= s.centerx && // spriteのx中心点との判定
                         if (this.x <= s.centerx && this.right + 1 > s.centerx && // spriteのx中心点との判定
                             this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
-                            console.log("onground");
                             s.dispatchEvent(new Event("onground"));
                             s.bottom = this.y - 1;
                             s.vy = 0;
