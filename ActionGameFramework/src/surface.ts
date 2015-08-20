@@ -89,8 +89,12 @@
         set reverse_vertical(flag: boolean) {
             if (flag == this._reverse_vertical) return;
             else {
-                this.reverseVertical();
                 this._reverse_vertical = !this._reverse_vertical;
+                if (this._reverse_vertical) this.reverseVertical();
+                else {
+                    this.context.clearRect(0, 0, this.width, this.height);
+                    this.context.drawImage(this._i, 0, 0, this._i.width, this._i.height, 0, 0, this._i.width, this._i.height);
+                }
             }
         }
         get reverse_horizontal(): boolean {
@@ -99,8 +103,12 @@
         set reverse_horizontal(flag: boolean) {
             if (flag == this._reverse_horizontal) return;
             else {
-                this.reverseHorizontal();
                 this._reverse_horizontal = !this._reverse_horizontal;
+                if (this._reverse_horizontal) this.reverseHorizontal();
+                else {
+                    this.context.clearRect(0, 0, this.width, this.height);
+                    this.context.drawImage(this._i, 0, 0, this._i.width, this._i.height, 0, 0, this._i.width, this._i.height);
+                }
             }
         }
         constructor(imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {
@@ -116,7 +124,8 @@
             super(i.width, i.height);
             this.context.drawImage(i, 0, 0, i.width, i.height, 0, 0, i.width, i.height);
         }
-        reverseVertical() {
+        // 上下反転状態にする(反転状態を逆の反転状態に切り替えるわけではないことに注意)
+        private reverseVertical() {
             this.context.save();
             this.context.clearRect(0, 0, this.width, this.height);
             this.context.translate(0, this.height)
@@ -124,7 +133,8 @@
             this.context.drawImage(this._i, 0, 0, this._i.width, this._i.height, 0, 0, this._i.width, this._i.height);
             this.context.restore();
         }
-        reverseHorizontal() {
+        // 左右反転状態にする(反転状態を逆の反転状態に切り替えるわけではないことに注意)
+        private reverseHorizontal() {
             this.context.save();
             this.context.clearRect(0, 0, this.width, this.height);
             this.context.translate(this.width, 0);

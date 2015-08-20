@@ -187,8 +187,8 @@ declare module Game {
         reverse_vertical: boolean;
         reverse_horizontal: boolean;
         constructor(imagemanager: ImageManager, label: string, code?: number, dx?: number, dy?: number);
-        reverseVertical(): void;
-        reverseHorizontal(): void;
+        private reverseVertical();
+        private reverseHorizontal();
     }
 }
 declare module Game {
