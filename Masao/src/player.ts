@@ -247,8 +247,7 @@
             update(sm: PlayerStateMachine);
             exit(sm: PlayerStateMachine);
         }*/
-        // 地上での処理が前提
-        // TODO:空中
+        // 処理中にジャンプなどに一瞬だけ状態が遷移することで、脈絡なくenterが再度呼ばれる可能性があることに注意
         export class PlayerGlobalMove extends AbstractState {
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
@@ -542,10 +541,11 @@
                 sm.pl.vy = -160;
                 //sm.pl.vy = -220;
                 if (sm.pl.counter["superjump_effect"] >= 0) sm.pl.counter["superjump_effect"] = 100;
+                sm.pop(); // update時ではなくenter直後にもとのstateに戻す
             }
             update(sm: PlayerStateMachine) {
-                sm.pop();
-                sm.update();
+                /*sm.pop();
+                sm.update();*/
             }
         }
         export class PlayerWithoutSpecialMove extends AbstractState {

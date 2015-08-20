@@ -847,8 +847,7 @@ var Game;
             update(sm: PlayerStateMachine);
             exit(sm: PlayerStateMachine);
         }*/
-        // 地上での処理が前提
-        // TODO:空中
+        // 処理中にジャンプなどに一瞬だけ状態が遷移することで、脈絡なくenterが再度呼ばれる可能性があることに注意
         var PlayerGlobalMove = (function (_super) {
             __extends(PlayerGlobalMove, _super);
             function PlayerGlobalMove() {
@@ -1228,10 +1227,11 @@ var Game;
                 //sm.pl.vy = -220;
                 if (sm.pl.counter["superjump_effect"] >= 0)
                     sm.pl.counter["superjump_effect"] = 100;
+                sm.pop(); // update時ではなくenter直後にもとのstateに戻す
             };
             PlayerStamping.prototype.update = function (sm) {
-                sm.pop();
-                sm.update();
+                /*sm.pop();
+                sm.update();*/
             };
             return PlayerStamping;
         })(States.AbstractState);
