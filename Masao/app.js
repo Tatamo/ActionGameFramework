@@ -617,10 +617,11 @@ var Game;
             this.flags["isAlive"] = true; // まだミスをしていない状態
             this.flags["isRunning"] = false; // 走っている状態
             this.flags["isWalking"] = false; // 歩いている状態
-            this.flags["isJumping"] = false; // ジャンプによって空中にいる状態
+            this.flags["isJumping"] = true; // ジャンプによって空中にいる状態
             this.flags["isStamping"] = false; // 敵を踏んだ状態
             this.flags["isOnGround"] = false; // 地面の上にいる状態
             this.sjump_effects = [];
+            this.reverse_horizontal = true;
             this.z = 128;
             this.addEventHandler("onground", this.onGround);
             this.addEventHandler("onstamp", this.onStamp);
