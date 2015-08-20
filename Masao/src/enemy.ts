@@ -88,7 +88,9 @@
                 if (e.ss.MapBlocks.getByXYReal((e.reverse_horizontal?e.right:e.x) + e.vx / 10, e.y + e.height + 1) == null) {
                     e.reverse_horizontal = !e.reverse_horizontal;
                     //e.x = e.ss.MapBlocks.getByXYReal(e.centerx, e.y + e.height + 1).x;
-                    e.vx = e.reverse_horizontal ? 30 : -30;
+                    e.x = e.ss.MapBlocks.getByXYReal(e.centerx, e.y + e.height + 1).x;
+                    //e.vx = e.reverse_horizontal ? 30 : -30;
+                    e.vx = 0;
                 }
                 this.checkCollisionWithPlayer(sm);
             }
