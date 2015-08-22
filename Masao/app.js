@@ -287,6 +287,7 @@ var Game;
             this.moving.push(new States.KameWalking());
             this.code = 140;
             this.counter["ac"] = 0;
+            this.flags["isAlive"] = true;
             this.addEventHandler("onstamped", this.onStamped);
             this.addEventHandler("onhit", this.onHit);
         }
@@ -301,10 +302,11 @@ var Game;
             this.checkCollisionWithBlocksVertical(); // 接触判定
         };
         Kame.prototype.onStamped = function (e) {
-            this.moving.replace(new States.KameStamped());
+            if (this.flags["isAlive"])
+                this.moving.replace(new States.KameStamped());
         };
         Kame.prototype.onHit = function (e) {
-            if (e.dir == "horizontal") {
+            if (e.dir == "horizontal" && this.flags["isAlive"]) {
                 this.reverse_horizontal = !this.reverse_horizontal;
             }
         };
@@ -380,6 +382,7 @@ var Game;
             KameStamped.prototype.enter = function (sm) {
                 sm.e.counter["ac"] = 0;
                 sm.e.code = 142;
+                sm.e.flags["isAlive"] = false;
             };
             KameStamped.prototype.update = function (sm) {
                 var e = sm.e;

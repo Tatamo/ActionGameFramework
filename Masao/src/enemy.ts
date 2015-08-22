@@ -43,6 +43,7 @@
             this.moving.push(new States.KameWalking());
             this.code = 140;
             this.counter["ac"] = 0;
+            this.flags["isAlive"] = true;
             this.addEventHandler("onstamped", this.onStamped);
             this.addEventHandler("onhit", this.onHit);
         }
@@ -57,10 +58,10 @@
             this.checkCollisionWithBlocksVertical(); // 接触判定
         }
         private onStamped(e: SpriteCollisionEvent) {
-            this.moving.replace(new States.KameStamped());
+            if (this.flags["isAlive"]) this.moving.replace(new States.KameStamped());
         }
         private onHit(e: SpriteCollisionEvent) {
-            if (e.dir == "horizontal") {
+            if (e.dir == "horizontal" && this.flags["isAlive"]) {
                 this.reverse_horizontal = !this.reverse_horizontal;
             }
         }
@@ -122,6 +123,7 @@
             enter(sm: EntityStateMachine) {
                 sm.e.counter["ac"] = 0;
                 sm.e.code = 142;
+                sm.e.flags["isAlive"] = false;
             }
             update(sm: EntityStateMachine) {
                 var e = sm.e;
