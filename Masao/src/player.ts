@@ -536,6 +536,7 @@
             private wait: number;
             enter(sm: PlayerStateMachine) {
                 console.log("stamping");
+                sm.pl.code = 109;
                 sm.pl.flags["isStamping"] = true;
                 sm.pl.counter["waiting"] = 5;
                 sm.pl.vy = -160;

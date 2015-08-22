@@ -349,20 +349,18 @@ var Game;
                 this.checkCollisionWithPlayer(sm);
             };
             // プレイヤーとの当たり判定
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
             KameWalking.prototype.checkCollisionWithPlayer = function (sm) {
                 var e = sm.e;
                 var players = sm.e.ss.Players.get_all();
                 for (var i = 0; i < players.length; i++) {
                     var p = players[i];
-                    if (p.flags["isAlive"] && e.x < p.right && e.right > p.x && e.y < p.bottom && e.bottom > p.y) {
-                        /*if (p.vy <= 0 ||
-                            (!(e.x < p.right - p.vx / 10 && e.right > p.x - p.vx / 10) &&
-                                e.y < p.bottom - p.vy / 10 && e.bottom > p.y - p.vy / 10)) { // プレイヤーにダメージ
-                            p.dispatchEvent(new PlayerMissEvent("miss", 1));
-                        }*/
-                        if (p.vy > 0 && p.y <= e.y && e.y <= p.bottom) {
+                    var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                    var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
+                    if (p.flags["isAlive"] && dx < 30 && dy < 23) {
+                        if (p.flags["isAlive"] && dx < 27 && p.vy > 0) {
                             e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
-                            p.y = e.y - p.height + 32 - 12;
+                            p.y = e.y - 12;
                             p.dispatchEvent(new Game.Event("onstamp"));
                         }
                         else {
@@ -1223,6 +1221,7 @@ var Game;
             }
             PlayerStamping.prototype.enter = function (sm) {
                 console.log("stamping");
+                sm.pl.code = 109;
                 sm.pl.flags["isStamping"] = true;
                 sm.pl.counter["waiting"] = 5;
                 sm.pl.vy = -160;
