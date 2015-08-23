@@ -72,6 +72,7 @@
                     var e: Event;
                     this._oncehandlers[e.type][i](e);
                 }
+                this._oncehandlers[e.type] = [];
             }
         }
     }

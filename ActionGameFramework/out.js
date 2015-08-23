@@ -609,6 +609,7 @@ var Game;
                     var e;
                     this._oncehandlers[e.type][i](e);
                 }
+                this._oncehandlers[e.type] = [];
             }
         };
         return EventDispatcher;
