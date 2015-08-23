@@ -277,6 +277,16 @@ var Game;
         return Entity;
     })(Game.Sprite);
     Game.Entity = Entity;
+    var EntityStateMachine = (function (_super) {
+        __extends(EntityStateMachine, _super);
+        function EntityStateMachine(e, parent) {
+            if (parent === void 0) { parent = null; }
+            _super.call(this, parent);
+            this.e = e;
+        }
+        return EntityStateMachine;
+    })(Game.StateMachine);
+    Game.EntityStateMachine = EntityStateMachine;
     var Kame = (function (_super) {
         __extends(Kame, _super);
         function Kame(x, y, imagemanager, label, dx, dy) {
@@ -288,6 +298,7 @@ var Game;
             this.code = 140;
             this.counter["ac"] = 0;
             this.flags["isAlive"] = true;
+            this.flags["isOnGround"] = false;
             this.addEventHandler("onstamped", this.onStamped);
             this.addEventHandler("onhit", this.onHit);
         }
@@ -304,55 +315,43 @@ var Game;
         Kame.prototype.onStamped = function (e) {
             if (this.flags["isAlive"])
                 this.moving.replace(new States.KameStamped());
+            this.vx = 0;
+            this.vy = 0;
         };
         Kame.prototype.onHit = function (e) {
-            if (e.dir == "horizontal" && this.flags["isAlive"]) {
-                this.reverse_horizontal = !this.reverse_horizontal;
+            if (this.flags["isAlive"]) {
+                if (e.dir == "horizontal") {
+                    this.reverse_horizontal = !this.reverse_horizontal;
+                }
+                if (e.dir == "vertical") {
+                    this.flags["isOnGround"] = true;
+                }
             }
         };
         return Kame;
     })(Entity);
     Game.Kame = Kame;
-    var EntityStateMachine = (function (_super) {
-        __extends(EntityStateMachine, _super);
-        function EntityStateMachine(e, parent) {
-            if (parent === void 0) { parent = null; }
-            _super.call(this, parent);
-            this.e = e;
+    var KameFallable = (function (_super) {
+        __extends(KameFallable, _super);
+        function KameFallable(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.moving.replace(new States.KameWalkingFallable());
         }
-        return EntityStateMachine;
-    })(Game.StateMachine);
-    Game.EntityStateMachine = EntityStateMachine;
+        return KameFallable;
+    })(Kame);
+    Game.KameFallable = KameFallable;
     var States;
     (function (States) {
-        var KameWalking = (function (_super) {
-            __extends(KameWalking, _super);
-            function KameWalking() {
+        var AbstractKameAlive = (function (_super) {
+            __extends(AbstractKameAlive, _super);
+            function AbstractKameAlive() {
                 _super.apply(this, arguments);
             }
-            KameWalking.prototype.enter = function (sm) {
-            };
-            KameWalking.prototype.update = function (sm) {
-                var e = sm.e;
-                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
-                if (e.counter["ac"] < 2)
-                    e.code = 140;
-                else
-                    e.code = 141;
-                e.vx = e.reverse_horizontal ? 30 : -30;
-                // TODO: 反転時に本家と座標がずれるのを修正
-                if (e.ss.MapBlocks.getByXYReal((e.reverse_horizontal ? e.right : e.x) + e.vx / 10, e.y + e.height + 1) == null) {
-                    e.reverse_horizontal = !e.reverse_horizontal;
-                    //e.x = e.ss.MapBlocks.getByXYReal(e.centerx, e.y + e.height + 1).x;
-                    e.x = e.ss.MapBlocks.getByXYReal(e.centerx, e.y + e.height + 1).x;
-                    //e.vx = e.reverse_horizontal ? 30 : -30;
-                    e.vx = 0;
-                }
-                this.checkCollisionWithPlayer(sm);
-            };
             // プレイヤーとの当たり判定
             // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
-            KameWalking.prototype.checkCollisionWithPlayer = function (sm) {
+            AbstractKameAlive.prototype.checkCollisionWithPlayer = function (sm) {
                 var e = sm.e;
                 var players = sm.e.ss.Players.get_all();
                 for (var i = 0; i < players.length; i++) {
@@ -371,9 +370,82 @@ var Game;
                     }
                 }
             };
-            return KameWalking;
+            return AbstractKameAlive;
         })(States.AbstractState);
+        States.AbstractKameAlive = AbstractKameAlive;
+        var KameWalking = (function (_super) {
+            __extends(KameWalking, _super);
+            function KameWalking() {
+                _super.apply(this, arguments);
+            }
+            KameWalking.prototype.enter = function (sm) {
+            };
+            KameWalking.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
+                if (e.counter["ac"] < 2)
+                    e.code = 140;
+                else
+                    e.code = 141;
+                e.vx = e.reverse_horizontal ? 30 : -30;
+                if (e.ss.MapBlocks.getByXYReal((e.reverse_horizontal ? e.right : e.x) + e.vx / 10, e.y + e.height + 1) == null) {
+                    e.reverse_horizontal = !e.reverse_horizontal;
+                    e.x = e.ss.MapBlocks.getByXYReal(e.centerx, e.y + e.height + 1).x;
+                    e.vx = 0;
+                }
+                this.checkCollisionWithPlayer(sm);
+            };
+            return KameWalking;
+        })(AbstractKameAlive);
         States.KameWalking = KameWalking;
+        var KameWalkingFallable = (function (_super) {
+            __extends(KameWalkingFallable, _super);
+            function KameWalkingFallable() {
+                _super.apply(this, arguments);
+            }
+            KameWalkingFallable.prototype.enter = function (sm) {
+            };
+            KameWalkingFallable.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
+                if (e.counter["ac"] < 2)
+                    e.code = 140;
+                else
+                    e.code = 141;
+                e.vx = e.reverse_horizontal ? 30 : -30;
+                if (e.ss.MapBlocks.getByXYReal((e.reverse_horizontal ? e.x : e.right) + e.vx / 10, e.y + e.height + 1) == null) {
+                    e.x = Math.floor(((e.reverse_horizontal ? e.x : e.right) + e.vx / 10) / e.width) * e.width; // マップチップの横幅がエンティティの横幅と同じであること依存している点に注意
+                    e.vx = 0;
+                    sm.replace(new KameFalling());
+                }
+                this.checkCollisionWithPlayer(sm);
+            };
+            return KameWalkingFallable;
+        })(AbstractKameAlive);
+        States.KameWalkingFallable = KameWalkingFallable;
+        var KameFalling = (function (_super) {
+            __extends(KameFalling, _super);
+            function KameFalling() {
+                _super.apply(this, arguments);
+            }
+            KameFalling.prototype.enter = function (sm) {
+                sm.e.flags["isOnGround"] = false;
+            };
+            KameFalling.prototype.update = function (sm) {
+                var e = sm.e;
+                if (e.flags["isOnGround"] == true) {
+                    sm.replace(new KameWalkingFallable());
+                    sm.update();
+                }
+                else {
+                    e.code = 140;
+                    e.vy = 50;
+                    this.checkCollisionWithPlayer(sm);
+                }
+            };
+            return KameFalling;
+        })(AbstractKameAlive);
+        States.KameFalling = KameFalling;
         var KameStamped = (function (_super) {
             __extends(KameStamped, _super);
             function KameStamped() {
@@ -555,6 +627,7 @@ var Game;
             this.lookup = {};
             this.lookup["A"] = Game.Player;
             this.lookup["B"] = Game.Kame;
+            this.lookup["C"] = Game.KameFallable;
             this.lookup["a"] = Game.Block1;
             this.lookup["b"] = Game.Block2;
             this.lookup["c"] = Game.Block3;

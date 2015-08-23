@@ -120,6 +120,7 @@
             this.lookup = {};
             this.lookup["A"] = Player;
             this.lookup["B"] = Kame;
+            this.lookup["C"] = KameFallable;
             this.lookup["a"] = Block1;
             this.lookup["b"] = Block2;
             this.lookup["c"] = Block3;
