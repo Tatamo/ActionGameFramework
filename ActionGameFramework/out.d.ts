@@ -215,7 +215,6 @@ declare module Game {
         ss: ISpriteSystem;
         surface: Surface;
         update(): any;
-        checkcollision(): any;
         kill(): any;
     }
     class Sprite extends EventDispatcher implements ISprite {
@@ -240,7 +239,6 @@ declare module Game {
         centery: number;
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, code?: number, dx?: number, dy?: number);
         update(): void;
-        checkcollision(): void;
         kill(): void;
     }
     class SpriteEvent extends Event {

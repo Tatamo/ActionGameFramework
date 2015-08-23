@@ -979,8 +979,6 @@ var Game;
         }*/
         Sprite.prototype.update = function () {
         };
-        Sprite.prototype.checkcollision = function () {
-        };
         Sprite.prototype.kill = function () {
             this.ss.remove(this);
         };
@@ -1045,9 +1043,6 @@ var Game;
             var sps = this._sprites.slice(0);
             for (var i = 0; i < sps.length; i++) {
                 sps[i].update();
-            }
-            for (var i = 0; i < sps.length; i++) {
-                sps[i].checkcollision();
             }
         };
         Group.prototype.draw = function (view_x, view_y) {

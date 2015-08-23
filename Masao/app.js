@@ -530,12 +530,28 @@ var Game;
             this._chipwidth = width;
             this._chipheight = height;
         };
+        MapGroup.prototype.compare = function (a, b) {
+            if (a.z > b.z) {
+                return -1; // ここで-1を返しているので逆順のソート
+            }
+            if (a.z < b.z) {
+                return 1;
+            }
+            return 0;
+        };
         MapGroup.prototype.add = function (sprite) {
             var nx = Math.floor(sprite.x / this.chipwidth);
             var ny = Math.floor(sprite.y / this.chipheight);
             if (!this._map[ny] || !this._map[ny][nx]) {
                 this._map[ny][nx] = sprite;
-                this._sprites.push(sprite);
+                var i = this._sprites.length - 1;
+                while (i >= 0) {
+                    if (this.compare(sprite, this._sprites[i]) >= 0) {
+                        break;
+                    }
+                    i -= 1;
+                }
+                this._sprites.splice(i + 1, 0, sprite);
             }
             else
                 throw new Error("sprite already registered");
@@ -596,6 +612,9 @@ var Game;
         };
         MapGroup.prototype.get_all = function () {
             return this._sprites.slice(0);
+        };
+        MapGroup.prototype.sort = function () {
+            this._sprites = this._sprites.sort(this.compare);
         };
         MapGroup.prototype.update = function () {
             for (var i = 0; i < this._height; i++) {

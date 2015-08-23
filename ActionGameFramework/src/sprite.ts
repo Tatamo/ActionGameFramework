@@ -20,7 +20,6 @@ module Game {
         ss: ISpriteSystem;
         surface: Surface;
         update();
-        checkcollision();
         kill();
     }
     // UNDONE: 自分の所属しているgroup名の取得
@@ -102,8 +101,6 @@ module Game {
         }*/
         update() {
         }
-        checkcollision() {
-        }
         kill() {
             this.ss.remove(this);
         }
@@ -176,9 +173,6 @@ module Game {
             var sps = this._sprites.slice(0);
             for (var i = 0; i < sps.length; i++) {
                 sps[i].update();
-            }
-            for (var i = 0; i < sps.length; i++) {
-                sps[i].checkcollision();
             }
         }
         draw(view_x: number = 0, view_y: number = 0) {
