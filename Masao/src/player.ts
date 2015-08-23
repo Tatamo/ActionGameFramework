@@ -20,7 +20,7 @@
             this.counter["able2runningRight"] = 0;
             this.counter["running"] = 0;
             this.counter["jump_level"] = 0;
-            this.counter["waiting"] = 0;
+            this.counter["stamp_waiting"] = 0;
             this.counter["dying"] = 0;
             this.counter["superjump_effect"] = -1;
             this.flags = {};
@@ -69,8 +69,8 @@
                 this.moving.update();
                 this.special.update();
                 // 移動の確定
-                if (this.counter["waiting"] <= 0) this.move();
-                else this.counter["waiting"] -= 1;
+                if (this.counter["stamp_waiting"] <= 0) this.move();
+                else this.counter["stamp_waiting"] -= 1;
 
                 this.fixPatternCode();
                 //this.x = Math.floor(this.x);
@@ -255,7 +255,7 @@
                     if (pl.flags["isOnGround"]) { // 地上にいる
                     }
                     else { // 地上にいない
-                        if (pl.counter["waiting"] > 0) { // 硬直中
+                        if (pl.counter["stamp_waiting"] > 0) { // 硬直中
                         }
                         else {
                             pl.vy += 25; // 重力を受ける
@@ -298,7 +298,7 @@
             }
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
-                if (pl.counter["waiting"] > 0) { // 硬直中
+                if (pl.counter["stamp_waiting"] > 0) { // 硬直中
                     pl.vx = (pl.vx - 10 > -60) ? pl.vx - 10 : -60;
                 }
                 else {
@@ -324,7 +324,7 @@
             }
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
-                if (pl.counter["waiting"] > 0) { // 硬直中
+                if (pl.counter["stamp_waiting"] > 0) { // 硬直中
                     pl.vx = (pl.vx - 10 > -60) ? pl.vx - 10 : -60;
                 }
                 else {
@@ -350,7 +350,7 @@
             }
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
-                if (pl.counter["waiting"] > 0) { // 硬直中
+                if (pl.counter["stamp_waiting"] > 0) { // 硬直中
                     pl.vx = (pl.vx + 10 < 60) ? pl.vx + 10 : 60;
                 }
                 else {
@@ -376,7 +376,7 @@
             }
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
-                if (pl.counter["waiting"] > 0) { // 硬直中
+                if (pl.counter["stamp_waiting"] > 0) { // 硬直中
                     pl.vx = (pl.vx + 10 < 60) ? pl.vx + 10 : 60;
                 }
                 else {
@@ -400,7 +400,7 @@
                 sm.update(); // もとのStateのupdateを先に行う
                 var pl = sm.pl;
                 pl.checkCollisionWithBlocksHorizontal();
-                if (pl.counter["waiting"] > 0) return; // 硬直中
+                if (pl.counter["stamp_waiting"] > 0) return; // 硬直中
                 pl.flags["isJumping"] = true;
                 pl.flags["isOnGround"] = false;
                 var speed = Math.abs(pl.vx);
@@ -538,7 +538,7 @@
                 console.log("stamping");
                 sm.pl.code = 109;
                 sm.pl.flags["isStamping"] = true;
-                sm.pl.counter["waiting"] = 5;
+                sm.pl.counter["stamp_waiting"] = 5;
                 sm.pl.vy = -160;
                 //sm.pl.vy = -220;
                 if (sm.pl.counter["superjump_effect"] >= 0) sm.pl.counter["superjump_effect"] = 100;

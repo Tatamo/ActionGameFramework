@@ -100,7 +100,7 @@
                     var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
                     if (p.flags["isAlive"] && dx < 30 && dy < 23) { // プレイヤーと接触した
 
-                        if (p.flags["isAlive"] && dx < 27 && p.vy > 0) { // 踏まれる
+                        if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] &&  p.counter["stamp_waiting"] == 5)) { // 踏まれる
                             e.dispatchEvent(new SpriteCollisionEvent("onstamped", p));
                             p.y = e.y - 12;
                             p.dispatchEvent(new Event("onstamp"));

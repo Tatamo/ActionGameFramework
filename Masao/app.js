@@ -359,7 +359,7 @@ var Game;
                     var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
                     var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
                     if (p.flags["isAlive"] && dx < 30 && dy < 23) {
-                        if (p.flags["isAlive"] && dx < 27 && p.vy > 0) {
+                        if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) {
                             e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
                             p.y = e.y - 12;
                             p.dispatchEvent(new Game.Event("onstamp"));
@@ -686,7 +686,7 @@ var Game;
             this.counter["able2runningRight"] = 0;
             this.counter["running"] = 0;
             this.counter["jump_level"] = 0;
-            this.counter["waiting"] = 0;
+            this.counter["stamp_waiting"] = 0;
             this.counter["dying"] = 0;
             this.counter["superjump_effect"] = -1;
             this.flags = {};
@@ -739,10 +739,10 @@ var Game;
                 this.moving.update();
                 this.special.update();
                 // 移動の確定
-                if (this.counter["waiting"] <= 0)
+                if (this.counter["stamp_waiting"] <= 0)
                     this.move();
                 else
-                    this.counter["waiting"] -= 1;
+                    this.counter["stamp_waiting"] -= 1;
                 this.fixPatternCode();
             }
             else {
@@ -935,7 +935,7 @@ var Game;
                     if (pl.flags["isOnGround"]) {
                     }
                     else {
-                        if (pl.counter["waiting"] > 0) {
+                        if (pl.counter["stamp_waiting"] > 0) {
                         }
                         else {
                             pl.vy += 25; // 重力を受ける
@@ -989,7 +989,7 @@ var Game;
             };
             PlayerWalkingLeft.prototype.update = function (sm) {
                 var pl = sm.pl;
-                if (pl.counter["waiting"] > 0) {
+                if (pl.counter["stamp_waiting"] > 0) {
                     pl.vx = (pl.vx - 10 > -60) ? pl.vx - 10 : -60;
                 }
                 else {
@@ -1025,7 +1025,7 @@ var Game;
             };
             PlayerRunningLeft.prototype.update = function (sm) {
                 var pl = sm.pl;
-                if (pl.counter["waiting"] > 0) {
+                if (pl.counter["stamp_waiting"] > 0) {
                     pl.vx = (pl.vx - 10 > -60) ? pl.vx - 10 : -60;
                 }
                 else {
@@ -1061,7 +1061,7 @@ var Game;
             };
             PlayerWalkingRight.prototype.update = function (sm) {
                 var pl = sm.pl;
-                if (pl.counter["waiting"] > 0) {
+                if (pl.counter["stamp_waiting"] > 0) {
                     pl.vx = (pl.vx + 10 < 60) ? pl.vx + 10 : 60;
                 }
                 else {
@@ -1097,7 +1097,7 @@ var Game;
             };
             PlayerRunningRight.prototype.update = function (sm) {
                 var pl = sm.pl;
-                if (pl.counter["waiting"] > 0) {
+                if (pl.counter["stamp_waiting"] > 0) {
                     pl.vx = (pl.vx + 10 < 60) ? pl.vx + 10 : 60;
                 }
                 else {
@@ -1131,7 +1131,7 @@ var Game;
                 sm.update(); // もとのStateのupdateを先に行う
                 var pl = sm.pl;
                 pl.checkCollisionWithBlocksHorizontal();
-                if (pl.counter["waiting"] > 0)
+                if (pl.counter["stamp_waiting"] > 0)
                     return; // 硬直中
                 pl.flags["isJumping"] = true;
                 pl.flags["isOnGround"] = false;
@@ -1299,7 +1299,7 @@ var Game;
                 console.log("stamping");
                 sm.pl.code = 109;
                 sm.pl.flags["isStamping"] = true;
-                sm.pl.counter["waiting"] = 5;
+                sm.pl.counter["stamp_waiting"] = 5;
                 sm.pl.vy = -160;
                 //sm.pl.vy = -220;
                 if (sm.pl.counter["superjump_effect"] >= 0)
