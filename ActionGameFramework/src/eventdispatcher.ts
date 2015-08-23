@@ -34,17 +34,21 @@
         }
         // イベントハンドラの削除
         removeEventHandler(type: string, handler: (e: Event) => void) {
-            if (!this._handlers[type]) {
+            if (!this._handlers[type] && !this._oncehandlers[type]) {
                 return;
             }
-            for (var i = this._handlers[type].length; i >= 0; i--) {
-                if (this._handlers[type][i] == handler) {
-                    this._handlers[type].splice(i, 1);
+            if (this._handlers[type]) {
+                for (var i = this._handlers[type].length; i >= 0; i--) {
+                    if (this._handlers[type][i] == handler) {
+                        this._handlers[type].splice(i, 1);
+                    }
                 }
             }
-            for (var i = this._oncehandlers[type].length; i >= 0; i--) {
-                if (this._oncehandlers[type][i] == handler) {
-                    this._oncehandlers[type].splice(i, 1);
+            if (this._oncehandlers[type]) {
+                for (var i = this._oncehandlers[type].length; i >= 0; i--) {
+                    if (this._oncehandlers[type][i] == handler) {
+                        this._oncehandlers[type].splice(i, 1);
+                    }
                 }
             }
         }
@@ -55,14 +59,18 @@
         }
         // イベントの発火 ちなみに揮発性のイベントのほうが後に呼ばれる
         dispatchEvent(e: Event) {
-            if (!this._handlers[e.type]) return;
-            for (var i = 0; i < this._handlers[e.type].length; i++) {
-                var e: Event;
-                this._handlers[e.type][i](e);
+            if (!this._handlers[e.type] && !this._oncehandlers[e.type]) return;
+            if (this._handlers[e.type]) {
+                for (var i = 0; i < this._handlers[e.type].length; i++) {
+                    var e: Event;
+                    this._handlers[e.type][i](e);
+                }
             }
-            for (var i = 0; i < this._oncehandlers[e.type].length; i++) {
-                var e: Event;
-                this._oncehandlers[e.type][i](e);
+            if (this._oncehandlers[e.type]) {
+                for (var i = 0; i < this._oncehandlers[e.type].length; i++) {
+                    var e: Event;
+                    this._oncehandlers[e.type][i](e);
+                }
             }
         }
     }
