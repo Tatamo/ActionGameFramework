@@ -545,6 +545,7 @@ var Game;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
+    // TODO:thisのバインド関係の改善
     var EventDispatcher = (function () {
         function EventDispatcher() {
             this._handlers = {};
@@ -558,6 +559,15 @@ var Game;
                 this._handlers[type].push(handler.bind(this));
             }
         };
+        // 一度呼ばれると消えるイベントハンドラの追加
+        EventDispatcher.prototype.addOnceEventHandler = function (type, handler) {
+            if (!this._oncehandlers[type]) {
+                this._oncehandlers[type] = [handler.bind(this)];
+            }
+            else {
+                this._oncehandlers[type].push(handler.bind(this));
+            }
+        };
         // イベントハンドラの削除
         EventDispatcher.prototype.removeEventHandler = function (type, handler) {
             if (!this._handlers[type]) {
@@ -568,18 +578,28 @@ var Game;
                     this._handlers[type].splice(i, 1);
                 }
             }
+            for (var i = this._oncehandlers[type].length; i >= 0; i--) {
+                if (this._oncehandlers[type][i] == handler) {
+                    this._oncehandlers[type].splice(i, 1);
+                }
+            }
         };
         // すべてのイベントハンドラを削除
         EventDispatcher.prototype.clearEventHandler = function (type) {
             this._handlers[type] = [];
+            this._oncehandlers[type] = [];
         };
-        // イベントの発火
+        // イベントの発火 ちなみに揮発性のイベントのほうが後に呼ばれる
         EventDispatcher.prototype.dispatchEvent = function (e) {
             if (!this._handlers[e.type])
                 return;
             for (var i = 0; i < this._handlers[e.type].length; i++) {
                 var e;
                 this._handlers[e.type][i](e);
+            }
+            for (var i = 0; i < this._oncehandlers[e.type].length; i++) {
+                var e;
+                this._oncehandlers[e.type][i](e);
             }
         };
         return EventDispatcher;
@@ -959,6 +979,8 @@ var Game;
         }*/
         Sprite.prototype.update = function () {
         };
+        Sprite.prototype.checkcollision = function () {
+        };
         Sprite.prototype.kill = function () {
             this.ss.remove(this);
         };
@@ -1023,6 +1045,9 @@ var Game;
             var sps = this._sprites.slice(0);
             for (var i = 0; i < sps.length; i++) {
                 sps[i].update();
+            }
+            for (var i = 0; i < sps.length; i++) {
+                sps[i].checkcollision();
             }
         };
         Group.prototype.draw = function (view_x, view_y) {
@@ -1189,9 +1214,9 @@ var Game;
                 "...............................99...........................",
                 "............................................................",
                 "............................................................",
-                ".....A.......C..............................................",
-                "...12aa..C.CaaC.....12.....9.9...aaa.....aa.aaaaaaaa...12...",
-                "..........Caaaa...........aaaaa..............9.aaaaa........",
+                ".....A.......B..............................................",
+                "...12aa....BaaB.....12.....9.9...aaa.....aa.aaaaaaaa...12...",
+                "..........Baaaa...........aaaaa..............9.aaaaa........",
                 ".........aaaaa..........................B...aaaaaaaa........",
                 "....9.9.............................aaaaa...9.9aa999........",
                 "....aaa...............B.............9.9.9...aaaaaaaa........",

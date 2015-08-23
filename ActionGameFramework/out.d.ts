@@ -123,14 +123,17 @@ declare module Game {
 declare module Game {
     interface IEventDispatcher {
         addEventHandler(type: string, handler: (e: Event) => void): any;
+        addOnceEventHandler(type: string, handler: (e: Event) => void): any;
         removeEventHandler(type: string, handler: (e: Event) => void): any;
         clearEventHandler(type: string): any;
         dispatchEvent(e: Event): any;
     }
     class EventDispatcher implements IEventDispatcher {
         private _handlers;
+        private _oncehandlers;
         constructor();
         addEventHandler(type: string, handler: (e: Event) => void): void;
+        addOnceEventHandler(type: string, handler: (e: Event) => void): void;
         removeEventHandler(type: string, handler: (e: Event) => void): void;
         clearEventHandler(type: string): void;
         dispatchEvent(e: Event): void;
@@ -212,6 +215,7 @@ declare module Game {
         ss: ISpriteSystem;
         surface: Surface;
         update(): any;
+        checkcollision(): any;
         kill(): any;
     }
     class Sprite extends EventDispatcher implements ISprite {
@@ -236,6 +240,7 @@ declare module Game {
         centery: number;
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, code?: number, dx?: number, dy?: number);
         update(): void;
+        checkcollision(): void;
         kill(): void;
     }
     class SpriteEvent extends Event {
