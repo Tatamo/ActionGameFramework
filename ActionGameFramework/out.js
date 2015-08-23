@@ -549,6 +549,7 @@ var Game;
     var EventDispatcher = (function () {
         function EventDispatcher() {
             this._handlers = {};
+            this._oncehandlers = {};
         }
         // イベントハンドラの追加
         EventDispatcher.prototype.addEventHandler = function (type, handler) {

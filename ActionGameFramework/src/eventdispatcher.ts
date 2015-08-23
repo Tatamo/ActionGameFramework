@@ -13,6 +13,7 @@
         private _oncehandlers: { [key: string]: Array<(e: Event) => void> };
         constructor() {
             this._handlers = {};
+            this._oncehandlers = {};
         }
         // イベントハンドラの追加
         addEventHandler(type: string, handler: (e: Event) => void) {
