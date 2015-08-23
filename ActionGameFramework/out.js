@@ -981,8 +981,24 @@ var Game;
             this._sprites = new Array();
             this.screen = screen;
         }
+        Group.prototype.compare = function (a, b) {
+            if (a.z > b.z) {
+                return -1; // ここで-1を返しているので逆順のソート
+            }
+            if (a.z < b.z) {
+                return 1;
+            }
+            return 0;
+        };
         Group.prototype.add = function (sprite) {
-            this._sprites.push(sprite);
+            var i = this._sprites.length - 1;
+            while (i >= 0) {
+                if (this.compare(sprite, this._sprites[i]) >= 0) {
+                    break;
+                }
+                i -= 1;
+            }
+            this._sprites.splice(i + 1, 0, sprite);
         };
         Group.prototype.remove = function (sprite) {
             for (var i = this._sprites.length - 1; i >= 0; i--) {
@@ -998,6 +1014,9 @@ var Game;
         };
         Group.prototype.get_all = function () {
             return this._sprites.slice(0);
+        };
+        Group.prototype.sort = function () {
+            this._sprites = this._sprites.sort(this.compare);
         };
         Group.prototype.update = function () {
             // 処理中にthis._spritesの要素が変化する可能性があるため、配列のコピーを回す

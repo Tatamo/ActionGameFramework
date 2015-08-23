@@ -248,6 +248,8 @@ declare module Game {
         add(sprite: ISprite): any;
         remove(sprite: ISprite): any;
         remove_all(): any;
+        sort(): any;
+        compare(a: ISprite, b: ISprite): any;
         get_all(): Array<ISprite>;
         update(): any;
         draw(): any;
@@ -256,10 +258,12 @@ declare module Game {
         screen: Surface;
         private _sprites;
         constructor(screen: Surface);
+        compare(a: ISprite, b: ISprite): number;
         add(sprite: ISprite): void;
         remove(sprite: ISprite): void;
         remove_all(): void;
         get_all(): Array<ISprite>;
+        sort(): void;
         update(): void;
         draw(view_x?: number, view_y?: number): void;
     }

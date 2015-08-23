@@ -115,7 +115,9 @@ module Game {
         add(sprite: ISprite);
         remove(sprite: ISprite);
         remove_all();
-        get_all():Array<ISprite>;
+        sort();
+        compare(a: ISprite, b: ISprite);
+        get_all(): Array<ISprite>;
         update();
         draw();
     }
@@ -127,8 +129,24 @@ module Game {
             this._sprites = new Array<ISprite>();
             this.screen = screen;
         }
-        add(sprite: ISprite) {
-            this._sprites.push(sprite);
+        compare(a: ISprite, b: ISprite) { // ソート関数 デフォルトではz座標の逆順ソート
+            if (a.z > b.z) {
+                return -1; // ここで-1を返しているので逆順のソート
+            }
+            if (a.z < b.z) {
+                return 1;
+            }
+            return 0;
+        }
+        add(sprite: ISprite) { // ソート方法に沿って要素を追加 比較対象の要素が同じ場合、新しいものは後ろに追加する
+            var i = this._sprites.length - 1;
+            while (i >= 0) {
+                if (this.compare(sprite, this._sprites[i]) >= 0) {
+                    break;
+                }
+                i -= 1;
+            }
+            this._sprites.splice(i + 1, 0, sprite);
         }
         remove(sprite: ISprite) {
             //var f: boolean = false; //削除に成功したかどうか判定するフラグ もう使わないか
@@ -146,6 +164,9 @@ module Game {
         }
         get_all(): Array<ISprite> {
             return this._sprites.slice(0);
+        }
+        sort() {
+            this._sprites = this._sprites.sort(this.compare);
         }
         update() {
             // 処理中にthis._spritesの要素が変化する可能性があるため、配列のコピーを回す
