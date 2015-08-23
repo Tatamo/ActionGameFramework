@@ -349,25 +349,27 @@ var Game;
             function AbstractKameAlive() {
                 _super.apply(this, arguments);
             }
-            // プレイヤーとの当たり判定
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
             // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
             AbstractKameAlive.prototype.checkCollisionWithPlayer = function (sm) {
                 var e = sm.e;
                 var players = sm.e.ss.Players.get_all();
                 for (var i = 0; i < players.length; i++) {
                     var p = players[i];
-                    var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
-                    var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
-                    if (p.flags["isAlive"] && dx < 30 && dy < 23) {
-                        if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) {
-                            e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
-                            p.y = e.y - 12;
-                            p.dispatchEvent(new Game.Event("onstamp"));
+                    p.addOnceEventHandler("update", function () {
+                        var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                        var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
+                        if (p.flags["isAlive"] && dx < 30 && dy < 23) {
+                            if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) {
+                                e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
+                                p.y = e.y - 12;
+                                p.dispatchEvent(new Game.Event("onstamp"));
+                            }
+                            else {
+                                p.dispatchEvent(new Game.PlayerMissEvent("miss", 1));
+                            }
                         }
-                        else {
-                            p.dispatchEvent(new Game.PlayerMissEvent("miss", 1));
-                        }
-                    }
+                    });
                 }
             };
             return AbstractKameAlive;

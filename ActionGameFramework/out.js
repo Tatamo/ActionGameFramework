@@ -846,6 +846,7 @@ var Game;
             if (dx === void 0) { dx = 1; }
             if (dy === void 0) { dy = 1; }
             _super.call(this);
+            this.addEventHandler("update", this.update);
             this.x = x;
             this.y = y;
             this.z = 0;
@@ -1052,7 +1053,7 @@ var Game;
             // 処理中にthis._spritesの要素が変化する可能性があるため、配列のコピーを回す
             var sps = this._sprites.slice(0);
             for (var i = 0; i < sps.length; i++) {
-                sps[i].update();
+                sps[i].dispatchEvent(new Game.Event("update"));
             }
         };
         Group.prototype.draw = function (view_x, view_y) {

@@ -69,6 +69,7 @@ module Game {
 
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {
             super();
+            this.addEventHandler("update", this.update);
 
             this.x = x;
             this.y = y;
@@ -172,7 +173,7 @@ module Game {
             // 処理中にthis._spritesの要素が変化する可能性があるため、配列のコピーを回す
             var sps = this._sprites.slice(0);
             for (var i = 0; i < sps.length; i++) {
-                sps[i].update();
+                sps[i].dispatchEvent(new Event("update"));
             }
         }
         draw(view_x: number = 0, view_y: number = 0) {
