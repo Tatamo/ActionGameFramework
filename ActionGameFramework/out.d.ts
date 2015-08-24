@@ -321,7 +321,7 @@ declare module Game {
         assets: AssetsManagerManager;
         config: Config;
         private timerToken;
-        constructor();
+        constructor(config: any);
         setparent(el: HTMLElement): void;
         start(state?: State): void;
         stop(): void;
