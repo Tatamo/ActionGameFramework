@@ -1,7 +1,7 @@
 ﻿/// <reference path="./out.d.ts"/>
 /// <reference path="./src/states/preload.ts"/>
 
-var game: Game.Game;
+var game: Game.Core;
 window.onload = () => {
     var el = document.getElementById('content');
 

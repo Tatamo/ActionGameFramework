@@ -1,7 +1,7 @@
 ﻿
 module Game {
-    export interface State {
-        parent: State;
+    export interface IState {
+        parent: IState;
         //name: string;
         enter(sm: StateMachine);
         update(sm: StateMachine);
@@ -9,8 +9,8 @@ module Game {
     }
 
     export module States {
-        export class AbstractState implements State {
-            parent: State;
+        export class AbstractState implements IState {
+            parent: IState;
             //name: string;
             //constructor(name: string, sm: GameStateMachine) {
             constructor() {

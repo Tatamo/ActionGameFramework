@@ -21,12 +21,12 @@
 
 }
 
-var game: Game.Game;
+var game: Game.Core;
 window.onload = () => {
     var el = document.getElementById('content');
     /*var greeter = new Greeter(el);
     greeter.start();*/
-    game = new Game.Game({});
+    game = new Game.Core({});
     game.setparent(el);
     game.start();
 };

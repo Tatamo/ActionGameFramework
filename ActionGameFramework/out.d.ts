@@ -6,7 +6,7 @@ declare class Greeter {
     start(): void;
     stop(): void;
 }
-declare var game: Game.Game;
+declare var game: Game.Core;
 declare module Game {
     class Dictionary<T> implements WeakMap<any, T> {
         private datalist;
@@ -272,15 +272,15 @@ declare module Game {
     }
 }
 declare module Game {
-    interface State {
-        parent: State;
+    interface IState {
+        parent: IState;
         enter(sm: StateMachine): any;
         update(sm: StateMachine): any;
         exit(sm: StateMachine): any;
     }
     module States {
-        class AbstractState implements State {
-            parent: State;
+        class AbstractState implements IState {
+            parent: IState;
             constructor();
             enter(sm: StateMachine): void;
             update(sm: StateMachine): void;
@@ -289,41 +289,48 @@ declare module Game {
     }
 }
 declare module Game {
-    class StateMachine {
-        private current_state;
-        private global_state;
-        private root_state;
+    interface IStateMachine {
+        parent: any;
+        update(): any;
+        push(state: IState): any;
+        pop(): any;
+        replace(state: IState): any;
+        setGlobalState(state: IState): any;
+        current_state: IState;
+        root_state: IState;
+        global_state: IState;
+    }
+    class StateMachine implements IStateMachine {
+        private _current_state;
+        private _global_state;
+        private _root_state;
         private _states;
         parent: any;
         constructor(parent?: any);
         update(): void;
-        push(state: State): void;
+        push(state: IState): void;
         pop(): void;
-        replace(state: State): void;
-        setGlobalState(state: State): void;
-        CurrentState(): State;
-        RootState(): State;
-        GlobalState(): State;
-    }
-    class GameStateMachine extends StateMachine {
-        game: Game;
-        constructor(game: Game, parent?: any);
+        replace(state: IState): void;
+        setGlobalState(state: IState): void;
+        current_state: IState;
+        root_state: IState;
+        global_state: IState;
     }
 }
 declare module Game {
     var SCREEN_WIDTH: number;
     var SCREEN_HEIGHT: number;
-    class Game {
+    class Core extends EventDispatcher {
         element: HTMLElement;
         screen: Surface;
-        statemachine: GameStateMachine;
+        statemachine: IStateMachine;
         gamekey: GameKey;
         assets: AssetsManagerManager;
         config: Config;
         private timerToken;
         constructor(config: any);
         setparent(el: HTMLElement): void;
-        start(state?: State): void;
+        start(state?: IState): void;
         stop(): void;
         loop(): void;
     }

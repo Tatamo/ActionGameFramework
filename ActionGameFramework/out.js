@@ -20,7 +20,7 @@ window.onload = function () {
     var el = document.getElementById('content');
     /*var greeter = new Greeter(el);
     greeter.start();*/
-    game = new Game.Game({});
+    game = new Game.Core({});
     game.setparent(el);
     game.start();
 };
@@ -1103,32 +1103,32 @@ var Game;
     var StateMachine = (function () {
         function StateMachine(parent) {
             if (parent === void 0) { parent = null; }
-            this.current_state = null;
-            this.global_state = null;
-            this.root_state = null;
+            this._current_state = null;
+            this._global_state = null;
+            this._root_state = null;
             /*this.is_started = false;*/
             this._states = new Array();
             this.parent = parent;
         }
         StateMachine.prototype.update = function () {
             // グローバルステートが存在すれば実行
-            if (this.global_state)
-                this.global_state.update(this);
+            if (this._global_state)
+                this._global_state.update(this);
             // 現在のステートの処理
-            if (this.current_state)
-                this.current_state.update(this);
+            if (this._current_state)
+                this._current_state.update(this);
         };
         // スタックに新しいStateを積み、そのStateに遷移する
         // UNDONE:戻り値未定義
         StateMachine.prototype.push = function (state) {
             // スタックに何もないならば、与えられたステートをrootとする
             if (this._states.length == 0)
-                this.root_state = state;
-            if (this.current_state)
-                this.current_state.exit(this);
+                this._root_state = state;
+            if (this._current_state)
+                this._current_state.exit(this);
             this._states.push(state);
-            this.current_state = state;
-            this.current_state.enter(this);
+            this._current_state = state;
+            this._current_state.enter(this);
         };
         // 現在のステートを終了し、前のステートに遷移する
         // UNDONE:戻り値未定義
@@ -1137,50 +1137,52 @@ var Game;
             if (this.current_state == this.root_state) return;*/
             this._states.pop().exit(this);
             console.log(this._states);
-            this.current_state = this._states[this._states.length - 1];
-            if (this.current_state)
-                this.current_state.enter(this);
+            this._current_state = this._states[this._states.length - 1];
+            if (this._current_state)
+                this._current_state.enter(this);
         };
         // 現在のステートを新しいステートに入れ替え、遷移処理を行う
         StateMachine.prototype.replace = function (state) {
             // 現在のステートがrootならば、新しいステートをrootとする
-            if (this.root_state = this.current_state)
-                this.root_state = state;
+            if (this._root_state = this._current_state)
+                this._root_state = state;
             this._states.pop().exit(this);
             this._states.push(state);
-            this.current_state = state;
-            this.current_state.enter(this);
+            this._current_state = state;
+            this._current_state.enter(this);
         };
         // 初期化用
         StateMachine.prototype.setGlobalState = function (state) {
-            if (this.global_state)
-                this.global_state.exit(this);
-            this.global_state = state;
-            this.global_state.enter(this);
+            if (this._global_state)
+                this._global_state.exit(this);
+            this._global_state = state;
+            this._global_state.enter(this);
         };
-        // アクセサ
-        StateMachine.prototype.CurrentState = function () {
-            return this.current_state;
-        };
-        StateMachine.prototype.RootState = function () {
-            return this.root_state;
-        };
-        StateMachine.prototype.GlobalState = function () {
-            return this.global_state;
-        };
+        Object.defineProperty(StateMachine.prototype, "current_state", {
+            // アクセサ
+            get: function () {
+                return this._current_state;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(StateMachine.prototype, "root_state", {
+            get: function () {
+                return this._root_state;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(StateMachine.prototype, "global_state", {
+            get: function () {
+                return this._global_state;
+            },
+            enumerable: true,
+            configurable: true
+        });
         return StateMachine;
     })();
     Game.StateMachine = StateMachine;
-    var GameStateMachine = (function (_super) {
-        __extends(GameStateMachine, _super);
-        function GameStateMachine(game, parent) {
-            if (parent === void 0) { parent = null; }
-            _super.call(this, parent);
-            this.game = game;
-        }
-        return GameStateMachine;
-    })(StateMachine);
-    Game.GameStateMachine = GameStateMachine;
 })(Game || (Game = {}));
 /// <reference path="surface.ts"/>
 /// <reference path="sprite.ts"/>
@@ -1189,19 +1191,21 @@ var Game;
 /// <reference path="statemachine.ts"/>
 /// <reference path="state.ts"/>
 var Game;
-(function (_Game) {
-    _Game.SCREEN_WIDTH = 512;
-    _Game.SCREEN_HEIGHT = 320;
-    var Game = (function () {
-        function Game(config) {
-            this.screen = new _Game.Surface(_Game.SCREEN_WIDTH, _Game.SCREEN_HEIGHT);
-            this.statemachine = new _Game.GameStateMachine(this);
-            this.gamekey = new _Game.GameKey();
-            this.assets = new _Game.AssetsManagerManager();
-            this.config = new _Game.Config(config.map, config.images, {});
+(function (Game) {
+    Game.SCREEN_WIDTH = 512;
+    Game.SCREEN_HEIGHT = 320;
+    var Core = (function (_super) {
+        __extends(Core, _super);
+        function Core(config) {
+            _super.call(this);
+            this.screen = new Game.Surface(Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+            //this.statemachine = new GameStateMachine(this);
+            this.gamekey = new Game.GameKey();
+            this.assets = new Game.AssetsManagerManager();
+            this.config = new Game.Config(config.map, config.images, {});
         }
         // 指定した要素の子要素としてゲーム画面を追加します
-        Game.prototype.setparent = function (el) {
+        Core.prototype.setparent = function (el) {
             this.element = el;
             this.element.innerHTML += "test"; // DEBUG
             this.element.appendChild(this.screen.container);
@@ -1209,28 +1213,28 @@ var Game;
             this.gamekey.setEvent(this.screen.container); // 画面に対してキー入力を受け付けるように
         };
         // ゲームループの開始
-        Game.prototype.start = function (state) {
+        Core.prototype.start = function (state) {
             var _this = this;
             console.log("app start"); // DEBUG
             // this.statemachine.push(最初のState);
             /*if(!this.statemachine.CurrentState()) this.statemachine.push(new States.Preload("preload", this.statemachine));*/
-            if (!this.statemachine.CurrentState())
+            if (!this.statemachine.current_state)
                 this.statemachine.push(state); // TODO:state==null時などの考慮
             this.timerToken = setInterval(function () { return _this.loop(); }, 70);
         };
         // 使うの?
-        Game.prototype.stop = function () {
+        Core.prototype.stop = function () {
             clearTimeout(this.timerToken);
         };
         // ゲームループ
         // UNDONE: イベントハンドラ扱いにしたい
-        Game.prototype.loop = function () {
+        Core.prototype.loop = function () {
             this.gamekey.update(); // まずキー入力情報を更新
             this.statemachine.update(); // ステートマシンを動かす
             //this.screen.canvas.getContext("2d").fillRect(this.counter, this.counter, this.counter, this.counter); //DEBUG
         };
-        return Game;
-    })();
-    _Game.Game = Game;
+        return Core;
+    })(Game.EventDispatcher);
+    Game.Core = Core;
 })(Game || (Game = {}));
 //# sourceMappingURL=out.js.map

@@ -7,19 +7,20 @@
 module Game {
     export var SCREEN_WIDTH = 512;
     export var SCREEN_HEIGHT = 320;
-    export class Game {
+    export class Core extends EventDispatcher{
         element: HTMLElement;
         screen: Surface;
-        statemachine: GameStateMachine;
+        statemachine: IStateMachine;
         gamekey: GameKey;
         assets: AssetsManagerManager;
         config: Config;
 
         private timerToken: number;
 
-        constructor(config:any) {
+        constructor(config: any) {
+            super();
             this.screen = new Surface(SCREEN_WIDTH, SCREEN_HEIGHT);
-            this.statemachine = new GameStateMachine(this);
+            //this.statemachine = new GameStateMachine(this);
             this.gamekey = new GameKey();
             this.assets = new AssetsManagerManager();
             this.config = new Config(config.map, config.images, {});
@@ -33,11 +34,11 @@ module Game {
             this.gamekey.setEvent(this.screen.container);　// 画面に対してキー入力を受け付けるように
         }
         // ゲームループの開始
-        public start(state?:State) {
+        public start(state?:IState) {
             console.log("app start"); // DEBUG
             // this.statemachine.push(最初のState);
             /*if(!this.statemachine.CurrentState()) this.statemachine.push(new States.Preload("preload", this.statemachine));*/
-            if(!this.statemachine.CurrentState()) this.statemachine.push(state); // TODO:state==null時などの考慮
+            if(!this.statemachine.current_state) this.statemachine.push(state); // TODO:state==null時などの考慮
 
             this.timerToken = setInterval(() => this.loop(), 70);
         }

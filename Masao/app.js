@@ -588,6 +588,28 @@ var Game;
     Game.SpriteCollisionEvent = SpriteCollisionEvent;
 })(Game || (Game = {}));
 var Game;
+(function (_Game) {
+    var GameStateMachine = (function (_super) {
+        __extends(GameStateMachine, _super);
+        function GameStateMachine(game, parent) {
+            if (parent === void 0) { parent = null; }
+            _super.call(this, parent);
+            this.game = game;
+        }
+        return GameStateMachine;
+    })(_Game.StateMachine);
+    _Game.GameStateMachine = GameStateMachine;
+    var Game = (function (_super) {
+        __extends(Game, _super);
+        function Game(config) {
+            _super.call(this, config);
+            this.statemachine = new GameStateMachine(this);
+        }
+        return Game;
+    })(_Game.Core);
+    _Game.Game = Game;
+})(Game || (Game = {}));
+var Game;
 (function (Game) {
     // ステージマップの役割を持つGroup。
     // 座標からSpriteを取得でき、かつ取得がそこそこ高速であることが期待される。
@@ -975,7 +997,7 @@ var Game;
                 if (this.gk.isOnDown(37) && this.counter["able2runningLeft"] > 0) {
                     this.moving.replace(new States.PlayerRunningLeft());
                 }
-                else if (!(this.moving.CurrentState() instanceof States.PlayerRunningLeft)) {
+                else if (!(this.moving.current_state instanceof States.PlayerRunningLeft)) {
                     this.moving.replace(new States.PlayerWalkingLeft());
                 }
             }
@@ -983,11 +1005,11 @@ var Game;
                 if (this.gk.isOnDown(39) && this.counter["able2runningRight"] > 0) {
                     this.moving.replace(new States.PlayerRunningRight());
                 }
-                else if (!(this.moving.CurrentState() instanceof States.PlayerRunningRight)) {
+                else if (!(this.moving.current_state instanceof States.PlayerRunningRight)) {
                     this.moving.replace(new States.PlayerWalkingRight());
                 }
             }
-            if ((!this.gk.isDown(37) && !this.gk.isDown(39)) || ((this.moving.CurrentState() instanceof States.PlayerWalkingLeft) && !this.gk.isDown(37)) || ((this.moving.CurrentState() instanceof States.PlayerWalkingRight) && !this.gk.isDown(39)) || ((this.moving.CurrentState() instanceof States.PlayerRunningLeft) && !this.gk.isDown(37)) || ((this.moving.CurrentState() instanceof States.PlayerRunningRight) && !this.gk.isDown(39))) {
+            if ((!this.gk.isDown(37) && !this.gk.isDown(39)) || ((this.moving.current_state instanceof States.PlayerWalkingLeft) && !this.gk.isDown(37)) || ((this.moving.current_state instanceof States.PlayerWalkingRight) && !this.gk.isDown(39)) || ((this.moving.current_state instanceof States.PlayerRunningLeft) && !this.gk.isDown(37)) || ((this.moving.current_state instanceof States.PlayerRunningRight) && !this.gk.isDown(39))) {
                 this.moving.replace(new States.PlayerInterialMove());
             }
             if (this.counter["able2runningLeft"] >= 8)
