@@ -1,7 +1,7 @@
 ﻿module Game {
     export class GameStateMachine extends StateMachine {
-        public game: Core;
-        constructor(game: Core, parent: any = null) {
+        public game: Game;
+        constructor(game: Game, parent: any = null) {
             super(parent);
             this.game = game;
         }
