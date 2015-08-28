@@ -453,20 +453,23 @@ var Game;
                 var players = sm.e.ss.Players.get_all();
                 for (var i = 0; i < players.length; i++) {
                     var p = players[i];
-                    p.addOnceEventHandler("update", function () {
-                        var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
-                        var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
-                        if (p.flags["isAlive"] && dx < 30 && dy < 23) {
-                            if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) {
-                                e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
-                                p.y = e.y - 12;
-                                p.dispatchEvent(new Game.Event("onstamp"));
+                    // 現在のpをスコープに束縛
+                    (function (p) {
+                        p.addOnceEventHandler("update", function () {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
+                            if (p.flags["isAlive"] && dx < 30 && dy < 23) {
+                                if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) {
+                                    e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
+                                    p.y = e.y - 12;
+                                    p.dispatchEvent(new Game.Event("onstamp"));
+                                }
+                                else {
+                                    p.dispatchEvent(new Game.PlayerMissEvent("miss", 1));
+                                }
                             }
-                            else {
-                                p.dispatchEvent(new Game.PlayerMissEvent("miss", 1));
-                            }
-                        }
-                    });
+                        });
+                    })(p);
                 }
             };
             return AbstractKameAlive;

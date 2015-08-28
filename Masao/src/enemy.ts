@@ -96,22 +96,25 @@
                 var players = <Array<Player>>sm.e.ss.Players.get_all();
                 for (var i = 0; i < players.length; i++) {
                     var p = players[i];
-                    p.addOnceEventHandler("update",() => {
-                        var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
-                        var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
-                        if (p.flags["isAlive"] && dx < 30 && dy < 23) { // プレイヤーと接触した
+                    // 現在のpをスコープに束縛
+                    ((p) => {
+                        p.addOnceEventHandler("update",() => {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
+                            if (p.flags["isAlive"] && dx < 30 && dy < 23) { // プレイヤーと接触した
 
-                            if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) { // 踏まれる
-                                e.dispatchEvent(new SpriteCollisionEvent("onstamped", p));
-                                p.y = e.y - 12;
-                                p.dispatchEvent(new Event("onstamp"));
+                                if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) { // 踏まれる
+                                    e.dispatchEvent(new SpriteCollisionEvent("onstamped", p));
+                                    p.y = e.y - 12;
+                                    p.dispatchEvent(new Event("onstamp"));
+                                }
+                                // TODO:バリア判定はここに書く
+                                else { // プレイヤーにダメージ
+                                    p.dispatchEvent(new PlayerMissEvent("miss", 1));
+                                }
                             }
-                            // TODO:バリア判定はここに書く
-                            else { // プレイヤーにダメージ
-                                p.dispatchEvent(new PlayerMissEvent("miss", 1));
-                            }
-                        }
-                    });
+                        });
+                    })(p);
                 }
             }
         }
