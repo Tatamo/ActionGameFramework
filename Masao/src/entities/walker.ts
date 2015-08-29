@@ -75,7 +75,7 @@
             }
             update(sm: EntityStateMachine) {
                 var e = sm.e;
-                if (e.flags["isOnGround"] == true) {
+                if (e.flags["isOnGround"]) {
                     sm.replace(new KameWalkingFallable());
                     sm.update();
                 }

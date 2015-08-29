@@ -66,14 +66,14 @@ window.onload = function () {
         "...............................99...........................",
         "............................................................",
         "............................................................",
-        ".....A.......B..............................................",
+        ".............O..............................................",
         "...12aa....BaaB.....12.....9.9...aaa.....aa.aaaaaaaa...12...",
         "..........Baaaa...........aaaaa..............9.aaaaa........",
         ".........aaaaa..........................B...aaaaaaaa........",
         "....9.9.............................aaaaa...9.9aa999........",
-        "....aaa...............B.............9.9.9...aaaaaaaa........",
+        "....aaa......O........B.............9.9.9...aaaaaaaa........",
         "...........aaaaaa..aaaaaa....................9.aaaaa........",
-        "..........aaaaaaa..aaaaaa............D......aaaaaaaa........",
+        "......A...aaaaaaa..aaaaaa............D......aaaaaaaa........",
         "bbbbbbbbbbbbbbbbb..bbbbbb.bbbbbbbbbbbbbbbbbbbbbbbbbb5bbbbbb.",
         "............................................................",
         "............................................................",
@@ -460,6 +460,130 @@ var Game;
             return AbstractStampableAlive;
         })(States.AbstractState);
         States.AbstractStampableAlive = AbstractStampableAlive;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var Jumper = (function (_super) {
+        __extends(Jumper, _super);
+        function Jumper(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.JumperWaiting());
+            //this.code = 154;
+            this.addEventHandler("onstamped", this.onStamped);
+            this.addEventHandler("onhit", this.onHit);
+        }
+        Jumper.prototype.move = function () {
+            this.x += this.vx / 10;
+            this.checkCollisionWithBlocksHorizontal(); // 接触判定
+            this.y += this.vy / 10;
+            this.checkCollisionWithBlocksVertical(); // 接触判定
+        };
+        Jumper.prototype.onStamped = function (e) {
+            if (this.flags["isAlive"])
+                this.moving.replace(new States.JumperStamped());
+            this.vx = 0;
+            this.vy = 0;
+        };
+        Jumper.prototype.onHit = function (e) {
+            if (this.flags["isAlive"]) {
+                if (e.dir == "horizontal") {
+                    this.reverse_horizontal = !this.reverse_horizontal;
+                }
+                if (e.dir == "vertical" && e.sprite.y > this.y) {
+                    this.flags["isOnGround"] = true;
+                }
+            }
+        };
+        return Jumper;
+    })(Game.Entity);
+    Game.Jumper = Jumper;
+    var States;
+    (function (States) {
+        var JumperWaiting = (function (_super) {
+            __extends(JumperWaiting, _super);
+            function JumperWaiting() {
+                _super.apply(this, arguments);
+            }
+            JumperWaiting.prototype.enter = function (sm) {
+                sm.e.counter["ac"] = 0;
+            };
+            JumperWaiting.prototype.update = function (sm) {
+                var e = sm.e;
+                e.code = 154;
+                e.vx = 0;
+                e.vy = 0;
+                if (e.counter["ac"] < 25)
+                    e.counter["ac"] += 1;
+                else {
+                    sm.replace(new JumperJumping());
+                }
+                this.checkCollisionWithPlayer(sm);
+            };
+            return JumperWaiting;
+        })(States.AbstractStampableAlive);
+        States.JumperWaiting = JumperWaiting;
+        var JumperJumping = (function (_super) {
+            __extends(JumperJumping, _super);
+            function JumperJumping() {
+                _super.apply(this, arguments);
+            }
+            JumperJumping.prototype.enter = function (sm) {
+                sm.e.counter["ac"] = 0;
+            };
+            JumperJumping.prototype.update = function (sm) {
+                var e = sm.e;
+                e.vx = e.reverse_horizontal ? 50 : -50;
+                if (e.counter["ac"] == 0) {
+                    e.vy = -170;
+                    sm.e.flags["isOnGround"] = false;
+                }
+                e.vy += (e.counter["ac"] % 2) ? 20 : 10;
+                if (e.vy > 170)
+                    e.vy = 170;
+                e.counter["ac"] += 1;
+                if (e.vy < 40) {
+                    e.code = 155;
+                }
+                else {
+                    e.code = 156;
+                }
+                console.log(e.vy);
+                if (e.flags["isOnGround"]) {
+                    sm.replace(new JumperWaiting());
+                    sm.update();
+                }
+                this.checkCollisionWithPlayer(sm);
+            };
+            return JumperJumping;
+        })(States.AbstractStampableAlive);
+        States.JumperJumping = JumperJumping;
+        var JumperStamped = (function (_super) {
+            __extends(JumperStamped, _super);
+            function JumperStamped() {
+                _super.apply(this, arguments);
+            }
+            JumperStamped.prototype.enter = function (sm) {
+                sm.e.counter["ac"] = 0;
+                sm.e.code = 157;
+                sm.e.flags["isAlive"] = false;
+            };
+            JumperStamped.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] += 1;
+                e.code = 157;
+                e.vx = 0;
+                e.vy = 0;
+                if (e.counter["ac"] >= 10) {
+                    e.kill();
+                }
+            };
+            return JumperStamped;
+        })(States.AbstractState);
+        States.JumperStamped = JumperStamped;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
 var Game;
@@ -1244,7 +1368,7 @@ var Game;
             };
             KameFalling.prototype.update = function (sm) {
                 var e = sm.e;
-                if (e.flags["isOnGround"] == true) {
+                if (e.flags["isOnGround"]) {
                     sm.replace(new KameWalkingFallable());
                     sm.update();
                 }
@@ -1497,6 +1621,7 @@ var Game;
             this.lookup["A"] = Game.Player;
             this.lookup["B"] = Game.Kame;
             this.lookup["C"] = Game.KameFallable;
+            this.lookup["O"] = Game.Jumper;
             this.lookup["a"] = Game.Block1;
             this.lookup["b"] = Game.Block2;
             this.lookup["c"] = Game.Block3;
