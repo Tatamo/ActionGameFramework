@@ -621,7 +621,7 @@ var Game;
                 ctx.textAlign = "left";
                 ctx.textBaseline = "top";
                 ctx.font = "bold 14px sans-serif";
-                ctx.fillText("SCORE " + _this.hud_score.toString() + "　HIGHSCORE " + _this.hud_highscore.toString(), 40, 20);
+                ctx.fillText("SCORE " + _this.hud_score.toString() + "  HIGHSCORE " + _this.hud_highscore.toString(), 40, 20);
                 ctx.restore();
             });
             this.score.addEventHandler("scorechanged", (function () {

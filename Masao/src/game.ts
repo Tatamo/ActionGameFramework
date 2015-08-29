@@ -23,7 +23,7 @@
                 ctx.textAlign = "left";
                 ctx.textBaseline = "top";
                 ctx.font = "bold 14px sans-serif";
-                ctx.fillText("SCORE " + this.hud_score.toString() + "　HIGHSCORE " + this.hud_highscore.toString(), 40, 20);
+                ctx.fillText("SCORE " + this.hud_score.toString() + "  HIGHSCORE " + this.hud_highscore.toString(), 40, 20);
                 ctx.restore();
             });
             this.score.addEventHandler("scorechanged",(() => { this.hud_score = this.score.GetScore(); }).bind(this)); // thisでbindしておく ハイスコアの処理ははstage.tsに
