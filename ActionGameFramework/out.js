@@ -1208,6 +1208,7 @@ var Game;
             this.gamekey = new Game.GameKey();
             this.assets = new Game.AssetsManagerManager();
             this.config = new Game.Config(config.map, config.images, {});
+            this.addEventHandler("update", this.loop);
         }
         // 指定した要素の子要素としてゲーム画面を追加します
         Core.prototype.setparent = function (el) {
@@ -1225,7 +1226,9 @@ var Game;
             /*if(!this.statemachine.CurrentState()) this.statemachine.push(new States.Preload("preload", this.statemachine));*/
             if (!this.statemachine.current_state)
                 this.statemachine.push(state); // TODO:state==null時などの考慮
-            this.timerToken = setInterval(function () { return _this.loop(); }, 70);
+            this.timerToken = setInterval(function () {
+                _this.dispatchEvent(new Game.Event("update"));
+            }, 70);
         };
         // 使うの?
         Core.prototype.stop = function () {

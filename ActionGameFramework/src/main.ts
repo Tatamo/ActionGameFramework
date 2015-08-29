@@ -24,6 +24,7 @@ module Game {
             this.gamekey = new GameKey();
             this.assets = new AssetsManagerManager();
             this.config = new Config(config.map, config.images, {});
+            this.addEventHandler("update", this.loop);
         }
         // 指定した要素の子要素としてゲーム画面を追加します
         public setparent(el: HTMLElement) {
@@ -40,7 +41,7 @@ module Game {
             /*if(!this.statemachine.CurrentState()) this.statemachine.push(new States.Preload("preload", this.statemachine));*/
             if(!this.statemachine.current_state) this.statemachine.push(state); // TODO:state==null時などの考慮
 
-            this.timerToken = setInterval(() => this.loop(), 70);
+            this.timerToken = setInterval(() => { this.dispatchEvent(new Event("update")); }, 70);
         }
         // 使うの?
         public stop() {
