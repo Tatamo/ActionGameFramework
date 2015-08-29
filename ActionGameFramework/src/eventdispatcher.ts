@@ -18,19 +18,19 @@
         // イベントハンドラの追加
         addEventHandler(type: string, handler: (e: Event) => void) {
             if (!this._handlers[type]) {
-                this._handlers[type] = [handler.bind(this)];
+                this._handlers[type] = [handler];
             }
             else {
-                this._handlers[type].push(handler.bind(this));
+                this._handlers[type].push(handler);
             }
         }
         // 一度呼ばれると消えるイベントハンドラの追加
         addOnceEventHandler(type: string, handler: (e: Event) => void) {
             if (!this._oncehandlers[type]) {
-                this._oncehandlers[type] = [handler.bind(this)];
+                this._oncehandlers[type] = [handler];
             }
             else {
-                this._oncehandlers[type].push(handler.bind(this));
+                this._oncehandlers[type].push(handler);
             }
         }
         // イベントハンドラの削除
@@ -63,13 +63,13 @@
             if (!this._handlers[e.type] && !this._oncehandlers[e.type]) return;
             if (this._handlers[e.type]) {
                 for (var i = 0; i < this._handlers[e.type].length; i++) {
-                    this._handlers[e.type][i](e);
+                    this._handlers[e.type][i].bind(this)(e);
                 }
             }
             // イベントハンドラを呼ぶのと同時に破棄することで、2度以上呼ばれることを防ぐ
             if (this._oncehandlers[e.type]) {
                 while (this._oncehandlers[e.type].length > 0) {
-                    this._oncehandlers[e.type].shift()(e);
+                    this._oncehandlers[e.type].shift().bind(this)(e);
                 }
             }
         }
