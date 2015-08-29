@@ -463,6 +463,9 @@ var Game;
                                     e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
                                     p.y = e.y - 12;
                                     p.dispatchEvent(new Game.Event("onstamp"));
+                                    e.addOnceEventHandler("killed", function () {
+                                        p.dispatchEvent(new Game.ScoreEvent("addscore", 10));
+                                    });
                                 }
                                 else {
                                     p.dispatchEvent(new Game.PlayerMissEvent("miss", 1));
@@ -607,6 +610,7 @@ var Game;
         function Game(config) {
             _super.call(this, config);
             this.statemachine = new GameStateMachine(this);
+            this.score = new _Game.ScoreManager();
         }
         return Game;
     })(_Game.Core);
@@ -1486,6 +1490,74 @@ var Game;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
+    var ScoreEvent = (function (_super) {
+        __extends(ScoreEvent, _super);
+        function ScoreEvent(type, value) {
+            _super.call(this, type);
+            this.value = value;
+        }
+        return ScoreEvent;
+    })(Game.Event);
+    Game.ScoreEvent = ScoreEvent;
+    var ScoreManager = (function (_super) {
+        __extends(ScoreManager, _super);
+        function ScoreManager() {
+            _super.call(this);
+            this._score = 0;
+            this._highscore = 0;
+        }
+        ScoreManager.prototype.AddScore = function (value) {
+            var tmp = this._score;
+            var flg = false;
+            this._score += value;
+            if (this._score < 0)
+                this._score = 0;
+            if (tmp == this._score)
+                return;
+            if (this._score > this._highscore) {
+                this._highscore = this._score;
+            }
+            this.dispatchEvent(new ScoreEvent("scorechanged", this._score));
+            if (flg)
+                this.dispatchEvent(new ScoreEvent("highscorechanged", this._highscore));
+        };
+        ScoreManager.prototype.SetScore = function (value) {
+            var tmp = this._score;
+            var flg = false;
+            this._score = value;
+            if (this._score < 0)
+                this._score = 0;
+            if (tmp == this._score)
+                return;
+            if (this._score > this._highscore) {
+                this._highscore = this._score;
+            }
+            this.dispatchEvent(new ScoreEvent("scorechanged", this._score));
+            if (flg)
+                this.dispatchEvent(new ScoreEvent("highscorechanged", this._highscore));
+        };
+        ScoreManager.prototype.GetScore = function () {
+            return this._score;
+        };
+        ScoreManager.prototype.GetHighScore = function () {
+            return this._highscore;
+        };
+        ScoreManager.prototype.Reset = function () {
+            if (this._score != 0) {
+                this._score = 0;
+                this.dispatchEvent(new ScoreEvent("scorechanged", this._score));
+            }
+            if (this._highscore != 0) {
+                this._highscore = 0;
+                this.dispatchEvent(new ScoreEvent("highscorechanged", this._highscore));
+            }
+        };
+        return ScoreManager;
+    })(Game.EventDispatcher);
+    Game.ScoreManager = ScoreManager;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
     // ゲーム内オブジェクトの参照・走査を一手に引き受けるクラス。
     var SpriteSystem = (function () {
         function SpriteSystem(screen) {
@@ -1599,6 +1671,7 @@ var Game;
             }
             Stage.prototype.enter = function (sm) {
                 if (!this.is_initialized) {
+                    sm.game.score.SetScore(0);
                     this.ss = new Game.SpriteSystem(sm.game.screen);
                     this.mm = new Game.MapGenerator(this.ss);
                     this.mm.generateMap(sm.game.config.map, 32, 32, sm.game);
@@ -1622,6 +1695,9 @@ var Game;
                     this.player = this.mm.player;
                     this.player.addEventHandler("ondie", function (e) {
                         sm.replace(new States.GameOver());
+                    });
+                    this.player.addEventHandler("addscore", function (e) {
+                        sm.game.score.AddScore(e.value);
                     });
                     this.view_x = 0;
                     this.view_y = 0;

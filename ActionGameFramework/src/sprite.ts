@@ -103,6 +103,7 @@ module Game {
         update() {
         }
         kill() {
+            this.dispatchEvent(new Event("killed"));
             this.ss.remove(this);
         }
     }

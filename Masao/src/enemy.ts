@@ -97,7 +97,7 @@
                 for (var i = 0; i < players.length; i++) {
                     var p = players[i];
                     // 現在のpをスコープに束縛
-                    ((p) => {
+                    ((p:Player) => {
                         p.addOnceEventHandler("update",() => {
                             var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
                             var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
@@ -107,6 +107,9 @@
                                     e.dispatchEvent(new SpriteCollisionEvent("onstamped", p));
                                     p.y = e.y - 12;
                                     p.dispatchEvent(new Event("onstamp"));
+                                    e.addOnceEventHandler("killed",() => {
+                                        p.dispatchEvent(new ScoreEvent("addscore", 10));
+                                    });
                                 }
                                 // TODO:バリア判定はここに書く
                                 else { // プレイヤーにダメージ

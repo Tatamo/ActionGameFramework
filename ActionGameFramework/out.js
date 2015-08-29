@@ -997,6 +997,7 @@ var Game;
         Sprite.prototype.update = function () {
         };
         Sprite.prototype.kill = function () {
+            this.dispatchEvent(new Game.Event("killed"));
             this.ss.remove(this);
         };
         return Sprite;

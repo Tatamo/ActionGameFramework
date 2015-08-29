@@ -7,9 +7,11 @@
         }
     }
     export class Game extends Core {
+        public score: ScoreManager;
         constructor(config: any) {
             super(config);
             this.statemachine = new GameStateMachine(this);
+            this.score = new ScoreManager();
         }
     }
 }

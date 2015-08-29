@@ -13,6 +13,7 @@
             }
             enter(sm: GameStateMachine) {
                 if (!this.is_initialized) {
+                    sm.game.score.SetScore(0);
                     this.ss = new SpriteSystem(sm.game.screen);
                     this.mm = new MapGenerator(this.ss);
                     this.mm.generateMap(sm.game.config.map, 32, 32, sm.game);
@@ -35,6 +36,7 @@
                     this.ss.add(this.player);*/
                     this.player = this.mm.player;
                     this.player.addEventHandler("ondie",(e: Event) => { sm.replace(new GameOver()); });
+                    this.player.addEventHandler("addscore",(e: ScoreEvent) => { sm.game.score.AddScore(e.value); });
                     this.view_x = 0;
                     this.view_y = 0;
                     this.is_initialized = true;
