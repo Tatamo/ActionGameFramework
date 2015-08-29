@@ -1,4 +1,4 @@
-/*ass Greeter {
+/*class Greeter {
     element: HTMLElement;
     span: HTMLElement;
     timerToken: number;
@@ -22,45 +22,14 @@
 }
 
 var game: Game.Core;
-window.onload = () => {
+*/ window.onload = function () {
     var el = document.getElementById('content');
     //var greeter = new Greeter(el);
     //greeter.start();
-    game = new Game.Core({});
+    var game = new Game.Core({});
     game.setparent(el);
     game.start();
-/*ass Greeter {
-    element: HTMLElement;
-    span: HTMLElement;
-    timerToken: number;
-
-    constructor(element: HTMLElement) {
-        this.element = element;
-        this.element.innerHTML += "The time is: ";
-        this.span = document.createElement('span');
-        this.element.appendChild(this.span);
-        this.span.innerText = new Date().toUTCString();
-    }
-
-    start() {
-        this.timerToken = setInterval(() => this.span.innerHTML = new Date().toUTCString(), 500);
-    }
-
-    stop() {
-        clearTimeout(this.timerToken);
-    }
-
-}
-
-var game: Game.Core;
-window.onload = () => {
-    var el = document.getElementById('content');
-    //var greeter = new Greeter(el);
-    //greeter.start();
-    game = new Game.Core({});
-    game.setparent(el);
-    game.start();
- 
+};
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
