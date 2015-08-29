@@ -1,12 +1,3 @@
-declare class Greeter {
-    element: HTMLElement;
-    span: HTMLElement;
-    timerToken: number;
-    constructor(element: HTMLElement);
-    start(): void;
-    stop(): void;
-}
-declare var game: Game.Core;
 declare module Game {
     class Dictionary<T> implements WeakMap<any, T> {
         private datalist;

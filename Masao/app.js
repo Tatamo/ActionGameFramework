@@ -1486,6 +1486,68 @@ var Game;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
+    var ScoreEvent = (function (_super) {
+        __extends(ScoreEvent, _super);
+        function ScoreEvent(type, value) {
+            _super.call(this, type);
+            this.value = value;
+        }
+        return ScoreEvent;
+    })(Game.Event);
+    Game.ScoreEvent = ScoreEvent;
+    var ScoreManager = (function (_super) {
+        __extends(ScoreManager, _super);
+        function ScoreManager() {
+            var _this = this;
+            _super.call(this);
+            this._score = 0;
+            this._highscore = 0;
+            this.addEventHandler("scorechanged", function () {
+                console.log(_this.GetScore());
+            });
+        }
+        ScoreManager.prototype.AddScore = function (value) {
+            var tmp = this._score;
+            var flg = false;
+            this._score += value;
+            if (this._score < 0)
+                this._score = 0;
+            if (tmp == this._score)
+                return;
+            if (this._score > this._highscore) {
+                this._highscore = this._score;
+            }
+            this.dispatchEvent(new ScoreEvent("scorechanged", this._score));
+            if (flg)
+                this.dispatchEvent(new ScoreEvent("highscorechanged", this._highscore));
+        };
+        ScoreManager.prototype.SetScore = function (value) {
+            var tmp = this._score;
+            var flg = false;
+            this._score = value;
+            if (this._score < 0)
+                this._score = 0;
+            if (tmp == this._score)
+                return;
+            if (this._score > this._highscore) {
+                this._highscore = this._score;
+            }
+            this.dispatchEvent(new ScoreEvent("scorechanged", this._score));
+            if (flg)
+                this.dispatchEvent(new ScoreEvent("highscorechanged", this._highscore));
+        };
+        ScoreManager.prototype.GetScore = function () {
+            return this._score;
+        };
+        ScoreManager.prototype.GetHighScore = function () {
+            return this._highscore;
+        };
+        return ScoreManager;
+    })(Game.EventDispatcher);
+    Game.ScoreManager = ScoreManager;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
     // ゲーム内オブジェクトの参照・走査を一手に引き受けるクラス。
     var SpriteSystem = (function () {
         function SpriteSystem(screen) {

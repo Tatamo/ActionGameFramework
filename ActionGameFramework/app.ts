@@ -1,4 +1,4 @@
-﻿class Greeter {
+﻿/*ass Greeter {
     element: HTMLElement;
     span: HTMLElement;
     timerToken: number;
@@ -24,9 +24,9 @@
 var game: Game.Core;
 window.onload = () => {
     var el = document.getElementById('content');
-    /*var greeter = new Greeter(el);
-    greeter.start();*/
+    //var greeter = new Greeter(el);
+    //greeter.start();
     game = new Game.Core({});
     game.setparent(el);
     game.start();
-};
+};*/
