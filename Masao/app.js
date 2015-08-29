@@ -349,7 +349,44 @@ var Game;
             this.counter = {};
             this.flags = {};
             this.z = 256;
+            this.counter["ac"] = 0;
+            this.flags["isAlive"] = true;
+            this.flags["isActivated"] = false;
+            this.flags["isOnGround"] = false;
+            this.counter["viewx_activate"] = Math.floor(x / this.width) * this.width - Game.SCREEN_WIDTH - this.width;
         }
+        Entity.prototype.update = function () {
+            var players = this.ss.Players.get_all();
+            if (!this.flags["isActivated"]) {
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (Math.round(p.x - 160) >= this.counter["viewx_activate"]) {
+                        this.flags["isActivated"] = true;
+                        break;
+                    }
+                }
+                return;
+            }
+            // プレイヤーより大幅に左側にいる場合、処理を行わない
+            var flg = false;
+            for (var i = 0; i < players.length; i++) {
+                var p = players[i];
+                if (this.x >= Math.round(p.x - 160) - Game.SCREEN_WIDTH) {
+                    flg = true;
+                    break;
+                }
+            }
+            if (!flg)
+                return;
+            this.moving.update();
+            this.move();
+        };
+        Entity.prototype.move = function () {
+            this.x += this.vx / 10;
+            this.checkCollisionWithBlocksHorizontal(); // 接触判定
+            this.y += this.vy / 10;
+            this.checkCollisionWithBlocksVertical(); // 接触判定
+        };
         Entity.prototype.checkCollisionWithBlocksVertical = function () {
             this.flags["isOnGround"] = false;
             // check
@@ -384,6 +421,46 @@ var Game;
         return EntityStateMachine;
     })(Game.StateMachine);
     Game.EntityStateMachine = EntityStateMachine;
+    var States;
+    (function (States) {
+        var AbstractStampableAlive = (function (_super) {
+            __extends(AbstractStampableAlive, _super);
+            function AbstractStampableAlive() {
+                _super.apply(this, arguments);
+            }
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+            AbstractStampableAlive.prototype.checkCollisionWithPlayer = function (sm) {
+                var e = sm.e;
+                var players = sm.e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    (function (p) {
+                        p.addOnceEventHandler("update", function () {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
+                            if (p.flags["isAlive"] && dx < 30 && dy < 23) {
+                                if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) {
+                                    e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
+                                    p.y = e.y - 12;
+                                    p.dispatchEvent(new Game.Event("onstamp"));
+                                    e.addOnceEventHandler("killed", function () {
+                                        p.dispatchEvent(new Game.ScoreEvent("addscore", 10));
+                                    });
+                                }
+                                else {
+                                    p.dispatchEvent(new Game.PlayerMissEvent("miss", 1));
+                                }
+                            }
+                        });
+                    })(p);
+                }
+            };
+            return AbstractStampableAlive;
+        })(States.AbstractState);
+        States.AbstractStampableAlive = AbstractStampableAlive;
+    })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
@@ -1071,23 +1148,10 @@ var Game;
             _super.call(this, x, y, imagemanager, label, dx, dy);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.KameWalking());
-            this.code = 140;
-            this.counter["ac"] = 0;
-            this.flags["isAlive"] = true;
-            this.flags["isOnGround"] = false;
+            //this.code = 140;
             this.addEventHandler("onstamped", this.onStamped);
             this.addEventHandler("onhit", this.onHit);
         }
-        Kame.prototype.update = function () {
-            this.moving.update();
-            this.move();
-        };
-        Kame.prototype.move = function () {
-            this.x += this.vx / 10;
-            this.checkCollisionWithBlocksHorizontal(); // 接触判定
-            this.y += this.vy / 10;
-            this.checkCollisionWithBlocksVertical(); // 接触判定
-        };
         Kame.prototype.onStamped = function (e) {
             if (this.flags["isAlive"])
                 this.moving.replace(new States.KameStamped());
@@ -1120,43 +1184,6 @@ var Game;
     Game.KameFallable = KameFallable;
     var States;
     (function (States) {
-        var AbstractKameAlive = (function (_super) {
-            __extends(AbstractKameAlive, _super);
-            function AbstractKameAlive() {
-                _super.apply(this, arguments);
-            }
-            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
-            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
-            AbstractKameAlive.prototype.checkCollisionWithPlayer = function (sm) {
-                var e = sm.e;
-                var players = sm.e.ss.Players.get_all();
-                for (var i = 0; i < players.length; i++) {
-                    var p = players[i];
-                    // 現在のpをスコープに束縛
-                    (function (p) {
-                        p.addOnceEventHandler("update", function () {
-                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
-                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
-                            if (p.flags["isAlive"] && dx < 30 && dy < 23) {
-                                if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) {
-                                    e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
-                                    p.y = e.y - 12;
-                                    p.dispatchEvent(new Game.Event("onstamp"));
-                                    e.addOnceEventHandler("killed", function () {
-                                        p.dispatchEvent(new Game.ScoreEvent("addscore", 10));
-                                    });
-                                }
-                                else {
-                                    p.dispatchEvent(new Game.PlayerMissEvent("miss", 1));
-                                }
-                            }
-                        });
-                    })(p);
-                }
-            };
-            return AbstractKameAlive;
-        })(States.AbstractState);
-        States.AbstractKameAlive = AbstractKameAlive;
         var KameWalking = (function (_super) {
             __extends(KameWalking, _super);
             function KameWalking() {
@@ -1180,7 +1207,7 @@ var Game;
                 this.checkCollisionWithPlayer(sm);
             };
             return KameWalking;
-        })(AbstractKameAlive);
+        })(States.AbstractStampableAlive);
         States.KameWalking = KameWalking;
         var KameWalkingFallable = (function (_super) {
             __extends(KameWalkingFallable, _super);
@@ -1205,7 +1232,7 @@ var Game;
                 this.checkCollisionWithPlayer(sm);
             };
             return KameWalkingFallable;
-        })(AbstractKameAlive);
+        })(States.AbstractStampableAlive);
         States.KameWalkingFallable = KameWalkingFallable;
         var KameFalling = (function (_super) {
             __extends(KameFalling, _super);
@@ -1228,7 +1255,7 @@ var Game;
                 }
             };
             return KameFalling;
-        })(AbstractKameAlive);
+        })(States.AbstractStampableAlive);
         States.KameFalling = KameFalling;
         var KameStamped = (function (_super) {
             __extends(KameStamped, _super);

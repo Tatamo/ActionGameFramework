@@ -4,22 +4,9 @@
             super(x, y, imagemanager, label, dx, dy);
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.KameWalking());
-            this.code = 140;
-            this.counter["ac"] = 0;
-            this.flags["isAlive"] = true;
-            this.flags["isOnGround"] = false;
+            //this.code = 140;
             this.addEventHandler("onstamped", this.onStamped);
             this.addEventHandler("onhit", this.onHit);
-        }
-        update() {
-            this.moving.update();
-            this.move();
-        }
-        private move() {
-            this.x += this.vx / 10;
-            this.checkCollisionWithBlocksHorizontal(); // 接触判定
-            this.y += this.vy / 10;
-            this.checkCollisionWithBlocksVertical(); // 接触判定
         }
         private onStamped(e: SpriteCollisionEvent) {
             if (this.flags["isAlive"]) this.moving.replace(new States.KameStamped());
@@ -44,40 +31,7 @@
         }
     }
     export module States {
-        export class AbstractKameAlive extends AbstractState {
-            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
-            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
-            checkCollisionWithPlayer(sm: EntityStateMachine) {
-                var e = sm.e;
-                var players = <Array<Player>>sm.e.ss.Players.get_all();
-                for (var i = 0; i < players.length; i++) {
-                    var p = players[i];
-                    // 現在のpをスコープに束縛
-                    ((p: Player) => {
-                        p.addOnceEventHandler("update",() => {
-                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
-                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
-                            if (p.flags["isAlive"] && dx < 30 && dy < 23) { // プレイヤーと接触した
-
-                                if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) { // 踏まれる
-                                    e.dispatchEvent(new SpriteCollisionEvent("onstamped", p));
-                                    p.y = e.y - 12;
-                                    p.dispatchEvent(new Event("onstamp"));
-                                    e.addOnceEventHandler("killed",() => {
-                                        p.dispatchEvent(new ScoreEvent("addscore", 10));
-                                    });
-                                }
-                                // TODO:バリア判定はここに書く
-                                else { // プレイヤーにダメージ
-                                    p.dispatchEvent(new PlayerMissEvent("miss", 1));
-                                }
-                            }
-                        });
-                    })(p);
-                }
-            }
-        }
-        export class KameWalking extends AbstractKameAlive {
+        export class KameWalking extends AbstractStampableAlive {
             enter(sm: EntityStateMachine) {
             }
             update(sm: EntityStateMachine) {
@@ -96,7 +50,7 @@
                 this.checkCollisionWithPlayer(sm);
             }
         }
-        export class KameWalkingFallable extends AbstractKameAlive {
+        export class KameWalkingFallable extends AbstractStampableAlive {
             enter(sm: EntityStateMachine) {
             }
             update(sm: EntityStateMachine) {
@@ -115,7 +69,7 @@
                 this.checkCollisionWithPlayer(sm);
             }
         }
-        export class KameFalling extends AbstractKameAlive {
+        export class KameFalling extends AbstractStampableAlive {
             enter(sm: EntityStateMachine) {
                 sm.e.flags["isOnGround"] = false;
             }
