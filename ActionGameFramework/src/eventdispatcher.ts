@@ -63,16 +63,14 @@
             if (!this._handlers[e.type] && !this._oncehandlers[e.type]) return;
             if (this._handlers[e.type]) {
                 for (var i = 0; i < this._handlers[e.type].length; i++) {
-                    var e: Event;
                     this._handlers[e.type][i](e);
                 }
             }
+            // イベントハンドラを呼ぶのと同時に破棄することで、2度以上呼ばれることを防ぐ
             if (this._oncehandlers[e.type]) {
-                for (var i = 0; i < this._oncehandlers[e.type].length; i++) {
-                    var e: Event;
-                    this._oncehandlers[e.type][i](e);
+                while (this._oncehandlers[e.type].length > 0) {
+                    this._oncehandlers[e.type].shift()(e);
                 }
-                this._oncehandlers[e.type] = [];
             }
         }
     }
