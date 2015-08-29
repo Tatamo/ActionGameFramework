@@ -608,9 +608,25 @@ var Game;
     var Game = (function (_super) {
         __extends(Game, _super);
         function Game(config) {
+            var _this = this;
             _super.call(this, config);
             this.statemachine = new GameStateMachine(this);
             this.score = new _Game.ScoreManager();
+            this.hud_score = this.score.GetScore();
+            this.hud_highscore = this.score.GetHighScore();
+            this.addEventHandler("update", function () {
+                var ctx = _this.screen.context;
+                ctx.save();
+                ctx.fillStyle = "blue";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "top";
+                ctx.font = "bold 14px sans-serif";
+                ctx.fillText("SCORE " + _this.hud_score.toString() + "　HIGHSCORE " + _this.hud_highscore.toString(), 40, 20);
+                ctx.restore();
+            });
+            this.score.addEventHandler("scorechanged", (function () {
+                _this.hud_score = _this.score.GetScore();
+            }).bind(this)); // thisでbindしておく ハイスコアの処理ははstage.tsに
         }
         return Game;
     })(_Game.Core);
@@ -1672,6 +1688,7 @@ var Game;
             Stage.prototype.enter = function (sm) {
                 if (!this.is_initialized) {
                     sm.game.score.SetScore(0);
+                    sm.game.hud_highscore = sm.game.score.GetHighScore();
                     this.ss = new Game.SpriteSystem(sm.game.screen);
                     this.mm = new Game.MapGenerator(this.ss);
                     this.mm.generateMap(sm.game.config.map, 32, 32, sm.game);

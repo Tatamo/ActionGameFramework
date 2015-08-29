@@ -14,6 +14,7 @@
             enter(sm: GameStateMachine) {
                 if (!this.is_initialized) {
                     sm.game.score.SetScore(0);
+                    sm.game.hud_highscore = sm.game.score.GetHighScore();
                     this.ss = new SpriteSystem(sm.game.screen);
                     this.mm = new MapGenerator(this.ss);
                     this.mm.generateMap(sm.game.config.map, 32, 32, sm.game);
