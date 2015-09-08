@@ -199,7 +199,7 @@ module Game {
                     // right
                     //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
                     //    b.y <= this.bottom && b.bottom > this.y) {
-                    if (col.collision(bc)) { // 一番上の点との判定のみ除外
+                    if (col.collision(bc)) {
                         this.centerx = b.x - 1;
                         this.vx = 0;
                     }
@@ -208,7 +208,7 @@ module Game {
                     // left
                     //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
                     //    b.y <= this.bottom && b.bottom > this.y) {
-                    if (col.collision(bc)) { // 一番上の点との判定のみ除外
+                    if (col.collision(bc)) {
                         this.centerx = b.right + 1;
                         this.vx = 0;
                     }

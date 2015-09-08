@@ -5,13 +5,13 @@ module Game {
             super(x, y, imagemanager, label, dx, dy);
             this.z = 512;
             this.initPatternCode();
-            this.addEventHandler("onhit", this.onHit);
+            //this.addEventHandler("onhit", this.onHit);
         }
         // to be overridden
         initPatternCode() {
             this.code = 20;
         }
-        onHit(e: SpriteCollisionEvent) {
+        /*onHit(e: SpriteCollisionEvent) {
             var s = e.sprite;
             if (e.dir == "vertical" || e.dir == "up" || e.dir == "down") {
                 if (e.mode == "edge") {
@@ -123,7 +123,7 @@ module Game {
             }
             else {
             }
-        }
+        }*/
     }
     export class Block1 extends Block {
         initPatternCode() { this.code = 20; }

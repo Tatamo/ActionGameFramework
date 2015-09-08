@@ -181,118 +181,11 @@ var Game;
             _super.call(this, x, y, imagemanager, label, dx, dy);
             this.z = 512;
             this.initPatternCode();
-            this.addEventHandler("onhit", this.onHit);
+            //this.addEventHandler("onhit", this.onHit);
         }
         // to be overridden
         Block.prototype.initPatternCode = function () {
             this.code = 20;
-        };
-        Block.prototype.onHit = function (e) {
-            var s = e.sprite;
-            if (e.dir == "vertical" || e.dir == "up" || e.dir == "down") {
-                if (e.mode == "edge") {
-                    if (s.vy < 0 && e.dir != "down") {
-                        // up
-                        if (this.x < s.right && this.right > s.x && this.y < s.bottom + 1 && this.bottom + 1 >= s.y) {
-                            s.y = this.bottom + 1;
-                            s.vy = 0;
-                            s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, e.dir));
-                        }
-                    }
-                    else if (s.vy >= 0 && e.dir != "up") {
-                        // down || //
-                        if (this.x < s.right && this.right > s.x && this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
-                            s.dispatchEvent(new Game.Event("onground"));
-                            s.bottom = this.y - 1;
-                            s.vy = 0;
-                            s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, e.dir));
-                        }
-                    }
-                }
-                else if (e.mode == "center") {
-                    if (s.vy < 0 && e.dir != "down") {
-                        // up
-                        if (this.x <= s.centerx && this.right + 1 > s.centerx && this.y < s.bottom + 1 && this.bottom + 1 >= s.y) {
-                            s.y = this.bottom + 1;
-                            s.vy = 0;
-                            s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, e.dir));
-                        }
-                    }
-                    else if (s.vy >= 0 && e.dir != "up") {
-                        // down || //
-                        //if (Math.floor(s.centerx / this.width) == Math.floor(this.x / this.width) && // spriteのx中心点との判定
-                        //if (this.x <= s.centerx && this.right >= s.centerx && // spriteのx中心点との判定
-                        if (this.x <= s.centerx && this.right + 1 > s.centerx && this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
-                            s.dispatchEvent(new Game.Event("onground"));
-                            s.bottom = this.y - 1;
-                            s.vy = 0;
-                            s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, e.dir));
-                        }
-                    }
-                }
-            }
-            else if (e.dir == "horizontal" || e.dir == "left" || e.dir == "right") {
-                if (e.mode == "edge") {
-                    if (s.vx > 0) {
-                        // right
-                        if (e.dir != "left")
-                            if (this.x <= s.right && this.right >= s.x && this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
-                                s.right = this.x;
-                                s.vx = 0;
-                                s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, e.dir));
-                            }
-                    }
-                    else if (s.vx < 0) {
-                        // left
-                        if (e.dir != "right")
-                            if (this.x <= s.right && this.right >= s.x && this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
-                                s.x = this.right + 1;
-                                s.vx = 0;
-                                s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, e.dir));
-                            }
-                    }
-                    else {
-                        if (this.x <= s.right && this.right >= s.x && this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
-                            if (s.centerx < this.centerx)
-                                s.right = this.x;
-                            else
-                                s.x = this.right + 1;
-                            s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, "horizontal"));
-                        }
-                    }
-                }
-                else if (e.mode == "center") {
-                    if (s.vx > 0) {
-                        // right
-                        if (e.dir != "left")
-                            if (this.x <= s.centerx && this.right + 1 > s.centerx && this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
-                                s.x = this.x - (s.width - 1) / 2 - 1;
-                                s.vx = 0;
-                                s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, e.dir));
-                            }
-                    }
-                    else if (s.vx < 0) {
-                        // left
-                        if (e.dir != "right")
-                            if (this.x <= s.centerx && this.right + 1 > s.centerx && this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
-                                s.x = this.right - (s.width - 1) / 2 + 1;
-                                s.vx = 0;
-                                s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, e.dir));
-                            }
-                    }
-                    else {
-                        if (this.x <= s.centerx && this.right + 1 > s.centerx && this.y <= s.bottom + 1 && this.bottom + 1 > s.y) {
-                            if (s.centerx < this.centerx)
-                                s.x = this.x - (s.width - 1) / 2 - 1;
-                            else
-                                s.x = this.x + this.width - (s.width - 1) / 2 + 1;
-                            s.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, "horizontal"));
-                        }
-                    }
-                }
-            }
-            else {
-            }
         };
         return Block;
     })(Game.Entity);
@@ -379,7 +272,11 @@ var Game;
             this.flags["isActivated"] = false;
             this.flags["isOnGround"] = false;
             this.counter["viewx_activate"] = Math.floor(x / this.width) * this.width - Game.SCREEN_WIDTH - this.width;
+            this.addEventHandler("onground", this.onGround);
         }
+        Enemy.prototype.onGround = function (e) {
+            this.flags["isOnGround"] = true;
+        };
         Enemy.prototype.update = function () {
             var players = this.ss.Players.get_all();
             if (!this.flags["isActivated"]) {
@@ -418,8 +315,22 @@ var Game;
             var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
-                if (this.x <= b.x + b.width && this.x + this.width >= b.x && this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                    b.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, "vertical", "edge"));
+                var bc = b.getCollision();
+                var col = this.getRect();
+                if (this.vy < 0) {
+                    // up
+                    if (col.collision(bc) && !(new Game.Rect(this.x, this.bottom, this.width, 0).collision(bc))) {
+                        this.y = b.bottom;
+                        this.vy = 0;
+                    }
+                }
+                else if (this.vy >= 0) {
+                    // down || //
+                    if (col.collision(bc) && !(new Game.Rect(this.x, this.y, this.width, 0).collision(bc))) {
+                        this.dispatchEvent(new Game.Event("onground"));
+                        this.bottom = b.y;
+                        this.vy = 0;
+                    }
                 }
             }
         };
@@ -428,8 +339,23 @@ var Game;
             var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
-                if (this.x <= b.x + b.width && this.x + this.width >= b.x && this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                    b.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, "horizontal", "edge"));
+                var bc = b.getCollision();
+                var col = this.getRect();
+                if (this.vx > 0) {
+                    // right
+                    if (col.collision(bc)) {
+                        this.right = b.x;
+                        this.vx = 0;
+                        this.reverse_horizontal = !this.reverse_horizontal;
+                    }
+                }
+                else if (this.vx < 0) {
+                    // left
+                    if (col.collision(bc)) {
+                        this.x = b.right;
+                        this.vx = 0;
+                        this.reverse_horizontal = !this.reverse_horizontal;
+                    }
                 }
             }
         };
@@ -1335,23 +1261,13 @@ var Game;
             this.moving.push(new States.KameWalking());
             //this.code = 140;
             this.addEventHandler("onstamped", this.onStamped);
-            this.addEventHandler("onhit", this.onHit);
+            //this.addEventHandler("onhit", this.onHit);
         }
         Kame.prototype.onStamped = function (e) {
             if (this.flags["isAlive"])
                 this.moving.replace(new States.KameStamped());
             this.vx = 0;
             this.vy = 0;
-        };
-        Kame.prototype.onHit = function (e) {
-            if (this.flags["isAlive"]) {
-                if (e.dir == "horizontal") {
-                    this.reverse_horizontal = !this.reverse_horizontal;
-                }
-                if (e.dir == "vertical") {
-                    this.flags["isOnGround"] = true;
-                }
-            }
         };
         return Kame;
     })(Game.Enemy);

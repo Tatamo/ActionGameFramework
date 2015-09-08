@@ -10,6 +10,10 @@ module Game {
             this.flags["isActivated"] = false;
             this.flags["isOnGround"] = false;
             this.counter["viewx_activate"] = Math.floor(x / this.width) * this.width - SCREEN_WIDTH - this.width;
+            this.addEventHandler("onground", this.onGround);
+        }
+        private onGround(e: Event) {
+            this.flags["isOnGround"] = true;
         }
         update() {
             var players = <Array<Player>>this.ss.Players.get_all();
@@ -50,9 +54,23 @@ module Game {
 
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
-                if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
-                    this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "vertical", "edge"));
+                var bc = b.getCollision();
+                var col = this.getRect();
+
+                if (this.vy < 0) {
+                    // up
+                    if (col.collision(bc) && !(new Rect(this.x, this.bottom, this.width, 0).collision(bc))) { // 一番下のラインとの判定のみ除外
+                        this.y = b.bottom;
+                        this.vy = 0;
+                    }
+                }
+                else if (this.vy >= 0) {
+                    // down || //
+                    if (col.collision(bc) && !(new Rect(this.x, this.y, this.width, 0).collision(bc))) { // 一番上のラインとの判定のみ除外
+                        this.dispatchEvent(new Event("onground"));
+                        this.bottom = b.y;
+                        this.vy = 0;
+                    }
                 }
             }
         }
@@ -62,9 +80,24 @@ module Game {
 
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
-                if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
-                    this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "horizontal", "edge"));
+                var bc = b.getCollision();
+                var col = this.getRect();
+
+                if (this.vx > 0) {
+                    // right
+                    if (col.collision(bc)) {
+                        this.right = b.x;
+                        this.vx = 0;
+                        this.reverse_horizontal = !this.reverse_horizontal;
+                    }
+                }
+                else if (this.vx < 0) {
+                    // left
+                    if (col.collision(bc)) {
+                        this.x = b.right;
+                        this.vx = 0;
+                        this.reverse_horizontal = !this.reverse_horizontal;
+                    }
                 }
             }
         }

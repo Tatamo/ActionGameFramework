@@ -7,14 +7,14 @@ module Game {
             this.moving.push(new States.KameWalking());
             //this.code = 140;
             this.addEventHandler("onstamped", this.onStamped);
-            this.addEventHandler("onhit", this.onHit);
+            //this.addEventHandler("onhit", this.onHit);
         }
         private onStamped(e: SpriteCollisionEvent) {
             if (this.flags["isAlive"]) this.moving.replace(new States.KameStamped());
             this.vx = 0;
             this.vy = 0;
         }
-        private onHit(e: SpriteCollisionEvent) {
+        /*private onHit(e: SpriteCollisionEvent) {
             if (this.flags["isAlive"]) {
                 if (e.dir == "horizontal") {
                     this.reverse_horizontal = !this.reverse_horizontal;
@@ -23,7 +23,7 @@ module Game {
                     this.flags["isOnGround"] = true;
                 }
             }
-        }
+        }*/
     }
     export class KameFallable extends Kame {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
