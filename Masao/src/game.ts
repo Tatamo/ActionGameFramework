@@ -1,4 +1,5 @@
-﻿module Game {
+﻿/// <reference path="score.ts"/>
+module Game {
     export class GameStateMachine extends StateMachine {
         public game: Game;
         constructor(game: Game, parent: any = null) {

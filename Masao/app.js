@@ -147,12 +147,41 @@ window.onload = function () {
 };
 var Game;
 (function (Game) {
+    var Entity = (function (_super) {
+        __extends(Entity, _super);
+        function Entity(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, 0, dx, dy);
+            this.counter = {};
+            this.flags = {};
+        }
+        Entity.prototype.getCollision = function () {
+            return this.getRect();
+        };
+        return Entity;
+    })(Game.Sprite);
+    Game.Entity = Entity;
+    var EntityStateMachine = (function (_super) {
+        __extends(EntityStateMachine, _super);
+        function EntityStateMachine(e, parent) {
+            if (parent === void 0) { parent = null; }
+            _super.call(this, parent);
+            this.e = e;
+        }
+        return EntityStateMachine;
+    })(Game.StateMachine);
+    Game.EntityStateMachine = EntityStateMachine;
+})(Game || (Game = {}));
+/// <reference path="entity.ts"/>
+var Game;
+(function (Game) {
     var Block = (function (_super) {
         __extends(Block, _super);
         function Block(x, y, imagemanager, label, dx, dy) {
             if (dx === void 0) { dx = 1; }
             if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, 21, dx, dy);
+            _super.call(this, x, y, imagemanager, label, dx, dy);
             this.z = 512;
             this.initPatternCode();
             this.addEventHandler("onhit", this.onHit);
@@ -269,7 +298,7 @@ var Game;
             }
         };
         return Block;
-    })(Game.Sprite);
+    })(Game.Entity);
     Game.Block = Block;
     var Block1 = (function (_super) {
         __extends(Block1, _super);
@@ -337,34 +366,6 @@ var Game;
         return Block6;
     })(Block);
     Game.Block6 = Block6;
-})(Game || (Game = {}));
-var Game;
-(function (Game) {
-    var Entity = (function (_super) {
-        __extends(Entity, _super);
-        function Entity(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, 0, dx, dy);
-            this.counter = {};
-            this.flags = {};
-        }
-        Entity.prototype.getCollision = function () {
-            return this.getRect();
-        };
-        return Entity;
-    })(Game.Sprite);
-    Game.Entity = Entity;
-    var EntityStateMachine = (function (_super) {
-        __extends(EntityStateMachine, _super);
-        function EntityStateMachine(e, parent) {
-            if (parent === void 0) { parent = null; }
-            _super.call(this, parent);
-            this.e = e;
-        }
-        return EntityStateMachine;
-    })(Game.StateMachine);
-    Game.EntityStateMachine = EntityStateMachine;
 })(Game || (Game = {}));
 /// <reference path="entity.ts"/>
 var Game;
@@ -479,6 +480,7 @@ var Game;
         States.AbstractStampableAlive = AbstractStampableAlive;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
+/// <reference path="entity.ts"/>
 var Game;
 (function (Game) {
     var Jumper = (function (_super) {
@@ -1279,6 +1281,7 @@ var Game;
     })(Game.Sprite);
     Game.PlayerSuperJumpEffect = PlayerSuperJumpEffect;
 })(Game || (Game = {}));
+/// <reference path="entity.ts"/>
 var Game;
 (function (Game) {
     var Kame = (function (_super) {
@@ -1440,6 +1443,75 @@ var Game;
     })(Game.SpriteEvent);
     Game.SpriteCollisionEvent = SpriteCollisionEvent;
 })(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var ScoreEvent = (function (_super) {
+        __extends(ScoreEvent, _super);
+        function ScoreEvent(type, value) {
+            _super.call(this, type);
+            this.value = value;
+        }
+        return ScoreEvent;
+    })(Game.Event);
+    Game.ScoreEvent = ScoreEvent;
+    var ScoreManager = (function (_super) {
+        __extends(ScoreManager, _super);
+        function ScoreManager() {
+            _super.call(this);
+            this._score = 0;
+            this._highscore = 0;
+        }
+        ScoreManager.prototype.AddScore = function (value) {
+            var tmp = this._score;
+            var flg = false;
+            this._score += value;
+            if (this._score < 0)
+                this._score = 0;
+            if (tmp == this._score)
+                return;
+            if (this._score > this._highscore) {
+                this._highscore = this._score;
+            }
+            this.dispatchEvent(new ScoreEvent("scorechanged", this._score));
+            if (flg)
+                this.dispatchEvent(new ScoreEvent("highscorechanged", this._highscore));
+        };
+        ScoreManager.prototype.SetScore = function (value) {
+            var tmp = this._score;
+            var flg = false;
+            this._score = value;
+            if (this._score < 0)
+                this._score = 0;
+            if (tmp == this._score)
+                return;
+            if (this._score > this._highscore) {
+                this._highscore = this._score;
+            }
+            this.dispatchEvent(new ScoreEvent("scorechanged", this._score));
+            if (flg)
+                this.dispatchEvent(new ScoreEvent("highscorechanged", this._highscore));
+        };
+        ScoreManager.prototype.GetScore = function () {
+            return this._score;
+        };
+        ScoreManager.prototype.GetHighScore = function () {
+            return this._highscore;
+        };
+        ScoreManager.prototype.Reset = function () {
+            if (this._score != 0) {
+                this._score = 0;
+                this.dispatchEvent(new ScoreEvent("scorechanged", this._score));
+            }
+            if (this._highscore != 0) {
+                this._highscore = 0;
+                this.dispatchEvent(new ScoreEvent("highscorechanged", this._highscore));
+            }
+        };
+        return ScoreManager;
+    })(Game.EventDispatcher);
+    Game.ScoreManager = ScoreManager;
+})(Game || (Game = {}));
+/// <reference path="score.ts"/>
 var Game;
 (function (_Game) {
     var GameStateMachine = (function (_super) {
@@ -1675,74 +1747,6 @@ var Game;
         return MapGenerator;
     })();
     Game.MapGenerator = MapGenerator;
-})(Game || (Game = {}));
-var Game;
-(function (Game) {
-    var ScoreEvent = (function (_super) {
-        __extends(ScoreEvent, _super);
-        function ScoreEvent(type, value) {
-            _super.call(this, type);
-            this.value = value;
-        }
-        return ScoreEvent;
-    })(Game.Event);
-    Game.ScoreEvent = ScoreEvent;
-    var ScoreManager = (function (_super) {
-        __extends(ScoreManager, _super);
-        function ScoreManager() {
-            _super.call(this);
-            this._score = 0;
-            this._highscore = 0;
-        }
-        ScoreManager.prototype.AddScore = function (value) {
-            var tmp = this._score;
-            var flg = false;
-            this._score += value;
-            if (this._score < 0)
-                this._score = 0;
-            if (tmp == this._score)
-                return;
-            if (this._score > this._highscore) {
-                this._highscore = this._score;
-            }
-            this.dispatchEvent(new ScoreEvent("scorechanged", this._score));
-            if (flg)
-                this.dispatchEvent(new ScoreEvent("highscorechanged", this._highscore));
-        };
-        ScoreManager.prototype.SetScore = function (value) {
-            var tmp = this._score;
-            var flg = false;
-            this._score = value;
-            if (this._score < 0)
-                this._score = 0;
-            if (tmp == this._score)
-                return;
-            if (this._score > this._highscore) {
-                this._highscore = this._score;
-            }
-            this.dispatchEvent(new ScoreEvent("scorechanged", this._score));
-            if (flg)
-                this.dispatchEvent(new ScoreEvent("highscorechanged", this._highscore));
-        };
-        ScoreManager.prototype.GetScore = function () {
-            return this._score;
-        };
-        ScoreManager.prototype.GetHighScore = function () {
-            return this._highscore;
-        };
-        ScoreManager.prototype.Reset = function () {
-            if (this._score != 0) {
-                this._score = 0;
-                this.dispatchEvent(new ScoreEvent("scorechanged", this._score));
-            }
-            if (this._highscore != 0) {
-                this._highscore = 0;
-                this.dispatchEvent(new ScoreEvent("highscorechanged", this._highscore));
-            }
-        };
-        return ScoreManager;
-    })(Game.EventDispatcher);
-    Game.ScoreManager = ScoreManager;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {

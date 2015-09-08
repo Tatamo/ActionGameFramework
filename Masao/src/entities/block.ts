@@ -1,7 +1,8 @@
-﻿module Game {
-    export class Block extends Sprite {
+﻿/// <reference path="entity.ts"/>
+module Game {
+    export class Block extends Entity {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
-            super(x, y, imagemanager, label, 21, dx, dy);
+            super(x, y, imagemanager, label, dx, dy);
             this.z = 512;
             this.initPatternCode();
             this.addEventHandler("onhit", this.onHit);
