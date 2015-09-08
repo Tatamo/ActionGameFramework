@@ -10,7 +10,7 @@ module Game {
         width: number;
         height: number;
         getParams();
-        collision(target: IShape, exclude_bounds: boolean);
+        collision(target: IShape, exclude_bounds?: boolean);
     }
     export class AbstractShape extends Collision implements IShape {
         left: number;

@@ -134,7 +134,7 @@ declare module Game {
         width: number;
         height: number;
         getParams(): any;
-        collision(target: IShape, exclude_bounds: boolean): any;
+        collision(target: IShape, exclude_bounds?: boolean): any;
     }
     class AbstractShape extends Collision implements IShape {
         left: number;
