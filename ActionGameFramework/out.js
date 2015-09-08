@@ -920,20 +920,20 @@ var Game;
         });
         Object.defineProperty(Rect.prototype, "centerx", {
             get: function () {
-                return this.x + this.width;
+                return this.x + this.width / 2;
             },
             set: function (v) {
-                this.x = v - this.width;
+                this.x = v - this.width / 2;
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(Rect.prototype, "centery", {
             get: function () {
-                return this.y + this.height;
+                return this.y + this.height / 2;
             },
             set: function (v) {
-                this.y = v - this.height;
+                this.y = v - this.height / 2;
             },
             enumerable: true,
             configurable: true
