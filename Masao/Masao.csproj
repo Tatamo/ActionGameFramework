@@ -20,6 +20,7 @@
   <ItemGroup>
     <Content Include="app.css" />
     <Content Include="app.js" />
+    <Content Include="gameover.gif" />
     <Content Include="index.html" />
     <Content Include="pattern.gif" />
     <Content Include="title.gif" />
@@ -27,7 +28,20 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
-    <TypeScriptCompile Include="src\player.ts" />
+    <TypeScriptCompile Include="src\entities\block.ts" />
+    <TypeScriptCompile Include="src\entities\enemy.ts" />
+    <TypeScriptCompile Include="src\entities\entity.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\entities\jumper.ts" />
+    <TypeScriptCompile Include="src\entities\walker.ts" />
+    <TypeScriptCompile Include="src\event.ts" />
+    <TypeScriptCompile Include="src\game.ts" />
+    <TypeScriptCompile Include="src\map.ts" />
+    <TypeScriptCompile Include="src\entities\player.ts" />
+    <TypeScriptCompile Include="src\score.ts" />
+    <TypeScriptCompile Include="src\spritesystem.ts" />
+    <TypeScriptCompile Include="src\states\gameover.ts" />
     <TypeScriptCompile Include="src\states\pause.ts" />
     <TypeScriptCompile Include="src\states\preload.ts" />
     <TypeScriptCompile Include="src\states\stage.ts" />

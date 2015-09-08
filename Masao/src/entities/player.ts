@@ -43,7 +43,6 @@ module Game {
             this.flags["isStamping"] = false;
             this.counter["jump_level"] = 0;
             if (this.counter["superjump_effect"] >= 0) this.counter["superjump_effect"] = 100;
-            console.log("player_onground");
         }
         private onStamp(e: Event) {
             this.moving.push(new States.PlayerStamping());
@@ -158,23 +157,27 @@ module Game {
                     this.y <= b.y + b.height && this.y + this.height >= b.y) {
                     b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "vertical", "center"));
                 }*/
-                var bc = b.getCollision();
+
+                var bc = b.getRect(); // TODO: getCollisionに書き換えても問題なく動作するように
                 var col = new Rect(this.centerx, this.y, 0, this.height);
-                
+
                 if (this.vy < 0) {
                     // up
                     //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
                     //    b.y < this.bottom && b.bottom >= this.y) {
-                    if (col.collision(bc) && !(new Point(this.centerx, this.bottom).collision(bc))) { // 一番下の点との判定のみ等号ではなく不等号
+                    if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.bottom, bc.width, 0))) &&
+                        !(col.collision(new Point(bc.left, bc.top))) && !(col.collision(new Point(bc.right, bc.bottom)))) { // ブロックの右の辺と上の辺を除いた部分と判定を行う
                         this.y = b.bottom;
                         this.vy = 0;
                     }
+                    console.log(col.collision(new Point(bc.left, bc.top)), this.centerx, this.y, this.vx, this.vy);
                 }
                 else if (this.vy >= 0) {
                     // down || //
+                    if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.top, bc.width, 0))) &&
+                        !(col.collision(new Point(bc.right, bc.top))) && !(col.collision(new Point(bc.left, bc.bottom)))) { // ブロックの右の辺と下の辺を除いた部分と判定を行う
                     //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
                     //    b.y <= this.bottom && b.bottom > this.y) {
-                        if (col.collision(bc) && !(new Point(this.centerx, this.y).collision(bc))) { // 一番上の点との判定のみ除外
                         this.dispatchEvent(new Event("onground"));
                         this.bottom = b.y;
                         this.vy = 0;
@@ -197,19 +200,17 @@ module Game {
                 
                 if (this.vx > 0) {
                     // right
-                    //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
-                    //    b.y <= this.bottom && b.bottom > this.y) {
-                    if (col.collision(bc)) {
+                    if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.top, bc.width, 0))) &&
+                        !(col.collision(new Point(bc.right, bc.top))) && !(col.collision(new Point(bc.left, bc.bottom)))) { // ブロックの右の辺と下の辺を除いた部分と判定を行う
                         this.centerx = b.x - 1;
                         this.vx = 0;
                     }
                 }
                 else if (this.vx < 0) {
                     // left
-                    //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
-                    //    b.y <= this.bottom && b.bottom > this.y) {
-                    if (col.collision(bc)) {
-                        this.centerx = b.right + 1;
+                    if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.top, bc.width, 0))) &&
+                        !(col.collision(new Point(bc.right, bc.top))) && !(col.collision(new Point(bc.left, bc.bottom)))) { // ブロックの右の辺と下の辺を除いた部分と判定を行う
+                        this.centerx = b.right;
                         this.vx = 0;
                     }
                 }

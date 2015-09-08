@@ -580,7 +580,6 @@ var Game;
             this.counter["jump_level"] = 0;
             if (this.counter["superjump_effect"] >= 0)
                 this.counter["superjump_effect"] = 100;
-            console.log("player_onground");
         };
         Player.prototype.onStamp = function (e) {
             this.moving.push(new States.PlayerStamping());
@@ -696,22 +695,23 @@ var Game;
                     this.y <= b.y + b.height && this.y + this.height >= b.y) {
                     b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "vertical", "center"));
                 }*/
-                var bc = b.getCollision();
+                var bc = b.getRect(); // TODO: getCollisionに書き換えても問題なく動作するように
                 var col = new Game.Rect(this.centerx, this.y, 0, this.height);
                 if (this.vy < 0) {
                     // up
                     //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
                     //    b.y < this.bottom && b.bottom >= this.y) {
-                    if (col.collision(bc) && !(new Game.Point(this.centerx, this.bottom).collision(bc))) {
+                    if (((col.collision(bc, true)) || col.collision(new Game.Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Game.Rect(bc.left, bc.bottom, bc.width, 0))) && !(col.collision(new Game.Point(bc.left, bc.top))) && !(col.collision(new Game.Point(bc.right, bc.bottom)))) {
                         this.y = b.bottom;
                         this.vy = 0;
                     }
+                    console.log(col.collision(new Game.Point(bc.left, bc.top)), this.centerx, this.y, this.vx, this.vy);
                 }
                 else if (this.vy >= 0) {
                     // down || //
-                    //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
-                    //    b.y <= this.bottom && b.bottom > this.y) {
-                    if (col.collision(bc) && !(new Game.Point(this.centerx, this.y).collision(bc))) {
+                    if (((col.collision(bc, true)) || col.collision(new Game.Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Game.Rect(bc.left, bc.top, bc.width, 0))) && !(col.collision(new Game.Point(bc.right, bc.top))) && !(col.collision(new Game.Point(bc.left, bc.bottom)))) {
+                        //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                        //    b.y <= this.bottom && b.bottom > this.y) {
                         this.dispatchEvent(new Game.Event("onground"));
                         this.bottom = b.y;
                         this.vy = 0;
@@ -732,19 +732,15 @@ var Game;
                 var col = new Game.Rect(this.centerx, this.y, 0, this.height);
                 if (this.vx > 0) {
                     // right
-                    //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
-                    //    b.y <= this.bottom && b.bottom > this.y) {
-                    if (col.collision(bc)) {
+                    if (((col.collision(bc, true)) || col.collision(new Game.Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Game.Rect(bc.left, bc.top, bc.width, 0))) && !(col.collision(new Game.Point(bc.right, bc.top))) && !(col.collision(new Game.Point(bc.left, bc.bottom)))) {
                         this.centerx = b.x - 1;
                         this.vx = 0;
                     }
                 }
                 else if (this.vx < 0) {
                     // left
-                    //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
-                    //    b.y <= this.bottom && b.bottom > this.y) {
-                    if (col.collision(bc)) {
-                        this.centerx = b.right + 1;
+                    if (((col.collision(bc, true)) || col.collision(new Game.Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Game.Rect(bc.left, bc.top, bc.width, 0))) && !(col.collision(new Game.Point(bc.right, bc.top))) && !(col.collision(new Game.Point(bc.left, bc.bottom)))) {
+                        this.centerx = b.right;
                         this.vx = 0;
                     }
                 }
