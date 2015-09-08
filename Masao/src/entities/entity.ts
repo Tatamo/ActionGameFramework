@@ -8,9 +8,6 @@
             this.counter = {};
             this.flags = {};
         }
-        getCollision(): IShape { // 通常時に当たり判定に使用する図形を得る
-            return this.getRect();
-        }
     }
     export class EntityStateMachine extends StateMachine {
         public e: Entity;

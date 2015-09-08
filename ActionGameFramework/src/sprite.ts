@@ -22,6 +22,7 @@ module Game {
         update();
         kill();
         getRect(): Rect;
+        getCollision(): IShape;
     }
     // UNDONE: 自分の所属しているgroup名の取得
     // パターン画像を使用するスプライト
@@ -57,16 +58,16 @@ module Game {
         set reverse_vertical(f: boolean) { this.surface.reverse_vertical = f; }
         get left(): number { return this.x; }
         set left(v: number) { this.x = v; }
-        get right(): number { return this.x + this.width - 1; }
-        set right(v: number) { this.x = v - this.width + 1; }
+        get right(): number { return this.x + this.width; }
+        set right(v: number) { this.x = v - this.width; }
         get top(): number { return this.y; }
         set top(v: number) { this.y = v; }
-        get bottom(): number { return this.y + this.height - 1; }
-        set bottom(v: number) { this.y = v - this.height + 1; }
-        get centerx(): number { return this.x + (this.width - 1) / 2; }
-        set centerx(v: number) { this.x = v - (this.width + 1) / 2; }
-        get centery(): number { return this.y + (this.height - 1) / 2; }
-        set centery(v: number) { this.y = v - (this.height + 1) / 2; }
+        get bottom(): number { return this.y + this.height; }
+        set bottom(v: number) { this.y = v - this.height; }
+        get centerx(): number { return this.x + this.width / 2; }
+        set centerx(v: number) { this.x = v - this.width / 2; }
+        get centery(): number { return this.y + this.height / 2; }
+        set centery(v: number) { this.y = v - this.height / 2; }
 
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {
             super();
@@ -109,6 +110,9 @@ module Game {
         }
         getRect(): Rect {
             return new Rect(this.x, this.y, this.width, this.height);
+        }
+        getCollision(): IShape { // 通常時に当たり判定に使用する図形を得る
+            return this.getRect();
         }
     }
     export class SpriteEvent extends Event {

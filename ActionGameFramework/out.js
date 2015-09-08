@@ -1321,10 +1321,10 @@ var Game;
         });
         Object.defineProperty(Sprite.prototype, "right", {
             get: function () {
-                return this.x + this.width - 1;
+                return this.x + this.width;
             },
             set: function (v) {
-                this.x = v - this.width + 1;
+                this.x = v - this.width;
             },
             enumerable: true,
             configurable: true
@@ -1341,30 +1341,30 @@ var Game;
         });
         Object.defineProperty(Sprite.prototype, "bottom", {
             get: function () {
-                return this.y + this.height - 1;
+                return this.y + this.height;
             },
             set: function (v) {
-                this.y = v - this.height + 1;
+                this.y = v - this.height;
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(Sprite.prototype, "centerx", {
             get: function () {
-                return this.x + (this.width - 1) / 2;
+                return this.x + this.width / 2;
             },
             set: function (v) {
-                this.x = v - (this.width + 1) / 2;
+                this.x = v - this.width / 2;
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(Sprite.prototype, "centery", {
             get: function () {
-                return this.y + (this.height - 1) / 2;
+                return this.y + this.height / 2;
             },
             set: function (v) {
-                this.y = v - (this.height + 1) / 2;
+                this.y = v - this.height / 2;
             },
             enumerable: true,
             configurable: true
@@ -1396,6 +1396,9 @@ var Game;
         };
         Sprite.prototype.getRect = function () {
             return new Game.Rect(this.x, this.y, this.width, this.height);
+        };
+        Sprite.prototype.getCollision = function () {
+            return this.getRect();
         };
         return Sprite;
     })(Game.EventDispatcher);

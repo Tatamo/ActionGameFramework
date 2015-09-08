@@ -295,6 +295,7 @@ declare module Game {
         update(): any;
         kill(): any;
         getRect(): Rect;
+        getCollision(): IShape;
     }
     class Sprite extends EventDispatcher implements ISprite {
         x: number;
@@ -320,6 +321,7 @@ declare module Game {
         update(): void;
         kill(): void;
         getRect(): Rect;
+        getCollision(): IShape;
     }
     class SpriteEvent extends Event {
         type: string;

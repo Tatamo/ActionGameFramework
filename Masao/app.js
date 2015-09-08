@@ -156,9 +156,6 @@ var Game;
             this.counter = {};
             this.flags = {};
         }
-        Entity.prototype.getCollision = function () {
-            return this.getRect();
-        };
         return Entity;
     })(Game.Sprite);
     Game.Entity = Entity;
