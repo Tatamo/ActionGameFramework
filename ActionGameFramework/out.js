@@ -554,20 +554,19 @@ var Game;
     var Collision = (function () {
         function Collision() {
         }
-        Collision.prototype.collision = function (target, base) {
-            if (base === void 0) { base = null; }
-            if (!base)
-                base = this; // 第二引数が与えられなかった場合、自身をbaseとする
+        Collision.prototype.collision = function (target, exclude_bounds) {
+            if (exclude_bounds === void 0) { exclude_bounds = false; }
+            var base = this; // 自身がShapeクラスに継承されていることを前提とする
             var flag_failed = false;
             if (base instanceof Game.Point) {
                 if (target instanceof Game.Point) {
-                    return this.colPointWithPoint(base, target);
+                    return this.colPointWithPoint(base, target, exclude_bounds);
                 }
                 else if (target instanceof Game.Rect) {
-                    return this.colPointWithRect(base, target);
+                    return this.colPointWithRect(base, target, exclude_bounds);
                 }
                 else if (target instanceof Game.Circle) {
-                    return this.colPointWithCircle(base, target);
+                    return this.colPointWithCircle(base, target, exclude_bounds);
                 }
                 else {
                     flag_failed = true;
@@ -575,13 +574,13 @@ var Game;
             }
             else if (base instanceof Game.Rect) {
                 if (target instanceof Game.Point) {
-                    return this.colPointWithRect(target, base);
+                    return this.colPointWithRect(target, base, exclude_bounds);
                 }
                 else if (target instanceof Game.Rect) {
-                    return this.colRectWithRect(base, target);
+                    return this.colRectWithRect(base, target, exclude_bounds);
                 }
                 else if (target instanceof Game.Circle) {
-                    return this.colRectWithCircle(base, target);
+                    return this.colRectWithCircle(base, target, exclude_bounds);
                 }
                 else {
                     flag_failed = true;
@@ -589,13 +588,13 @@ var Game;
             }
             else if (base instanceof Game.Circle) {
                 if (target instanceof Game.Point) {
-                    return this.colPointWithCircle(target, base);
+                    return this.colPointWithCircle(target, base, exclude_bounds);
                 }
                 else if (target instanceof Game.Rect) {
-                    return this.colRectWithCircle(target, base);
+                    return this.colRectWithCircle(target, base, exclude_bounds);
                 }
                 else if (target instanceof Game.Circle) {
-                    return this.colCircleWithCircle(base, target);
+                    return this.colCircleWithCircle(base, target, exclude_bounds);
                 }
                 else {
                     flag_failed = true;
@@ -608,36 +607,81 @@ var Game;
                 throw new Error("incorrect or not supported collision type");
             return false;
         };
-        Collision.prototype.colPointWithPoint = function (p1, p2) {
-            if (p1.x == p2.x && p1.y == p2.y) {
-                return true;
+        Collision.prototype.colPointWithPoint = function (p1, p2, exclude_bounds) {
+            if (exclude_bounds === void 0) { exclude_bounds = false; }
+            if (exclude_bounds) {
+                if (p1.x == p2.x && p1.y == p2.y) {
+                    return true;
+                }
+            }
+            else {
+                if (p1.x == p2.x && p1.y == p2.y) {
+                    return true;
+                }
             }
             return false;
         };
-        Collision.prototype.colPointWithRect = function (p, r) {
-            if (r.left <= p.x && p.x <= r.right && r.top <= p.y && p.y <= r.bottom) {
-                return true;
+        Collision.prototype.colPointWithRect = function (p, r, exclude_bounds) {
+            if (exclude_bounds === void 0) { exclude_bounds = false; }
+            if (exclude_bounds) {
+                if (r.left < p.x && p.x < r.right && r.top < p.y && p.y < r.bottom) {
+                    return true;
+                }
+            }
+            else {
+                if (r.left <= p.x && p.x <= r.right && r.top <= p.y && p.y <= r.bottom) {
+                    return true;
+                }
             }
             return false;
         };
-        Collision.prototype.colPointWithCircle = function (p, c) {
-            if ((p.x - c.x) * (p.x - c.x) + (p.y - c.y) * (p.y - c.y) <= c.r * c.r) {
-                return true;
+        Collision.prototype.colPointWithCircle = function (p, c, exclude_bounds) {
+            if (exclude_bounds === void 0) { exclude_bounds = false; }
+            if (exclude_bounds) {
+                if ((p.x - c.x) * (p.x - c.x) + (p.y - c.y) * (p.y - c.y) < c.r * c.r) {
+                    return true;
+                }
+            }
+            else {
+                if ((p.x - c.x) * (p.x - c.x) + (p.y - c.y) * (p.y - c.y) <= c.r * c.r) {
+                    return true;
+                }
             }
             return false;
         };
-        Collision.prototype.colRectWithRect = function (r1, r2) {
-            if (r1.left <= r2.right && r2.left <= r1.right && r1.top <= r2.bottom && r2.top <= r1.bottom) {
-                return true;
+        Collision.prototype.colRectWithRect = function (r1, r2, exclude_bounds) {
+            if (exclude_bounds === void 0) { exclude_bounds = false; }
+            if (exclude_bounds) {
+                if (r1.left < r2.right && r2.left < r1.right && r1.top < r2.bottom && r2.top < r1.bottom) {
+                    return true;
+                }
+            }
+            else {
+                if (r1.left <= r2.right && r2.left <= r1.right && r1.top <= r2.bottom && r2.top <= r1.bottom) {
+                    return true;
+                }
             }
             return false;
         };
-        Collision.prototype.colRectWithCircle = function (r, c) {
+        Collision.prototype.colRectWithCircle = function (r, c, exclude_bounds) {
+            if (exclude_bounds === void 0) { exclude_bounds = false; }
+            if (exclude_bounds) {
+            }
+            else {
+            }
             return false;
         };
-        Collision.prototype.colCircleWithCircle = function (c1, c2) {
-            if ((c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y) <= (c1.r + c2.r) * (c1.r + c2.r)) {
-                return false;
+        Collision.prototype.colCircleWithCircle = function (c1, c2, exclude_bounds) {
+            if (exclude_bounds === void 0) { exclude_bounds = false; }
+            if (exclude_bounds) {
+                if ((c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y) < (c1.r + c2.r) * (c1.r + c2.r)) {
+                    return false;
+                }
+            }
+            else {
+                if ((c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y) <= (c1.r + c2.r) * (c1.r + c2.r)) {
+                    return false;
+                }
             }
             return false;
         };

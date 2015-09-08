@@ -114,13 +114,13 @@ declare module Game {
 declare module Game {
     class Collision {
         constructor();
-        collision(target: IShape, base?: IShape): boolean;
-        protected colPointWithPoint(p1: Point, p2: Point): boolean;
-        protected colPointWithRect(p: Point, r: Rect): boolean;
-        protected colPointWithCircle(p: Point, c: Circle): boolean;
-        protected colRectWithRect(r1: Rect, r2: Rect): boolean;
-        protected colRectWithCircle(r: Rect, c: Circle): boolean;
-        protected colCircleWithCircle(c1: Circle, c2: Circle): boolean;
+        collision(target: IShape, exclude_bounds?: boolean): boolean;
+        protected colPointWithPoint(p1: Point, p2: Point, exclude_bounds?: boolean): boolean;
+        protected colPointWithRect(p: Point, r: Rect, exclude_bounds?: boolean): boolean;
+        protected colPointWithCircle(p: Point, c: Circle, exclude_bounds?: boolean): boolean;
+        protected colRectWithRect(r1: Rect, r2: Rect, exclude_bounds?: boolean): boolean;
+        protected colRectWithCircle(r: Rect, c: Circle, exclude_bounds?: boolean): boolean;
+        protected colCircleWithCircle(c1: Circle, c2: Circle, exclude_bounds?: boolean): boolean;
     }
 }
 declare module Game {
@@ -134,7 +134,7 @@ declare module Game {
         width: number;
         height: number;
         getParams(): any;
-        collision(target: IShape, base?: IShape): any;
+        collision(target: IShape, exclude_bounds: boolean): any;
     }
     class AbstractShape extends Collision implements IShape {
         left: number;
