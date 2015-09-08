@@ -1,5 +1,5 @@
 ﻿module Game {
-    export class Kame extends Entity {
+    export class Kame extends Enemy {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
             super(x, y, imagemanager, label, dx, dy);
             this.moving = new EntityStateMachine(this);

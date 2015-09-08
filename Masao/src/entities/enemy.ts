@@ -1,13 +1,9 @@
-﻿module Game {
-    export class Entity extends Sprite {
+﻿/// <reference path="entity.ts"/>
+module Game {
+    export class Enemy extends Entity {
         public moving: EntityStateMachine;
-        public counter: { [key: string]: number; };
-        public flags: { [key: string]: boolean; };
-        public ss: SpriteSystem;
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
-            super(x, y, imagemanager, label, 0, dx, dy);
-            this.counter = {};
-            this.flags = {};
+            super(x, y, imagemanager, label, dx, dy);
             this.z = 256;
             this.counter["ac"] = 0;
             this.flags["isAlive"] = true;
@@ -71,13 +67,6 @@
                     b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "horizontal", "edge"));
                 }
             }
-        }
-    }
-    export class EntityStateMachine extends StateMachine {
-        public e: Entity;
-        constructor(e: Entity, parent: any = null) {
-            super(parent);
-            this.e = e;
         }
     }
     export module States {

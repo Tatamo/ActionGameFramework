@@ -1,21 +1,19 @@
-﻿module Game {
-    export class Player extends Sprite {
+﻿/// <reference path="entity.ts"/>
+module Game {
+    export class Player extends Entity {
         public gk: GameKey; // TODO:疎結合に
-        public counter: { [key: string]: number; };
-        public flags: { [key: string]: boolean; };
         public sjump_effects: Array<PlayerSuperJumpEffect>;
         public moving: PlayerStateMachine;
         public special: PlayerStateMachine;
-        public ss: SpriteSystem;
         constructor(input: GameKey, x: number, y: number, public imagemanager: ImageManager, public label: string, dx: number = 1, dy: number = 1) {
-            super(x, y, imagemanager, label, 100, dx, dy);
+            super(x, y, imagemanager, label, dx, dy);
+            this.code = 100;
             this.gk = input;
             this.moving = new PlayerStateMachine(this);
             this.moving.setGlobalState(new States.PlayerGlobalMove());
             this.moving.push(new States.PlayerInterialMove());
             this.special = new PlayerStateMachine(this);
             this.special.push(new States.PlayerWithoutSpecialMove());
-            this.counter = {};
             this.counter["able2runningLeft"] = 0;
             this.counter["able2runningRight"] = 0;
             this.counter["running"] = 0;
@@ -23,7 +21,6 @@
             this.counter["stamp_waiting"] = 0;
             this.counter["dying"] = 0;
             this.counter["superjump_effect"] = -1;
-            this.flags = {};
             this.flags["isAlive"] = true; // まだミスをしていない状態
             this.flags["isRunning"] = false; // 走っている状態
             this.flags["isWalking"] = false; // 歩いている状態
