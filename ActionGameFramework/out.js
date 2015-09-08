@@ -551,6 +551,117 @@ var Game;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
+    var Collision = (function () {
+        function Collision() {
+        }
+        Collision.prototype.collision = function (target, base) {
+            if (base === void 0) { base = null; }
+            if (!base)
+                base = this; // 第二引数が与えられなかった場合、自身をbaseとする
+            var flag_failed = false;
+            if (base instanceof Game.Point) {
+                if (target instanceof Game.Point) {
+                    return this.colPointWithPoint(base, target);
+                }
+                else if (target instanceof Game.Rect) {
+                    return this.colPointWithRect(base, target);
+                }
+                else if (target instanceof Game.Circle) {
+                    return this.colPointWithCircle(base, target);
+                }
+                else {
+                    flag_failed = true;
+                }
+            }
+            else if (base instanceof Game.Rect) {
+                if (target instanceof Game.Point) {
+                    return this.colPointWithRect(target, base);
+                }
+                else if (target instanceof Game.Rect) {
+                    return this.colRectWithRect(base, target);
+                }
+                else if (target instanceof Game.Circle) {
+                    return this.colRectWithCircle(base, target);
+                }
+                else {
+                    flag_failed = true;
+                }
+            }
+            else if (base instanceof Game.Circle) {
+                if (target instanceof Game.Point) {
+                    return this.colPointWithCircle(target, base);
+                }
+                else if (target instanceof Game.Rect) {
+                    return this.colRectWithCircle(target, base);
+                }
+                else if (target instanceof Game.Circle) {
+                    return this.colCircleWithCircle(base, target);
+                }
+                else {
+                    flag_failed = true;
+                }
+            }
+            else {
+                flag_failed = true;
+            }
+            if (flag_failed)
+                throw new Error("incorrect or not supported collision type");
+            return false;
+        };
+        Collision.prototype.colPointWithPoint = function (p1, p2) {
+            if (p1.x == p2.x && p1.y == p2.y) {
+                return true;
+            }
+            return false;
+        };
+        Collision.prototype.colPointWithRect = function (p, r) {
+            if (r.left <= p.x && p.x <= r.right && r.top <= p.y && p.y <= r.bottom) {
+                return true;
+            }
+            return false;
+        };
+        Collision.prototype.colPointWithCircle = function (p, c) {
+            if ((p.x - c.x) * (p.x - c.x) + (p.y - c.y) * (p.y - c.y) <= c.r * c.r) {
+                return true;
+            }
+            return false;
+        };
+        Collision.prototype.colRectWithRect = function (r1, r2) {
+            if (r1.left <= r2.right && r2.left <= r1.right && r1.top <= r2.bottom && r2.top <= r1.bottom) {
+                return true;
+            }
+            return false;
+        };
+        Collision.prototype.colRectWithCircle = function (r, c) {
+            return false;
+        };
+        Collision.prototype.colCircleWithCircle = function (c1, c2) {
+            if ((c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y) <= (c1.r + c2.r) * (c1.r + c2.r)) {
+                return false;
+            }
+            return false;
+        };
+        return Collision;
+    })();
+    Game.Collision = Collision;
+})(Game || (Game = {}));
+/// <reference path="collision.ts"/>
+var Game;
+(function (Game) {
+    var AbstractShape = (function (_super) {
+        __extends(AbstractShape, _super);
+        function AbstractShape() {
+            _super.call(this);
+        }
+        AbstractShape.prototype.getParams = function () {
+        };
+        return AbstractShape;
+    })(Game.Collision);
+    Game.AbstractShape = AbstractShape;
+})(Game || (Game = {}));
+/// <reference path="shape.ts"/>
+var Game;
+(function (Game) {
     var Circle = (function (_super) {
         __extends(Circle, _super);
         function Circle(x, y, r, base) {
@@ -652,102 +763,7 @@ var Game;
     })(Game.AbstractShape);
     Game.Circle = Circle;
 })(Game || (Game = {}));
-var Game;
-(function (Game) {
-    var Collision = (function () {
-        function Collision() {
-        }
-        Collision.prototype.collision = function (target, base) {
-            if (base === void 0) { base = null; }
-            if (!base)
-                base = this; // 第二引数が与えられなかった場合、自身をbaseとする
-            var flag_failed = false;
-            if (base instanceof Game.Point) {
-                if (target instanceof Game.Point) {
-                    return this.colPointWithPoint(base, target);
-                }
-                else if (target instanceof Game.Rect) {
-                    return this.colPointWithRect(base, target);
-                }
-                else if (target instanceof Game.Circle) {
-                    return this.colPointWithCircle(base, target);
-                }
-                else {
-                    flag_failed = true;
-                }
-            }
-            else if (base instanceof Game.Rect) {
-                if (target instanceof Game.Point) {
-                    return this.colPointWithRect(target, base);
-                }
-                else if (target instanceof Game.Rect) {
-                    return this.colRectWithRect(base, target);
-                }
-                else if (target instanceof Game.Circle) {
-                    return this.colRectWithCircle(base, target);
-                }
-                else {
-                    flag_failed = true;
-                }
-            }
-            else if (base instanceof Game.Circle) {
-                if (target instanceof Game.Point) {
-                    return this.colPointWithCircle(target, base);
-                }
-                else if (target instanceof Game.Rect) {
-                    return this.colRectWithCircle(target, base);
-                }
-                else if (target instanceof Game.Circle) {
-                    return this.colCircleWithCircle(base, target);
-                }
-                else {
-                    flag_failed = true;
-                }
-            }
-            else {
-                flag_failed = true;
-            }
-            if (flag_failed)
-                throw new Error("incorrect or not supported collision type");
-            return false;
-        };
-        Collision.prototype.colPointWithPoint = function (p1, p2) {
-            if (p1.x == p2.x && p1.y == p2.y) {
-                return true;
-            }
-            return false;
-        };
-        Collision.prototype.colPointWithRect = function (p, r) {
-            if (r.left <= p.x && p.x <= r.right && r.top <= p.y && p.y <= r.bottom) {
-                return true;
-            }
-            return false;
-        };
-        Collision.prototype.colPointWithCircle = function (p, c) {
-            if ((p.x - c.x) * (p.x - c.x) + (p.y - c.y) * (p.y - c.y) <= c.r * c.r) {
-                return true;
-            }
-            return false;
-        };
-        Collision.prototype.colRectWithRect = function (r1, r2) {
-            if (r1.left <= r2.right && r2.left <= r1.right && r1.top <= r2.bottom && r2.top <= r1.bottom) {
-                return true;
-            }
-            return false;
-        };
-        Collision.prototype.colRectWithCircle = function (r, c) {
-            return false;
-        };
-        Collision.prototype.colCircleWithCircle = function (c1, c2) {
-            if ((c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y) <= (c1.r + c2.r) * (c1.r + c2.r)) {
-                return false;
-            }
-            return false;
-        };
-        return Collision;
-    })();
-    Game.Collision = Collision;
-})(Game || (Game = {}));
+/// <reference path="shape.ts"/>
 var Game;
 (function (Game) {
     var Point = (function (_super) {
@@ -843,6 +859,7 @@ var Game;
     })(Game.AbstractShape);
     Game.Point = Point;
 })(Game || (Game = {}));
+/// <reference path="shape.ts"/>
 var Game;
 (function (Game) {
     var Rect = (function (_super) {
@@ -927,19 +944,6 @@ var Game;
         return Rect;
     })(Game.AbstractShape);
     Game.Rect = Rect;
-})(Game || (Game = {}));
-var Game;
-(function (Game) {
-    var AbstractShape = (function (_super) {
-        __extends(AbstractShape, _super);
-        function AbstractShape() {
-            _super.call(this);
-        }
-        AbstractShape.prototype.getParams = function () {
-        };
-        return AbstractShape;
-    })(Game.Collision);
-    Game.AbstractShape = AbstractShape;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {

@@ -112,6 +112,44 @@ declare module Game {
     }
 }
 declare module Game {
+    class Collision {
+        constructor();
+        collision(target: IShape, base?: IShape): boolean;
+        protected colPointWithPoint(p1: Point, p2: Point): boolean;
+        protected colPointWithRect(p: Point, r: Rect): boolean;
+        protected colPointWithCircle(p: Point, c: Circle): boolean;
+        protected colRectWithRect(r1: Rect, r2: Rect): boolean;
+        protected colRectWithCircle(r: Rect, c: Circle): boolean;
+        protected colCircleWithCircle(c1: Circle, c2: Circle): boolean;
+    }
+}
+declare module Game {
+    interface IShape {
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+        centerx: number;
+        centery: number;
+        width: number;
+        height: number;
+        getParams(): any;
+        collision(target: IShape, base?: IShape): any;
+    }
+    class AbstractShape extends Collision implements IShape {
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+        centerx: number;
+        centery: number;
+        width: number;
+        height: number;
+        constructor();
+        getParams(): void;
+    }
+}
+declare module Game {
     class Circle extends AbstractShape {
         x: number;
         y: number;
@@ -126,18 +164,6 @@ declare module Game {
         centery: number;
         constructor(x: number, y: number, r: number, base?: Circle);
         getParams(): Array<number>;
-    }
-}
-declare module Game {
-    class Collision {
-        constructor();
-        collision(target: IShape, base?: IShape): boolean;
-        protected colPointWithPoint(p1: Point, p2: Point): boolean;
-        protected colPointWithRect(p: Point, r: Rect): boolean;
-        protected colPointWithCircle(p: Point, c: Circle): boolean;
-        protected colRectWithRect(r1: Rect, r2: Rect): boolean;
-        protected colRectWithCircle(r: Rect, c: Circle): boolean;
-        protected colCircleWithCircle(c1: Circle, c2: Circle): boolean;
     }
 }
 declare module Game {
@@ -170,32 +196,6 @@ declare module Game {
         centery: number;
         constructor(x: number, y: number, w: number, h: number, base?: Rect);
         getParams(): Array<number>;
-    }
-}
-declare module Game {
-    interface IShape {
-        left: number;
-        right: number;
-        top: number;
-        bottom: number;
-        centerx: number;
-        centery: number;
-        width: number;
-        height: number;
-        getParams(): any;
-        collision(target: IShape, base?: IShape): any;
-    }
-    class AbstractShape extends Collision implements IShape {
-        left: number;
-        right: number;
-        top: number;
-        bottom: number;
-        centerx: number;
-        centery: number;
-        width: number;
-        height: number;
-        constructor();
-        getParams(): void;
     }
 }
 declare module Game {

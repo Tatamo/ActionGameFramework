@@ -1,4 +1,5 @@
-﻿module Game {
+﻿/// <reference path="collision.ts"/>
+module Game {
     export interface IShape {
         left: number;
         right: number;

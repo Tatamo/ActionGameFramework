@@ -1,4 +1,5 @@
-﻿module Game {
+﻿/// <reference path="shape.ts"/>
+module Game {
     export class Point extends AbstractShape {
         x: number;
         y: number;
