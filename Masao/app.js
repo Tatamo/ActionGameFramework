@@ -588,6 +588,403 @@ var Game;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
+    var Kame = (function (_super) {
+        __extends(Kame, _super);
+        function Kame(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.KameWalking());
+            //this.code = 140;
+            this.addEventHandler("onstamped", this.onStamped);
+            this.addEventHandler("onhit", this.onHit);
+        }
+        Kame.prototype.onStamped = function (e) {
+            if (this.flags["isAlive"])
+                this.moving.replace(new States.KameStamped());
+            this.vx = 0;
+            this.vy = 0;
+        };
+        Kame.prototype.onHit = function (e) {
+            if (this.flags["isAlive"]) {
+                if (e.dir == "horizontal") {
+                    this.reverse_horizontal = !this.reverse_horizontal;
+                }
+                if (e.dir == "vertical") {
+                    this.flags["isOnGround"] = true;
+                }
+            }
+        };
+        return Kame;
+    })(Game.Entity);
+    Game.Kame = Kame;
+    var KameFallable = (function (_super) {
+        __extends(KameFallable, _super);
+        function KameFallable(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.moving.replace(new States.KameWalkingFallable());
+        }
+        return KameFallable;
+    })(Kame);
+    Game.KameFallable = KameFallable;
+    var States;
+    (function (States) {
+        var KameWalking = (function (_super) {
+            __extends(KameWalking, _super);
+            function KameWalking() {
+                _super.apply(this, arguments);
+            }
+            KameWalking.prototype.enter = function (sm) {
+            };
+            KameWalking.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
+                if (e.counter["ac"] < 2)
+                    e.code = 140;
+                else
+                    e.code = 141;
+                e.vx = e.reverse_horizontal ? 30 : -30;
+                if (e.ss.MapBlocks.getByXYReal((e.reverse_horizontal ? e.right : e.x) + e.vx / 10, e.y + e.height + 1) == null) {
+                    e.reverse_horizontal = !e.reverse_horizontal;
+                    e.x = e.ss.MapBlocks.getByXYReal(e.centerx, e.y + e.height + 1).x;
+                    e.vx = 0;
+                }
+                this.checkCollisionWithPlayer(sm);
+            };
+            return KameWalking;
+        })(States.AbstractStampableAlive);
+        States.KameWalking = KameWalking;
+        var KameWalkingFallable = (function (_super) {
+            __extends(KameWalkingFallable, _super);
+            function KameWalkingFallable() {
+                _super.apply(this, arguments);
+            }
+            KameWalkingFallable.prototype.enter = function (sm) {
+            };
+            KameWalkingFallable.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
+                if (e.counter["ac"] < 2)
+                    e.code = 140;
+                else
+                    e.code = 141;
+                e.vx = e.reverse_horizontal ? 30 : -30;
+                if (e.ss.MapBlocks.getByXYReal((e.reverse_horizontal ? e.x : e.right) + e.vx / 10, e.y + e.height + 1) == null) {
+                    e.x = Math.floor(((e.reverse_horizontal ? e.x : e.right) + e.vx / 10) / e.width) * e.width; // マップチップの横幅がエンティティの横幅と同じであること依存している点に注意
+                    e.vx = 0;
+                    sm.replace(new KameFalling());
+                }
+                this.checkCollisionWithPlayer(sm);
+            };
+            return KameWalkingFallable;
+        })(States.AbstractStampableAlive);
+        States.KameWalkingFallable = KameWalkingFallable;
+        var KameFalling = (function (_super) {
+            __extends(KameFalling, _super);
+            function KameFalling() {
+                _super.apply(this, arguments);
+            }
+            KameFalling.prototype.enter = function (sm) {
+                sm.e.flags["isOnGround"] = false;
+            };
+            KameFalling.prototype.update = function (sm) {
+                var e = sm.e;
+                if (e.flags["isOnGround"]) {
+                    sm.replace(new KameWalkingFallable());
+                    sm.update();
+                }
+                else {
+                    e.code = 140;
+                    e.vy = 50;
+                    this.checkCollisionWithPlayer(sm);
+                }
+            };
+            return KameFalling;
+        })(States.AbstractStampableAlive);
+        States.KameFalling = KameFalling;
+        var KameStamped = (function (_super) {
+            __extends(KameStamped, _super);
+            function KameStamped() {
+                _super.apply(this, arguments);
+            }
+            KameStamped.prototype.enter = function (sm) {
+                sm.e.counter["ac"] = 0;
+                sm.e.code = 142;
+                sm.e.flags["isAlive"] = false;
+            };
+            KameStamped.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] += 1;
+                e.code = 142;
+                e.vx = 0;
+                e.vy = 0;
+                if (e.counter["ac"] >= 10) {
+                    e.kill();
+                }
+            };
+            return KameStamped;
+        })(States.AbstractState);
+        States.KameStamped = KameStamped;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var SpriteCollisionEvent = (function (_super) {
+        __extends(SpriteCollisionEvent, _super);
+        function SpriteCollisionEvent(type, sprite, dir, mode) {
+            if (dir === void 0) { dir = "none"; }
+            if (mode === void 0) { mode = "edge"; }
+            _super.call(this, type, sprite);
+            this.type = type;
+            this.sprite = sprite;
+            this.dir = dir;
+            this.mode = mode;
+        }
+        return SpriteCollisionEvent;
+    })(Game.SpriteEvent);
+    Game.SpriteCollisionEvent = SpriteCollisionEvent;
+})(Game || (Game = {}));
+var Game;
+(function (_Game) {
+    var GameStateMachine = (function (_super) {
+        __extends(GameStateMachine, _super);
+        function GameStateMachine(game, parent) {
+            if (parent === void 0) { parent = null; }
+            _super.call(this, parent);
+            this.game = game;
+        }
+        return GameStateMachine;
+    })(_Game.StateMachine);
+    _Game.GameStateMachine = GameStateMachine;
+    var Game = (function (_super) {
+        __extends(Game, _super);
+        function Game(config) {
+            var _this = this;
+            _super.call(this, config);
+            this.statemachine = new GameStateMachine(this);
+            this.score = new _Game.ScoreManager();
+            this.hud_score = this.score.GetScore();
+            this.hud_highscore = this.score.GetHighScore();
+            this.addEventHandler("update", function () {
+                var ctx = _this.screen.context;
+                ctx.save();
+                ctx.fillStyle = "blue";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "top";
+                ctx.font = "bold 14px sans-serif";
+                ctx.fillText("SCORE " + _this.hud_score.toString() + "  HIGHSCORE " + _this.hud_highscore.toString(), 40, 20);
+                ctx.restore();
+            });
+            this.score.addEventHandler("scorechanged", (function () {
+                _this.hud_score = _this.score.GetScore();
+            }).bind(this)); // thisでbindしておく ハイスコアの処理ははstage.tsに
+        }
+        return Game;
+    })(_Game.Core);
+    _Game.Game = Game;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    // ステージマップの役割を持つGroup。
+    // 座標からSpriteを取得でき、かつ取得がそこそこ高速であることが期待される。
+    // 座標が変化することのないSpriteが登録されるべきである。
+    var MapGroup = (function () {
+        function MapGroup(screen, width, height, chipwidth, chipheight) {
+            if (width === void 0) { width = 180; }
+            if (height === void 0) { height = 30; }
+            if (chipwidth === void 0) { chipwidth = 32; }
+            if (chipheight === void 0) { chipheight = 32; }
+            this.screen = screen;
+            this._map = new Array();
+            for (var i = 0; i < height; i++) {
+                this._map.push(new Array());
+                for (var ii = 0; ii < width; ii++) {
+                    this._map[i].push(null);
+                }
+            }
+            this._sprites = [];
+            this._width = width;
+            this._height = height;
+            this.setChipSize(chipwidth, chipwidth); // 32*32サイズのSpriteを保管 TODO:変更可能に
+        }
+        Object.defineProperty(MapGroup.prototype, "chipwidth", {
+            get: function () {
+                return this._chipwidth;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(MapGroup.prototype, "chipheight", {
+            get: function () {
+                return this._chipheight;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        MapGroup.prototype.setChipSize = function (width, height) {
+            this._chipwidth = width;
+            this._chipheight = height;
+        };
+        MapGroup.prototype.compare = function (a, b) {
+            if (a.z > b.z) {
+                return -1; // ここで-1を返しているので逆順のソート
+            }
+            if (a.z < b.z) {
+                return 1;
+            }
+            return 0;
+        };
+        MapGroup.prototype.add = function (sprite) {
+            var nx = Math.floor(sprite.x / this.chipwidth);
+            var ny = Math.floor(sprite.y / this.chipheight);
+            if (!this._map[ny] || !this._map[ny][nx]) {
+                this._map[ny][nx] = sprite;
+                var i = this._sprites.length - 1;
+                while (i >= 0) {
+                    if (this.compare(sprite, this._sprites[i]) >= 0) {
+                        break;
+                    }
+                    i -= 1;
+                }
+                this._sprites.splice(i + 1, 0, sprite);
+            }
+            else
+                throw new Error("sprite already registered");
+        };
+        MapGroup.prototype.getByXY = function (nx, ny) {
+            if (this._map[ny] && this._map[ny][nx])
+                return this._map[ny][nx];
+            else
+                return null;
+        };
+        MapGroup.prototype.getByXYReal = function (x, y) {
+            var nx = Math.floor(x / this.chipwidth);
+            var ny = Math.floor(y / this.chipheight);
+            if (this._map[ny] && this._map[ny][nx])
+                return this._map[ny][nx];
+            return null;
+        };
+        MapGroup.prototype.getByRect = function (nx, ny, nwidth, nheight) {
+            var result = new Array();
+            for (var i = ny; i < ny + nwidth; i++) {
+                for (var ii = nx; ii < nx + nheight; ii++) {
+                    if (this._map[i] && this._map[i][ii])
+                        result.push(this._map[i][ii]);
+                }
+            }
+            return result;
+        };
+        MapGroup.prototype.getByRectReal = function (x, y, width, height) {
+            var result = new Array();
+            var nx = Math.floor(x / this.chipwidth);
+            var ny = Math.floor(y / this.chipheight);
+            var nx2 = Math.ceil((x + width) / this.chipwidth);
+            var ny2 = Math.ceil((y + height) / this.chipheight);
+            for (var i = ny; i < ny2; i++) {
+                for (var ii = nx; ii < nx2; ii++) {
+                    if (this._map[i] && this._map[i][ii])
+                        result.push(this._map[i][ii]);
+                }
+            }
+            return result;
+        };
+        MapGroup.prototype.remove = function (sprite) {
+            for (var i = 0; i < this._height; i++) {
+                for (var ii = 0; ii < this._width; ii++) {
+                    if (this._map[i][ii] == sprite) {
+                        this._map[i][ii] = null;
+                    }
+                }
+            }
+        };
+        MapGroup.prototype.remove_all = function () {
+            for (var i = 0; i < this._height; i++) {
+                for (var ii = 0; ii < this._width; ii++) {
+                    if (this._map[i][ii])
+                        this.remove(this._map[i][ii]);
+                }
+            }
+        };
+        MapGroup.prototype.get_all = function () {
+            return this._sprites.slice(0);
+        };
+        MapGroup.prototype.sort = function () {
+            this._sprites = this._sprites.sort(this.compare);
+        };
+        MapGroup.prototype.update = function () {
+            for (var i = 0; i < this._height; i++) {
+                for (var ii = 0; ii < this._width; ii++) {
+                    if (this._map[i][ii])
+                        this._map[i][ii].update();
+                }
+            }
+        };
+        MapGroup.prototype.draw = function () {
+            for (var i = 0; i < this._height; i++) {
+                for (var ii = 0; ii < this._width; ii++) {
+                    if (this._map[i][ii])
+                        this.screen.drawSurface(this._map[i][ii].surface, Math.round(this._map[i][ii].x), Math.round(this._map[i][ii].y));
+                }
+            }
+        };
+        return MapGroup;
+    })();
+    Game.MapGroup = MapGroup;
+    // マップの管理
+    var MapGenerator = (function () {
+        function MapGenerator(ss) {
+            this.setSS(ss);
+            this.initLookupTable();
+        }
+        // to overridden
+        MapGenerator.prototype.initLookupTable = function () {
+            this.lookup = {};
+            this.lookup["A"] = Game.Player;
+            this.lookup["B"] = Game.Kame;
+            this.lookup["C"] = Game.KameFallable;
+            this.lookup["O"] = Game.Jumper;
+            this.lookup["a"] = Game.Block1;
+            this.lookup["b"] = Game.Block2;
+            this.lookup["c"] = Game.Block3;
+            this.lookup["d"] = Game.Block4;
+            this.lookup["e"] = Game.Block5;
+            this.lookup["f"] = Game.Block6;
+        };
+        MapGenerator.prototype.setSS = function (ss) {
+            this.ss = ss;
+        };
+        // SpriteSystem内にマップを生成します
+        // UNDONE:unique Entity(ex:"A")
+        MapGenerator.prototype.generateMap = function (map, swidth, sheight, game) {
+            for (var i = 0; i < map.length; i += 1) {
+                for (var ii = 0; ii < map[i].length; ii += 1) {
+                    var e = this.lookup[map[i][ii]];
+                    if (e != undefined) {
+                        //e(this.ss,swidth,sheight);
+                        //new e(this.ss, swidth * ii, sheight * i, game);
+                        //console.log(e);
+                        if (e != Game.Player)
+                            this.ss.add(new e(swidth * ii, sheight * i, game.assets.image, "pattern"));
+                        else {
+                            this.player = new e(game.gamekey, swidth * ii, sheight * i, game.assets.image, "pattern");
+                            this.ss.add(this.player); // この場合より右下のAがplayerとなり本家と挙動が異なる
+                        }
+                    }
+                }
+            }
+        };
+        MapGenerator.prototype.getEntity = function (code) {
+            return this.lookup[code];
+        };
+        return MapGenerator;
+    })();
+    Game.MapGenerator = MapGenerator;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
     var Player = (function (_super) {
         __extends(Player, _super);
         function Player(input, x, y, imagemanager, label, dx, dy) {
@@ -1261,403 +1658,6 @@ var Game;
         return PlayerSuperJumpEffect;
     })(Game.Sprite);
     Game.PlayerSuperJumpEffect = PlayerSuperJumpEffect;
-})(Game || (Game = {}));
-var Game;
-(function (Game) {
-    var Kame = (function (_super) {
-        __extends(Kame, _super);
-        function Kame(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
-            this.moving = new Game.EntityStateMachine(this);
-            this.moving.push(new States.KameWalking());
-            //this.code = 140;
-            this.addEventHandler("onstamped", this.onStamped);
-            this.addEventHandler("onhit", this.onHit);
-        }
-        Kame.prototype.onStamped = function (e) {
-            if (this.flags["isAlive"])
-                this.moving.replace(new States.KameStamped());
-            this.vx = 0;
-            this.vy = 0;
-        };
-        Kame.prototype.onHit = function (e) {
-            if (this.flags["isAlive"]) {
-                if (e.dir == "horizontal") {
-                    this.reverse_horizontal = !this.reverse_horizontal;
-                }
-                if (e.dir == "vertical") {
-                    this.flags["isOnGround"] = true;
-                }
-            }
-        };
-        return Kame;
-    })(Game.Entity);
-    Game.Kame = Kame;
-    var KameFallable = (function (_super) {
-        __extends(KameFallable, _super);
-        function KameFallable(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
-            this.moving.replace(new States.KameWalkingFallable());
-        }
-        return KameFallable;
-    })(Kame);
-    Game.KameFallable = KameFallable;
-    var States;
-    (function (States) {
-        var KameWalking = (function (_super) {
-            __extends(KameWalking, _super);
-            function KameWalking() {
-                _super.apply(this, arguments);
-            }
-            KameWalking.prototype.enter = function (sm) {
-            };
-            KameWalking.prototype.update = function (sm) {
-                var e = sm.e;
-                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
-                if (e.counter["ac"] < 2)
-                    e.code = 140;
-                else
-                    e.code = 141;
-                e.vx = e.reverse_horizontal ? 30 : -30;
-                if (e.ss.MapBlocks.getByXYReal((e.reverse_horizontal ? e.right : e.x) + e.vx / 10, e.y + e.height + 1) == null) {
-                    e.reverse_horizontal = !e.reverse_horizontal;
-                    e.x = e.ss.MapBlocks.getByXYReal(e.centerx, e.y + e.height + 1).x;
-                    e.vx = 0;
-                }
-                this.checkCollisionWithPlayer(sm);
-            };
-            return KameWalking;
-        })(States.AbstractStampableAlive);
-        States.KameWalking = KameWalking;
-        var KameWalkingFallable = (function (_super) {
-            __extends(KameWalkingFallable, _super);
-            function KameWalkingFallable() {
-                _super.apply(this, arguments);
-            }
-            KameWalkingFallable.prototype.enter = function (sm) {
-            };
-            KameWalkingFallable.prototype.update = function (sm) {
-                var e = sm.e;
-                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
-                if (e.counter["ac"] < 2)
-                    e.code = 140;
-                else
-                    e.code = 141;
-                e.vx = e.reverse_horizontal ? 30 : -30;
-                if (e.ss.MapBlocks.getByXYReal((e.reverse_horizontal ? e.x : e.right) + e.vx / 10, e.y + e.height + 1) == null) {
-                    e.x = Math.floor(((e.reverse_horizontal ? e.x : e.right) + e.vx / 10) / e.width) * e.width; // マップチップの横幅がエンティティの横幅と同じであること依存している点に注意
-                    e.vx = 0;
-                    sm.replace(new KameFalling());
-                }
-                this.checkCollisionWithPlayer(sm);
-            };
-            return KameWalkingFallable;
-        })(States.AbstractStampableAlive);
-        States.KameWalkingFallable = KameWalkingFallable;
-        var KameFalling = (function (_super) {
-            __extends(KameFalling, _super);
-            function KameFalling() {
-                _super.apply(this, arguments);
-            }
-            KameFalling.prototype.enter = function (sm) {
-                sm.e.flags["isOnGround"] = false;
-            };
-            KameFalling.prototype.update = function (sm) {
-                var e = sm.e;
-                if (e.flags["isOnGround"]) {
-                    sm.replace(new KameWalkingFallable());
-                    sm.update();
-                }
-                else {
-                    e.code = 140;
-                    e.vy = 50;
-                    this.checkCollisionWithPlayer(sm);
-                }
-            };
-            return KameFalling;
-        })(States.AbstractStampableAlive);
-        States.KameFalling = KameFalling;
-        var KameStamped = (function (_super) {
-            __extends(KameStamped, _super);
-            function KameStamped() {
-                _super.apply(this, arguments);
-            }
-            KameStamped.prototype.enter = function (sm) {
-                sm.e.counter["ac"] = 0;
-                sm.e.code = 142;
-                sm.e.flags["isAlive"] = false;
-            };
-            KameStamped.prototype.update = function (sm) {
-                var e = sm.e;
-                e.counter["ac"] += 1;
-                e.code = 142;
-                e.vx = 0;
-                e.vy = 0;
-                if (e.counter["ac"] >= 10) {
-                    e.kill();
-                }
-            };
-            return KameStamped;
-        })(States.AbstractState);
-        States.KameStamped = KameStamped;
-    })(States = Game.States || (Game.States = {}));
-})(Game || (Game = {}));
-var Game;
-(function (Game) {
-    var SpriteCollisionEvent = (function (_super) {
-        __extends(SpriteCollisionEvent, _super);
-        function SpriteCollisionEvent(type, sprite, dir, mode) {
-            if (dir === void 0) { dir = "none"; }
-            if (mode === void 0) { mode = "edge"; }
-            _super.call(this, type, sprite);
-            this.type = type;
-            this.sprite = sprite;
-            this.dir = dir;
-            this.mode = mode;
-        }
-        return SpriteCollisionEvent;
-    })(Game.SpriteEvent);
-    Game.SpriteCollisionEvent = SpriteCollisionEvent;
-})(Game || (Game = {}));
-var Game;
-(function (_Game) {
-    var GameStateMachine = (function (_super) {
-        __extends(GameStateMachine, _super);
-        function GameStateMachine(game, parent) {
-            if (parent === void 0) { parent = null; }
-            _super.call(this, parent);
-            this.game = game;
-        }
-        return GameStateMachine;
-    })(_Game.StateMachine);
-    _Game.GameStateMachine = GameStateMachine;
-    var Game = (function (_super) {
-        __extends(Game, _super);
-        function Game(config) {
-            var _this = this;
-            _super.call(this, config);
-            this.statemachine = new GameStateMachine(this);
-            this.score = new _Game.ScoreManager();
-            this.hud_score = this.score.GetScore();
-            this.hud_highscore = this.score.GetHighScore();
-            this.addEventHandler("update", function () {
-                var ctx = _this.screen.context;
-                ctx.save();
-                ctx.fillStyle = "blue";
-                ctx.textAlign = "left";
-                ctx.textBaseline = "top";
-                ctx.font = "bold 14px sans-serif";
-                ctx.fillText("SCORE " + _this.hud_score.toString() + "  HIGHSCORE " + _this.hud_highscore.toString(), 40, 20);
-                ctx.restore();
-            });
-            this.score.addEventHandler("scorechanged", (function () {
-                _this.hud_score = _this.score.GetScore();
-            }).bind(this)); // thisでbindしておく ハイスコアの処理ははstage.tsに
-        }
-        return Game;
-    })(_Game.Core);
-    _Game.Game = Game;
-})(Game || (Game = {}));
-var Game;
-(function (Game) {
-    // ステージマップの役割を持つGroup。
-    // 座標からSpriteを取得でき、かつ取得がそこそこ高速であることが期待される。
-    // 座標が変化することのないSpriteが登録されるべきである。
-    var MapGroup = (function () {
-        function MapGroup(screen, width, height, chipwidth, chipheight) {
-            if (width === void 0) { width = 180; }
-            if (height === void 0) { height = 30; }
-            if (chipwidth === void 0) { chipwidth = 32; }
-            if (chipheight === void 0) { chipheight = 32; }
-            this.screen = screen;
-            this._map = new Array();
-            for (var i = 0; i < height; i++) {
-                this._map.push(new Array());
-                for (var ii = 0; ii < width; ii++) {
-                    this._map[i].push(null);
-                }
-            }
-            this._sprites = [];
-            this._width = width;
-            this._height = height;
-            this.setChipSize(chipwidth, chipwidth); // 32*32サイズのSpriteを保管 TODO:変更可能に
-        }
-        Object.defineProperty(MapGroup.prototype, "chipwidth", {
-            get: function () {
-                return this._chipwidth;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(MapGroup.prototype, "chipheight", {
-            get: function () {
-                return this._chipheight;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        MapGroup.prototype.setChipSize = function (width, height) {
-            this._chipwidth = width;
-            this._chipheight = height;
-        };
-        MapGroup.prototype.compare = function (a, b) {
-            if (a.z > b.z) {
-                return -1; // ここで-1を返しているので逆順のソート
-            }
-            if (a.z < b.z) {
-                return 1;
-            }
-            return 0;
-        };
-        MapGroup.prototype.add = function (sprite) {
-            var nx = Math.floor(sprite.x / this.chipwidth);
-            var ny = Math.floor(sprite.y / this.chipheight);
-            if (!this._map[ny] || !this._map[ny][nx]) {
-                this._map[ny][nx] = sprite;
-                var i = this._sprites.length - 1;
-                while (i >= 0) {
-                    if (this.compare(sprite, this._sprites[i]) >= 0) {
-                        break;
-                    }
-                    i -= 1;
-                }
-                this._sprites.splice(i + 1, 0, sprite);
-            }
-            else
-                throw new Error("sprite already registered");
-        };
-        MapGroup.prototype.getByXY = function (nx, ny) {
-            if (this._map[ny] && this._map[ny][nx])
-                return this._map[ny][nx];
-            else
-                return null;
-        };
-        MapGroup.prototype.getByXYReal = function (x, y) {
-            var nx = Math.floor(x / this.chipwidth);
-            var ny = Math.floor(y / this.chipheight);
-            if (this._map[ny] && this._map[ny][nx])
-                return this._map[ny][nx];
-            return null;
-        };
-        MapGroup.prototype.getByRect = function (nx, ny, nwidth, nheight) {
-            var result = new Array();
-            for (var i = ny; i < ny + nwidth; i++) {
-                for (var ii = nx; ii < nx + nheight; ii++) {
-                    if (this._map[i] && this._map[i][ii])
-                        result.push(this._map[i][ii]);
-                }
-            }
-            return result;
-        };
-        MapGroup.prototype.getByRectReal = function (x, y, width, height) {
-            var result = new Array();
-            var nx = Math.floor(x / this.chipwidth);
-            var ny = Math.floor(y / this.chipheight);
-            var nx2 = Math.ceil((x + width) / this.chipwidth);
-            var ny2 = Math.ceil((y + height) / this.chipheight);
-            for (var i = ny; i < ny2; i++) {
-                for (var ii = nx; ii < nx2; ii++) {
-                    if (this._map[i] && this._map[i][ii])
-                        result.push(this._map[i][ii]);
-                }
-            }
-            return result;
-        };
-        MapGroup.prototype.remove = function (sprite) {
-            for (var i = 0; i < this._height; i++) {
-                for (var ii = 0; ii < this._width; ii++) {
-                    if (this._map[i][ii] == sprite) {
-                        this._map[i][ii] = null;
-                    }
-                }
-            }
-        };
-        MapGroup.prototype.remove_all = function () {
-            for (var i = 0; i < this._height; i++) {
-                for (var ii = 0; ii < this._width; ii++) {
-                    if (this._map[i][ii])
-                        this.remove(this._map[i][ii]);
-                }
-            }
-        };
-        MapGroup.prototype.get_all = function () {
-            return this._sprites.slice(0);
-        };
-        MapGroup.prototype.sort = function () {
-            this._sprites = this._sprites.sort(this.compare);
-        };
-        MapGroup.prototype.update = function () {
-            for (var i = 0; i < this._height; i++) {
-                for (var ii = 0; ii < this._width; ii++) {
-                    if (this._map[i][ii])
-                        this._map[i][ii].update();
-                }
-            }
-        };
-        MapGroup.prototype.draw = function () {
-            for (var i = 0; i < this._height; i++) {
-                for (var ii = 0; ii < this._width; ii++) {
-                    if (this._map[i][ii])
-                        this.screen.drawSurface(this._map[i][ii].surface, Math.round(this._map[i][ii].x), Math.round(this._map[i][ii].y));
-                }
-            }
-        };
-        return MapGroup;
-    })();
-    Game.MapGroup = MapGroup;
-    // マップの管理
-    var MapGenerator = (function () {
-        function MapGenerator(ss) {
-            this.setSS(ss);
-            this.initLookupTable();
-        }
-        // to overridden
-        MapGenerator.prototype.initLookupTable = function () {
-            this.lookup = {};
-            this.lookup["A"] = Game.Player;
-            this.lookup["B"] = Game.Kame;
-            this.lookup["C"] = Game.KameFallable;
-            this.lookup["O"] = Game.Jumper;
-            this.lookup["a"] = Game.Block1;
-            this.lookup["b"] = Game.Block2;
-            this.lookup["c"] = Game.Block3;
-            this.lookup["d"] = Game.Block4;
-            this.lookup["e"] = Game.Block5;
-            this.lookup["f"] = Game.Block6;
-        };
-        MapGenerator.prototype.setSS = function (ss) {
-            this.ss = ss;
-        };
-        // SpriteSystem内にマップを生成します
-        // UNDONE:unique Entity(ex:"A")
-        MapGenerator.prototype.generateMap = function (map, swidth, sheight, game) {
-            for (var i = 0; i < map.length; i += 1) {
-                for (var ii = 0; ii < map[i].length; ii += 1) {
-                    var e = this.lookup[map[i][ii]];
-                    if (e != undefined) {
-                        //e(this.ss,swidth,sheight);
-                        //new e(this.ss, swidth * ii, sheight * i, game);
-                        //console.log(e);
-                        if (e != Game.Player)
-                            this.ss.add(new e(swidth * ii, sheight * i, game.assets.image, "pattern"));
-                        else {
-                            this.player = new e(game.gamekey, swidth * ii, sheight * i, game.assets.image, "pattern");
-                            this.ss.add(this.player); // この場合より右下のAがplayerとなり本家と挙動が異なる
-                        }
-                    }
-                }
-            }
-        };
-        MapGenerator.prototype.getEntity = function (code) {
-            return this.lookup[code];
-        };
-        return MapGenerator;
-    })();
-    Game.MapGenerator = MapGenerator;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
