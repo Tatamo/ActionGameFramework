@@ -21,6 +21,7 @@ module Game {
         surface: Surface;
         update();
         kill();
+        getRect(): Rect;
     }
     // UNDONE: 自分の所属しているgroup名の取得
     // パターン画像を使用するスプライト
@@ -105,6 +106,9 @@ module Game {
         kill() {
             this.dispatchEvent(new Event("killed"));
             this.ss.remove(this);
+        }
+        getRect(): Rect {
+            return new Rect(this.x, this.y, this.width, this.height);
         }
     }
     export class SpriteEvent extends Event {

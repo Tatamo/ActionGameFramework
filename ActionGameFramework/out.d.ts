@@ -294,6 +294,7 @@ declare module Game {
         surface: Surface;
         update(): any;
         kill(): any;
+        getRect(): Rect;
     }
     class Sprite extends EventDispatcher implements ISprite {
         x: number;
@@ -318,6 +319,7 @@ declare module Game {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, code?: number, dx?: number, dy?: number);
         update(): void;
         kill(): void;
+        getRect(): Rect;
     }
     class SpriteEvent extends Event {
         type: string;

@@ -1390,6 +1390,9 @@ var Game;
             this.dispatchEvent(new Game.Event("killed"));
             this.ss.remove(this);
         };
+        Sprite.prototype.getRect = function () {
+            return new Game.Rect(this.x, this.y, this.width, this.height);
+        };
         return Sprite;
     })(Game.EventDispatcher);
     Game.Sprite = Sprite;
