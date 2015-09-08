@@ -654,6 +654,7 @@ var Game;
             this.counter["jump_level"] = 0;
             if (this.counter["superjump_effect"] >= 0)
                 this.counter["superjump_effect"] = 100;
+            console.log("player_onground");
         };
         Player.prototype.onStamp = function (e) {
             this.moving.push(new States.PlayerStamping());
@@ -765,8 +766,30 @@ var Game;
             var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
-                if (this.x <= b.x + b.width && this.x + this.width >= b.x && this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                    b.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, "vertical", "center"));
+                /*if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
+                    this.y <= b.y + b.height && this.y + this.height >= b.y) {
+                    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "vertical", "center"));
+                }*/
+                var bc = b.getCollision();
+                var col = new Game.Rect(this.centerx, this.y, 0, this.height);
+                if (this.vy < 0) {
+                    // up
+                    //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                    //    b.y < this.bottom && b.bottom >= this.y) {
+                    if (col.collision(bc) && !(new Game.Point(this.centerx, this.bottom).collision(bc))) {
+                        this.y = b.bottom;
+                        this.vy = 0;
+                    }
+                }
+                else if (this.vy >= 0) {
+                    // down || //
+                    //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                    //    b.y <= this.bottom && b.bottom > this.y) {
+                    if (col.collision(bc) && !(new Game.Point(this.centerx, this.y).collision(bc))) {
+                        this.dispatchEvent(new Game.Event("onground"));
+                        this.bottom = b.y;
+                        this.vy = 0;
+                    }
                 }
             }
         };
@@ -775,8 +798,29 @@ var Game;
             var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
-                if (this.x <= b.x + b.width && this.x + this.width >= b.x && this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                    b.dispatchEvent(new Game.SpriteCollisionEvent("onhit", this, "horizontal", "center"));
+                /*if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
+                    this.y <= b.y + b.height && this.y + this.height >= b.y) {
+                    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "horizontal", "center"));
+                }*/
+                var bc = b.getCollision();
+                var col = new Game.Rect(this.centerx, this.y, 0, this.height);
+                if (this.vx > 0) {
+                    // right
+                    //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                    //    b.y <= this.bottom && b.bottom > this.y) {
+                    if (col.collision(bc)) {
+                        this.centerx = b.x - 1;
+                        this.vx = 0;
+                    }
+                }
+                else if (this.vx < 0) {
+                    // left
+                    //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                    //    b.y <= this.bottom && b.bottom > this.y) {
+                    if (col.collision(bc)) {
+                        this.centerx = b.right + 1;
+                        this.vx = 0;
+                    }
                 }
             }
         };

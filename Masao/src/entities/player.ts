@@ -43,6 +43,7 @@ module Game {
             this.flags["isStamping"] = false;
             this.counter["jump_level"] = 0;
             if (this.counter["superjump_effect"] >= 0) this.counter["superjump_effect"] = 100;
+            console.log("player_onground");
         }
         private onStamp(e: Event) {
             this.moving.push(new States.PlayerStamping());
@@ -153,9 +154,31 @@ module Game {
 
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
-                if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
+                /*if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
                     this.y <= b.y + b.height && this.y + this.height >= b.y) {
                     b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "vertical", "center"));
+                }*/
+                var bc = b.getCollision();
+                var col = new Rect(this.centerx, this.y, 0, this.height);
+                
+                if (this.vy < 0) {
+                    // up
+                    //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                    //    b.y < this.bottom && b.bottom >= this.y) {
+                    if (col.collision(bc) && !(new Point(this.centerx, this.bottom).collision(bc))) { // 一番下の点との判定のみ等号ではなく不等号
+                        this.y = b.bottom;
+                        this.vy = 0;
+                    }
+                }
+                else if (this.vy >= 0) {
+                    // down || //
+                    //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                    //    b.y <= this.bottom && b.bottom > this.y) {
+                        if (col.collision(bc) && !(new Point(this.centerx, this.y).collision(bc))) { // 一番上の点との判定のみ除外
+                        this.dispatchEvent(new Event("onground"));
+                        this.bottom = b.y;
+                        this.vy = 0;
+                    }
                 }
             }
         }
@@ -165,9 +188,30 @@ module Game {
 
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
-                if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
+                /*if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
                     this.y <= b.y + b.height && this.y + this.height >= b.y) {
                     b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "horizontal", "center"));
+                }*/
+                var bc = b.getCollision();
+                var col = new Rect(this.centerx, this.y, 0, this.height);
+                
+                if (this.vx > 0) {
+                    // right
+                    //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                    //    b.y <= this.bottom && b.bottom > this.y) {
+                    if (col.collision(bc)) { // 一番上の点との判定のみ除外
+                        this.centerx = b.x - 1;
+                        this.vx = 0;
+                    }
+                }
+                else if (this.vx < 0) {
+                    // left
+                    //if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                    //    b.y <= this.bottom && b.bottom > this.y) {
+                    if (col.collision(bc)) { // 一番上の点との判定のみ除外
+                        this.centerx = b.right + 1;
+                        this.vx = 0;
+                    }
                 }
             }
         }
