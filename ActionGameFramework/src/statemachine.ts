@@ -53,7 +53,6 @@ module Game {
             if (this.current_state == this.root_state) return;*/
 
             this._states.pop().exit(this);
-            console.log(this._states);
             this._current_state = this._states[this._states.length - 1];
             if (this._current_state) this._current_state.enter(this);
         }

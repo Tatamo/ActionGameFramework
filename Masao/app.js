@@ -66,14 +66,14 @@ window.onload = function () {
         "a...aa.aaa.....................99...........................",
         "aa..........................................................",
         "a...aa.a.a..................................................",
-        "a...........................................................",
+        "a...........................................A...............",
         "a.aaaaa.aaa.........12.....9.9...aaa.....aa.aaaaaaaa...12...",
         "a....aa.a....B............aaaaa..............9.aaaaa........",
         "aaaa.a..aaaaaa..........................B...aaaaaaaa........",
         ".......aa...........................aaaaa...9.9aa999........",
         "..aaaaaa..............B.............9.9.9...aaaaaaaa........",
         "...........aaaaaa..aaaaaa....................9.aaaaa........",
-        ".A........aaaaaaa..aaaaaa............D......aaaaaaaa........",
+        "..........aaaaaaa..aaaaaa............D......aaaaaaaa........",
         "bbbbbbbbbbbbbbbbb..bbbbbb.bbbbbbbbbbbbbbbbbbbbbbbbbb5bbbbbb.",
         "............................................................",
         "............................................................",
@@ -980,7 +980,7 @@ var Game;
                 _super.apply(this, arguments);
             }
             PlayerWalkingLeft.prototype.enter = function (sm) {
-                console.log("walk left ");
+                //console.log("walk left ");
                 sm.pl.flags["isRunning"] = false;
                 sm.pl.flags["isWalking"] = true;
             };
@@ -1016,7 +1016,7 @@ var Game;
                 _super.apply(this, arguments);
             }
             PlayerRunningLeft.prototype.enter = function (sm) {
-                console.log("run left ");
+                //console.log("run left ");
                 sm.pl.flags["isRunning"] = true;
                 sm.pl.flags["isWalking"] = false;
             };
@@ -1052,7 +1052,7 @@ var Game;
                 _super.apply(this, arguments);
             }
             PlayerWalkingRight.prototype.enter = function (sm) {
-                console.log("walk right ");
+                //console.log("walk right ");
                 sm.pl.flags["isRunning"] = false;
                 sm.pl.flags["isWalking"] = true;
             };
@@ -1088,7 +1088,7 @@ var Game;
                 _super.apply(this, arguments);
             }
             PlayerRunningRight.prototype.enter = function (sm) {
-                console.log("run right ");
+                //console.log("run right ");
                 sm.pl.flags["isRunning"] = true;
                 sm.pl.flags["isWalking"] = false;
             };
@@ -1180,7 +1180,7 @@ var Game;
                 _super.apply(this, arguments);
             }
             PlayerInterialMove.prototype.enter = function (sm) {
-                console.log("move interial ");
+                //console.log("move interial ");
             };
             PlayerInterialMove.prototype.update = function (sm) {
                 var pl = sm.pl;
@@ -1234,7 +1234,7 @@ var Game;
                 _super.apply(this, arguments);
             }
             PlayerDyingDirect.prototype.enter = function (sm) {
-                console.log("dying");
+                //console.log("dying");
                 var pl = sm.pl;
                 pl.flags["isAlive"] = false;
                 pl.counter["dying"] = 0;
@@ -1264,7 +1264,7 @@ var Game;
                 _super.apply(this, arguments);
             }
             PlayerDyingInDirect.prototype.enter = function (sm) {
-                console.log("dying");
+                //console.log("dying");
                 var pl = sm.pl;
                 pl.flags["isAlive"] = false;
                 pl.counter["dying"] = 0;
@@ -1293,7 +1293,7 @@ var Game;
                 _super.apply(this, arguments);
             }
             PlayerStamping.prototype.enter = function (sm) {
-                console.log("stamping");
+                //console.log("stamping");
                 sm.pl.code = 109;
                 sm.pl.flags["isStamping"] = true;
                 sm.pl.counter["stamp_waiting"] = 5;

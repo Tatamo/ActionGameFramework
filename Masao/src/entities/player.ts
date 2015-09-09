@@ -340,7 +340,7 @@ module Game {
         }
         export class PlayerWalkingLeft extends AbstractState {
             enter(sm: PlayerStateMachine) {
-                console.log("walk left ");
+                //console.log("walk left ");
                 sm.pl.flags["isRunning"] = false;
                 sm.pl.flags["isWalking"] = true;
             }
@@ -366,7 +366,7 @@ module Game {
         }
         export class PlayerRunningLeft extends AbstractState {
             enter(sm: PlayerStateMachine) {
-                console.log("run left ");
+                //console.log("run left ");
                 sm.pl.flags["isRunning"] = true;
                 sm.pl.flags["isWalking"] = false;
             }
@@ -392,7 +392,7 @@ module Game {
         }
         export class PlayerWalkingRight extends AbstractState {
             enter(sm: PlayerStateMachine) {
-                console.log("walk right ");
+                //console.log("walk right ");
                 sm.pl.flags["isRunning"] = false;
                 sm.pl.flags["isWalking"] = true;
             }
@@ -418,7 +418,7 @@ module Game {
         }
         export class PlayerRunningRight extends AbstractState {
             enter(sm: PlayerStateMachine) {
-                console.log("run right ");
+                //console.log("run right ");
                 sm.pl.flags["isRunning"] = true;
                 sm.pl.flags["isWalking"] = false;
             }
@@ -493,7 +493,7 @@ module Game {
         }
         export class PlayerInterialMove extends AbstractState {
             enter(sm: PlayerStateMachine) {
-                console.log("move interial ");
+                //console.log("move interial ");
             }
             update(sm: PlayerStateMachine) {
                 var pl = sm.pl;
@@ -537,7 +537,7 @@ module Game {
         }
         export class PlayerDyingDirect extends AbstractState {
             enter(sm: PlayerStateMachine) {
-                console.log("dying");
+                //console.log("dying");
                 var pl = sm.pl;
                 pl.flags["isAlive"] = false;
                 pl.counter["dying"] = 0;
@@ -560,7 +560,7 @@ module Game {
         }
         export class PlayerDyingInDirect extends AbstractState {
             enter(sm: PlayerStateMachine) {
-                console.log("dying");
+                //console.log("dying");
                 var pl = sm.pl;
                 pl.flags["isAlive"] = false;
                 pl.counter["dying"] = 0;
@@ -583,7 +583,7 @@ module Game {
         export class PlayerStamping extends AbstractState {
             private wait: number;
             enter(sm: PlayerStateMachine) {
-                console.log("stamping");
+                //console.log("stamping");
                 sm.pl.code = 109;
                 sm.pl.flags["isStamping"] = true;
                 sm.pl.counter["stamp_waiting"] = 5;

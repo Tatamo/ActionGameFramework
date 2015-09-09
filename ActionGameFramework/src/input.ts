@@ -9,7 +9,7 @@
         }
         // キー入力を受け付けるイベントハンドラを登録する
 		setEvent(el: HTMLElement) {
-			console.log(el);
+			//console.log(el);
 			el.addEventListener("keydown", (e: KeyboardEvent) => { this.KeyDown(e.keyCode); });
 			el.addEventListener("keyup", (e: KeyboardEvent) => { this.KeyUp(e.keyCode); });
 		}
@@ -30,7 +30,7 @@
 			this.releasedkeys = rks;
 		}
 		KeyDown(key: number) {
-			console.log(key);
+			//console.log(key);
 			if (!(key in this.keys)) {
 				this.keys[key] = 0;
 			}

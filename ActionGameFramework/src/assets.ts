@@ -171,7 +171,7 @@ module Game {
 
             var img = new Image();
             img.onload = () => {
-                console.log(img);
+                //console.log(img);
                 //this._asset.add(tmp.label, img, ResourceType.IMAGE); 下のコールバックで追加させる
                 if (tmp.callback) tmp.callback(img, tmp.label);
                 this.__load(cb);

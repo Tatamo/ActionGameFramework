@@ -36,7 +36,7 @@ module Game {
         }
         // ゲームループの開始
         public start(state?:IState) {
-            console.log("app start"); // DEBUG
+            //console.log("app start"); // DEBUG
             // this.statemachine.push(最初のState);
             /*if(!this.statemachine.CurrentState()) this.statemachine.push(new States.Preload("preload", this.statemachine));*/
             if(!this.statemachine.current_state) this.statemachine.push(state); // TODO:state==null時などの考慮
