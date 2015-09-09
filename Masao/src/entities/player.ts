@@ -5,6 +5,8 @@ module Game {
         public sjump_effects: Array<PlayerSuperJumpEffect>;
         public moving: PlayerStateMachine;
         public special: PlayerStateMachine;
+        public view_x: number; // Stageのほうで勝手に数値を代入してくれることを期待している
+        public view_y: number;
         constructor(input: GameKey, x: number, y: number, public imagemanager: ImageManager, public label: string, dx: number = 1, dy: number = 1) {
             super(x, y, imagemanager, label, dx, dy);
             this.code = 100;
@@ -33,6 +35,8 @@ module Game {
             this.addEventHandler("onground", this.onGround);
             this.addEventHandler("onstamp", this.onStamp);
             this.addEventHandler("miss", this.onMiss);
+            this.view_x = 0;
+            this.view_y = 0;
         }
         public get alive(): boolean {
             return this.flags["isAlive"];

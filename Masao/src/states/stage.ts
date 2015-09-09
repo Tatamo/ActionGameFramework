@@ -38,8 +38,36 @@
                     this.player = this.mm.player;
                     this.player.addEventHandler("ondie",(e: Event) => { sm.replace(new GameOver()); });
                     this.player.addEventHandler("addscore",(e: ScoreEvent) => { sm.game.score.AddScore(e.value); });
-                    this.view_x = 0;
-                    this.view_y = 0;
+                    this.addEventHandler("onscroll",(e: Event) => {
+                        this.player.view_x = this.view_x;
+                        this.player.view_y = this.view_y;
+                    });
+                    this.player.addEventHandler("update",((e: Event) => {
+                        var px = this.player.x;
+                        var py = this.player.y;
+                        var wx = px - this.view_x;
+                        var wy = py - this.view_y;
+                        if (wx < 96) {
+                            this.view_x = px - 96;
+                        }
+                        else if (wx > 224) {
+                            this.view_x = px - 224;
+                        }
+                        if (wy < 78) {
+                            this.view_y = py - 78;
+                        }
+                        else if (wy > 176) {
+                            this.view_y = py - 176;
+                        }
+
+                        this.fixViewXY();
+                        this.dispatchEvent(new Event("onscroll"));
+                    }).bind(this));
+                    this.view_x = this.player.x - 96;
+                    this.view_y = this.player.y - 176;
+                    this.fixViewXY();
+                    this.dispatchEvent(new Event("onscroll"));
+
                     this.is_initialized = true;
                 }
             }
@@ -49,8 +77,6 @@
                 sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
 
                 this.ss.AllSprites.update();
-                this.view_x = Math.round(this.player.x-160);
-                this.view_y = Math.round(this.player.y-64);
                 this.ss.AllSprites.draw(this.view_x,this.view_y);
 
                 if (sm.game.gamekey.isOnDown(80)) { // Pキー
@@ -59,6 +85,24 @@
                 if (sm.game.gamekey.isOnDown(84)) { // T
                     sm.pop(); // タイトルに戻る
                 }
+            }
+            protected fixViewXY() { // view_xおよびview_yが画面外へ行かないよう補正する
+                /* マップサイズ決め打ちのため要改善 */
+                if (this.view_x < 0) {
+                    this.view_x = 0;
+                }
+                else if (this.view_x > 32 * 180 - SCREEN_WIDTH) {
+                    this.view_x = 32 * 180 - SCREEN_WIDTH;
+                }
+                if (this.view_y < 0) {
+                    this.view_y = 0;
+                }
+                else if (this.view_y > 32 * 30 - SCREEN_HEIGHT) {
+                    this.view_y = 32 * 30 - SCREEN_HEIGHT;
+                }
+
+                this.view_x = Math.round(this.view_x);
+                this.view_y = Math.round(this.view_y);
             }
         }
     }

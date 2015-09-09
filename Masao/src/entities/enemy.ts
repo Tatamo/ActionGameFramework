@@ -17,27 +17,28 @@ module Game {
         }
         update() {
             var players = <Array<Player>>this.ss.Players.get_all();
-            if (!this.flags["isActivated"]) {
-                for (var i = 0; i < players.length; i++) {
-                    var p = players[i];
-                    if (Math.round(p.x - 160) >= this.counter["viewx_activate"]) { // 待機状態から脱する
-                        this.flags["isActivated"] = true;
-                        break;
-                    }
-                }
-                return;
-            }
-
             // プレイヤーより大幅に左側にいる場合、処理を行わない
             var flg = false;
             for (var i = 0; i < players.length; i++) {
                 var p = players[i];
-                if (this.x >= Math.round(p.x - 160) - SCREEN_WIDTH) {
+                if (this.x >= p.view_x - SCREEN_WIDTH) {
                     flg = true;
                     break;
                 }
             }
             if (!flg) return;
+
+            if (!this.flags["isActivated"]) {
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (p.view_x >= this.counter["viewx_activate"]) { // 待機状態から脱する
+                        this.flags["isActivated"] = true;
+                        break;
+                    }
+                }
+                if (!this.flags["isActivated"]) return;
+            }
+
             this.moving.update();
             this.move();
         }

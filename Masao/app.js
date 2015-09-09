@@ -279,27 +279,28 @@ var Game;
         };
         Enemy.prototype.update = function () {
             var players = this.ss.Players.get_all();
-            if (!this.flags["isActivated"]) {
-                for (var i = 0; i < players.length; i++) {
-                    var p = players[i];
-                    if (Math.round(p.x - 160) >= this.counter["viewx_activate"]) {
-                        this.flags["isActivated"] = true;
-                        break;
-                    }
-                }
-                return;
-            }
             // プレイヤーより大幅に左側にいる場合、処理を行わない
             var flg = false;
             for (var i = 0; i < players.length; i++) {
                 var p = players[i];
-                if (this.x >= Math.round(p.x - 160) - Game.SCREEN_WIDTH) {
+                if (this.x >= p.view_x - Game.SCREEN_WIDTH) {
                     flg = true;
                     break;
                 }
             }
             if (!flg)
                 return;
+            if (!this.flags["isActivated"]) {
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (p.view_x >= this.counter["viewx_activate"]) {
+                        this.flags["isActivated"] = true;
+                        break;
+                    }
+                }
+                if (!this.flags["isActivated"])
+                    return;
+            }
             this.moving.update();
             this.move();
         };
@@ -654,6 +655,8 @@ var Game;
             this.addEventHandler("onground", this.onGround);
             this.addEventHandler("onstamp", this.onStamp);
             this.addEventHandler("miss", this.onMiss);
+            this.view_x = 0;
+            this.view_y = 0;
         }
         Object.defineProperty(Player.prototype, "alive", {
             get: function () {
@@ -1906,6 +1909,7 @@ var Game;
                 this.is_initialized = false;
             }
             Stage.prototype.enter = function (sm) {
+                var _this = this;
                 if (!this.is_initialized) {
                     sm.game.score.SetScore(0);
                     sm.game.hud_highscore = sm.game.score.GetHighScore();
@@ -1936,8 +1940,34 @@ var Game;
                     this.player.addEventHandler("addscore", function (e) {
                         sm.game.score.AddScore(e.value);
                     });
-                    this.view_x = 0;
-                    this.view_y = 0;
+                    this.addEventHandler("onscroll", function (e) {
+                        _this.player.view_x = _this.view_x;
+                        _this.player.view_y = _this.view_y;
+                    });
+                    this.player.addEventHandler("update", (function (e) {
+                        var px = _this.player.x;
+                        var py = _this.player.y;
+                        var wx = px - _this.view_x;
+                        var wy = py - _this.view_y;
+                        if (wx < 96) {
+                            _this.view_x = px - 96;
+                        }
+                        else if (wx > 224) {
+                            _this.view_x = px - 224;
+                        }
+                        if (wy < 78) {
+                            _this.view_y = py - 78;
+                        }
+                        else if (wy > 176) {
+                            _this.view_y = py - 176;
+                        }
+                        _this.fixViewXY();
+                        _this.dispatchEvent(new Game.Event("onscroll"));
+                    }).bind(this));
+                    this.view_x = this.player.x - 96;
+                    this.view_y = this.player.y - 176;
+                    this.fixViewXY();
+                    this.dispatchEvent(new Game.Event("onscroll"));
                     this.is_initialized = true;
                 }
             };
@@ -1946,8 +1976,6 @@ var Game;
                 sm.game.screen.context.fillStyle = "rgb(0,255,255)";
                 sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
                 this.ss.AllSprites.update();
-                this.view_x = Math.round(this.player.x - 160);
-                this.view_y = Math.round(this.player.y - 64);
                 this.ss.AllSprites.draw(this.view_x, this.view_y);
                 if (sm.game.gamekey.isOnDown(80)) {
                     sm.push(new States.Pause(sm)); // ポーズ
@@ -1955,6 +1983,23 @@ var Game;
                 if (sm.game.gamekey.isOnDown(84)) {
                     sm.pop(); // タイトルに戻る
                 }
+            };
+            Stage.prototype.fixViewXY = function () {
+                /* マップサイズ決め打ちのため要改善 */
+                if (this.view_x < 0) {
+                    this.view_x = 0;
+                }
+                else if (this.view_x > 32 * 180 - Game.SCREEN_WIDTH) {
+                    this.view_x = 32 * 180 - Game.SCREEN_WIDTH;
+                }
+                if (this.view_y < 0) {
+                    this.view_y = 0;
+                }
+                else if (this.view_y > 32 * 30 - Game.SCREEN_HEIGHT) {
+                    this.view_y = 32 * 30 - Game.SCREEN_HEIGHT;
+                }
+                this.view_x = Math.round(this.view_x);
+                this.view_y = Math.round(this.view_y);
             };
             return Stage;
         })(States.GameState);
