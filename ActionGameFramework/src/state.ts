@@ -1,6 +1,6 @@
 ﻿
 module Game {
-    export interface IState {
+    export interface IState extends IEventDispatcher {
         parent: IState;
         //name: string;
         enter(sm: StateMachine);
@@ -9,11 +9,12 @@ module Game {
     }
 
     export module States {
-        export class AbstractState implements IState {
+        export class AbstractState extends EventDispatcher implements IState {
             parent: IState;
             //name: string;
             //constructor(name: string, sm: GameStateMachine) {
             constructor() {
+                super();
                 //this.name = name;
             }
             enter(sm: StateMachine) { }
