@@ -416,7 +416,7 @@ var Game;
             this.moving.push(new States.JumperWaiting());
             //this.code = 154;
             this.addEventHandler("onstamped", this.onStamped);
-            this.addEventHandler("onhit", this.onHit);
+            this.counter["ac"] = 0;
         }
         Jumper.prototype.move = function () {
             this.x += this.vx / 10;
@@ -430,13 +430,100 @@ var Game;
             this.vx = 0;
             this.vy = 0;
         };
-        Jumper.prototype.onHit = function (e) {
-            if (this.flags["isAlive"]) {
-                if (e.dir == "horizontal") {
-                    this.reverse_horizontal = !this.reverse_horizontal;
+        Jumper.prototype.checkCollisionWithBlocksVertical = function () {
+            if (this.flags["isOnGround"]) {
+                this.flags["isOnGround"] = false;
+                // check
+                var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
+                    var col = this.getRect();
+                    if (this.vy < 0) {
+                        // up
+                        if (col.collision(bc) && !(new Game.Rect(this.x, this.bottom, this.width, 0).collision(bc))) {
+                            this.y = b.bottom;
+                            this.vy = 0;
+                        }
+                    }
+                    else if (this.vy >= 0) {
+                        // down || //
+                        if (col.collision(bc) && !(new Game.Rect(this.x, this.y, this.width, 0).collision(bc))) {
+                            this.dispatchEvent(new Game.Event("onground"));
+                            this.bottom = b.y;
+                            this.vy = 0;
+                        }
+                    }
                 }
-                if (e.dir == "vertical" && e.sprite.y > this.y) {
-                    this.flags["isOnGround"] = true;
+            }
+            else {
+                // ジャンプ中の判定
+                var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
+                    // 上方向
+                    var col = new Game.Point(this.centerx, this.y + 6);
+                    if (col.collision(bc)) {
+                        this.y = b.bottom - 6;
+                        this.vy = 0;
+                    }
+                    // 下方向
+                    var col = new Game.Point(this.centerx, this.bottom);
+                    if (col.collision(bc)) {
+                        this.dispatchEvent(new Game.Event("onground"));
+                        this.bottom = b.y;
+                        this.vy = 0;
+                    }
+                }
+            }
+        };
+        Jumper.prototype.checkCollisionWithBlocksHorizontal = function () {
+            if (this.flags["isOnGround"]) {
+                // check
+                var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
+                    var col = this.getRect();
+                    if (this.vx > 0) {
+                        // right
+                        if (col.collision(bc)) {
+                            this.right = b.x;
+                            this.vx = 0;
+                            this.reverse_horizontal = !this.reverse_horizontal;
+                        }
+                    }
+                    else if (this.vx < 0) {
+                        // left
+                        if (col.collision(bc)) {
+                            this.x = b.right;
+                            this.vx = 0;
+                            this.reverse_horizontal = !this.reverse_horizontal;
+                        }
+                    }
+                }
+            }
+            else {
+                // ジャンプ中の判定
+                var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
+                    if (this.vx > 0) {
+                        // right
+                        if (new Game.Point(this.right, this.bottom).collision(bc) || new Game.Point(this.right, this.y + 8).collision(bc)) {
+                            this.right = b.x;
+                            this.reverse_horizontal = !this.reverse_horizontal;
+                        }
+                    }
+                    else if (this.vx < 0) {
+                        // left
+                        if (new Game.Point(this.x, this.bottom).collision(bc) || new Game.Point(this.x, this.y + 8).collision(bc)) {
+                            this.x = b.right;
+                            this.reverse_horizontal = !this.reverse_horizontal;
+                        }
+                    }
                 }
             }
         };
@@ -451,7 +538,7 @@ var Game;
                 _super.apply(this, arguments);
             }
             JumperWaiting.prototype.enter = function (sm) {
-                sm.e.counter["ac"] = 0;
+                sm.e.flags["isOnGround"] = true;
             };
             JumperWaiting.prototype.update = function (sm) {
                 var e = sm.e;
@@ -493,8 +580,8 @@ var Game;
                 else {
                     e.code = 156;
                 }
-                console.log(e.vy);
                 if (e.flags["isOnGround"]) {
+                    e.counter["ac"] = 15;
                     sm.replace(new JumperWaiting());
                     sm.update();
                 }
