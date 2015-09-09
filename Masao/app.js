@@ -66,14 +66,14 @@ window.onload = function () {
         "a...aa.aaa.....................99...........................",
         "aa..........................................................",
         "a...aa.a.a..................................................",
-        "a...........................................A...............",
+        "a...........................................................",
         "a.aaaaa.aaa.........12.....9.9...aaa.....aa.aaaaaaaa...12...",
         "a....aa.a....B............aaaaa..............9.aaaaa........",
         "aaaa.a..aaaaaa..........................B...aaaaaaaa........",
         ".......aa...........................aaaaa...9.9aa999........",
         "..aaaaaa..............B.............9.9.9...aaaaaaaa........",
         "...........aaaaaa..aaaaaa....................9.aaaaa........",
-        "..........aaaaaaa..aaaaaa............D......aaaaaaaa........",
+        ".A........aaaaaaa..aaaaaa............D......aaaaaaaa........",
         "bbbbbbbbbbbbbbbbb..bbbbbb.bbbbbbbbbbbbbbbbbbbbbbbbbb5bbbbbb.",
         "............................................................",
         "............................................................",
@@ -300,6 +300,9 @@ var Game;
                 }
                 if (!this.flags["isActivated"])
                     return;
+                else {
+                    this.update();
+                }
             }
             this.moving.update();
             this.move();
@@ -702,8 +705,8 @@ var Game;
             }
             else {
                 this.moving.update();
-                this.x += this.vx / 10;
-                this.y += this.vy > -320 ? this.vy / 10 : -32;
+                this.x += Math.floor(this.vx / 10);
+                this.y += this.vy > -320 ? Math.floor(this.vy / 10) : -32;
             }
         };
         // 速度に応じて自機の座標を移動させる
@@ -713,11 +716,11 @@ var Game;
                 muki_x = 1;
             else if (this.vx < 0)
                 muki_x = -1;
-            this.x += this.vx / 10;
+            this.x += Math.floor(this.vx / 10);
             this.checkCollisionWithBlocksHorizontal(); // 接触判定
             var tmp_bottom = this.bottom;
             var tmp_top = this.top;
-            this.y += this.vy > -320 ? this.vy / 10 : -32;
+            this.y += this.vy > -320 ? Math.floor(this.vy / 10) : -32;
             this.checkCollisionWithBlocksVertical(); // 接触判定
             // 補正
             if (this.vy > 0) {

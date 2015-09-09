@@ -37,6 +37,9 @@ module Game {
                     }
                 }
                 if (!this.flags["isActivated"]) return;
+                else {
+                    this.update();
+                }
             }
 
             this.moving.update();

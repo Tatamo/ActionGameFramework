@@ -79,8 +79,8 @@ module Game {
             }
             else {
                 this.moving.update();
-                this.x += this.vx / 10;
-                this.y += this.vy > -320 ? this.vy / 10 : -32;
+                this.x += Math.floor(this.vx / 10);
+                this.y += this.vy > -320 ? Math.floor(this.vy / 10) : -32;
             }
         }
         // 速度に応じて自機の座標を移動させる
@@ -88,12 +88,12 @@ module Game {
             var muki_x = 0;
             if (this.vx > 0) muki_x = 1;
             else if (this.vx < 0) muki_x = -1;
-            this.x += this.vx / 10;
+            this.x += Math.floor(this.vx / 10);
             this.checkCollisionWithBlocksHorizontal(); // 接触判定
 
             var tmp_bottom = this.bottom;
             var tmp_top = this.top;
-            this.y += this.vy > -320 ? this.vy / 10 : -32;
+            this.y += this.vy > -320 ? Math.floor(this.vy / 10) : -32;
             this.checkCollisionWithBlocksVertical(); // 接触判定
 
             // 補正
