@@ -512,15 +512,17 @@ var Game;
                     var bc = b.getCollision();
                     if (this.vx > 0) {
                         // right
-                        if (new Game.Point(this.right, this.bottom).collision(bc) || new Game.Point(this.right, this.y + 8).collision(bc)) {
+                        if (new Game.Point(this.right + this.vx / 10, this.bottom).collision(bc) || new Game.Point(this.right + this.vx / 10, this.y + 8).collision(bc)) {
                             this.right = b.x;
+                            this.vx = 0;
                             this.reverse_horizontal = !this.reverse_horizontal;
                         }
                     }
                     else if (this.vx < 0) {
                         // left
-                        if (new Game.Point(this.x, this.bottom).collision(bc) || new Game.Point(this.x, this.y + 8).collision(bc)) {
+                        if (new Game.Point(this.x + this.vx / 10, this.bottom).collision(bc) || new Game.Point(this.x + this.vx / 10, this.y + 8).collision(bc)) {
                             this.x = b.right;
+                            this.vx = 0;
                             this.reverse_horizontal = !this.reverse_horizontal;
                         }
                     }
@@ -581,7 +583,7 @@ var Game;
                     e.code = 156;
                 }
                 if (e.flags["isOnGround"]) {
-                    e.counter["ac"] = 15;
+                    e.counter["ac"] = 15 - 1;
                     sm.replace(new JumperWaiting());
                     sm.update();
                 }
