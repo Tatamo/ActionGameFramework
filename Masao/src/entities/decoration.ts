@@ -1,6 +1,6 @@
 ﻿/// <reference path="entity.ts"/>
 module Game {
-    export class Decoration extends Entity {
+    export class Decoration extends AbstractEntity {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
             super(x, y, imagemanager, label, dx, dy);
             this.z = 512;

@@ -139,8 +139,8 @@
         private initLookupTable() {
             this.lookup = {};
             this.lookup["A"] = Player;
-            this.lookup["B"] = Kame;
-            this.lookup["C"] = KameFallable;
+            this.lookup["B"] = Walker;
+            this.lookup["C"] = WalkerFallable;
             this.lookup["E"] = ElectricShooter;
             this.lookup["F"] = LeafShooter;
             this.lookup["O"] = Jumper;

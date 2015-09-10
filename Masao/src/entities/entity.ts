@@ -1,5 +1,5 @@
 ﻿module Game {
-    export class Entity extends Sprite {
+    export class AbstractEntity extends Sprite {
         public counter: { [key: string]: number; };
         public flags: { [key: string]: boolean; };
         public ss: SpriteSystem;
@@ -16,8 +16,8 @@
         }
     }
     export class EntityStateMachine extends StateMachine {
-        public e: Entity;
-        constructor(e: Entity, parent: any = null) {
+        public e: AbstractEntity;
+        constructor(e: AbstractEntity, parent: any = null) {
             super(parent);
             this.e = e;
         }

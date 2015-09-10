@@ -1,6 +1,6 @@
 ﻿/// <reference path="entity.ts"/>
 module Game {
-    export class Player extends Entity {
+    export class Player extends AbstractEntity {
         public gk: GameKey; // TODO:疎結合に
         public sjump_effects: Array<PlayerSuperJumpEffect>;
         public moving: PlayerStateMachine;

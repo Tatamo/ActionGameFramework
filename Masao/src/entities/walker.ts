@@ -1,16 +1,16 @@
 ﻿/// <reference path="enemy.ts"/>
 module Game {
-    export class Kame extends Enemy {
+    export class Walker extends AbstractEnemy {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
             super(x, y, imagemanager, label, dx, dy);
             this.moving = new EntityStateMachine(this);
-            this.moving.push(new States.KameWalking());
+            this.moving.push(new States.WalkerWalking());
             //this.code = 140;
             this.addEventHandler("onstamped", this.onStamped);
             //this.addEventHandler("onhit", this.onHit);
         }
         private onStamped(e: SpriteCollisionEvent) {
-            if (this.flags["isAlive"]) this.moving.replace(new States.KameStamped());
+            if (this.flags["isAlive"]) this.moving.replace(new States.WalkerStamped());
             this.vx = 0;
             this.vy = 0;
         }
@@ -25,14 +25,14 @@ module Game {
             }
         }*/
     }
-    export class KameFallable extends Kame {
+    export class WalkerFallable extends Walker {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
             super(x, y, imagemanager, label, dx, dy);
-            this.moving.replace(new States.KameWalkingFallable());
+            this.moving.replace(new States.WalkerWalkingFallable());
         }
     }
     export module States {
-        export class KameWalking extends AbstractStampableAlive {
+        export class WalkerWalking extends AbstractStampableAlive {
             enter(sm: EntityStateMachine) {
             }
             update(sm: EntityStateMachine) {
@@ -51,7 +51,7 @@ module Game {
                 this.checkCollisionWithPlayer(sm);
             }
         }
-        export class KameWalkingFallable extends AbstractStampableAlive {
+        export class WalkerWalkingFallable extends AbstractStampableAlive {
             enter(sm: EntityStateMachine) {
             }
             update(sm: EntityStateMachine) {
@@ -65,19 +65,19 @@ module Game {
                 if (e.ss.MapBlocks.getByXYReal((e.reverse_horizontal ? e.x : e.right) + e.vx / 10, e.y + e.height + 1) == null) {
                     e.x = Math.floor(((e.reverse_horizontal ? e.x : e.right) + e.vx / 10) / e.width) * e.width; // マップチップの横幅がエンティティの横幅と同じであること依存している点に注意
                     e.vx = 0;
-                    sm.replace(new KameFalling());
+                    sm.replace(new WalkerFalling());
                 }
                 this.checkCollisionWithPlayer(sm);
             }
         }
-        export class KameFalling extends AbstractStampableAlive {
+        export class WalkerFalling extends AbstractStampableAlive {
             enter(sm: EntityStateMachine) {
                 sm.e.flags["isOnGround"] = false;
             }
             update(sm: EntityStateMachine) {
                 var e = sm.e;
                 if (e.flags["isOnGround"]) {
-                    sm.replace(new KameWalkingFallable());
+                    sm.replace(new WalkerWalkingFallable());
                     sm.update();
                 }
                 else {
@@ -87,7 +87,7 @@ module Game {
                 }
             }
         }
-        export class KameStamped extends AbstractState {
+        export class WalkerStamped extends AbstractState {
             enter(sm: EntityStateMachine) {
                 sm.e.counter["ac"] = 0;
                 sm.e.code = 142;

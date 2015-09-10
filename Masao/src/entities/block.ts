@@ -1,6 +1,6 @@
 ﻿/// <reference path="entity.ts"/>
 module Game {
-    export class Block extends Entity {
+    export class AbstractBlock extends AbstractEntity {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
             super(x, y, imagemanager, label, dx, dy);
             this.z = 512;
@@ -125,22 +125,22 @@ module Game {
             }
         }*/
     }
-    export class Block1 extends Block {
+    export class Block1 extends AbstractBlock {
         initPatternCode() { this.code = 20; }
     }
-    export class Block2 extends Block {
+    export class Block2 extends AbstractBlock {
         initPatternCode() { this.code = 21; }
     }
-    export class Block3 extends Block {
+    export class Block3 extends AbstractBlock {
         initPatternCode() { this.code = 22; }
     }
-    export class Block4 extends Block {
+    export class Block4 extends AbstractBlock {
         initPatternCode() { this.code = 23; }
     }
-    export class Block5 extends Block {
+    export class Block5 extends AbstractBlock {
         initPatternCode() { this.code = 24; }
     }
-    export class Block6 extends Block {
+    export class Block6 extends AbstractBlock {
         initPatternCode() { this.code = 25; }
     }
 }

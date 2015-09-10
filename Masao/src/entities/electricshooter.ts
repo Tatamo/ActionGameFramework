@@ -1,6 +1,6 @@
 ﻿/// <reference path="enemy.ts"/>
 module Game {
-    export class ElectricShooter extends Enemy {
+    export class ElectricShooter extends AbstractEnemy {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
             super(x, y, imagemanager, label, dx, dy);
             this.moving = new EntityStateMachine(this);
@@ -140,7 +140,7 @@ module Game {
             }
         }
     }
-    export class ElectricShot extends Entity {
+    export class ElectricShot extends AbstractEntity {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1, target: ISprite = null) {
             super(x, y, imagemanager, label, dx, dy);
             this.moving = new EntityStateMachine(this);

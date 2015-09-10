@@ -20,7 +20,7 @@
             if (s instanceof Player) {
                 this.Players.add(s);
             }
-            if (s instanceof Block) {
+            if (s instanceof AbstractBlock) {
                 this.MapBlocks.add(s);
             }
             s.ss = this;
