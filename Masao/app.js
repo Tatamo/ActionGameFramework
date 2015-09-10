@@ -603,7 +603,6 @@ var Game;
             this.vy = Math.floor(14 * dy / r) * 10;
             this.x += Math.floor(this.vx * 16 / 140);
             this.y += Math.floor(this.vy * 16 / 140);
-            console.log(this.x, this.y);
             // 水で消える設定の時の判定はここに書く
         }
         ElectricShot.prototype.update = function () {
@@ -2226,7 +2225,11 @@ var Game;
                         _this.player.view_x = _this.view_x;
                         _this.player.view_y = _this.view_y;
                     });
-                    this.player.addEventHandler("update", (function (e) {
+                    var scroll = (function (e) {
+                        if (!_this.player.flags["isAlive"]) {
+                            _this.player.removeEventHandler("update", scroll);
+                            return;
+                        }
                         var px = _this.player.x;
                         var py = _this.player.y;
                         var wx = px - _this.view_x;
@@ -2245,7 +2248,8 @@ var Game;
                         }
                         _this.fixViewXY();
                         _this.dispatchEvent(new Game.Event("onscroll"));
-                    }).bind(this));
+                    }).bind(this);
+                    this.player.addEventHandler("update", scroll);
                     this.view_x = this.player.x - 96;
                     this.view_y = this.player.y - 176;
                     this.fixViewXY();

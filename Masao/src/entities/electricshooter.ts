@@ -178,7 +178,6 @@ module Game {
             this.vy = Math.floor(14 * dy / r) * 10;
             this.x += Math.floor(this.vx * 16 / 140);
             this.y += Math.floor(this.vy * 16 / 140);
-            console.log(this.x, this.y);
             // 水で消える設定の時の判定はここに書く
 
         }

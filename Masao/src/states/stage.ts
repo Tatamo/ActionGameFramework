@@ -42,7 +42,11 @@
                         this.player.view_x = this.view_x;
                         this.player.view_y = this.view_y;
                     });
-                    this.player.addEventHandler("update",((e: Event) => {
+                    var scroll = ((e: Event) => {
+                        if (!this.player.flags["isAlive"]) {
+                            this.player.removeEventHandler("update", scroll);
+                            return;
+                        }
                         var px = this.player.x;
                         var py = this.player.y;
                         var wx = px - this.view_x;
@@ -62,7 +66,8 @@
 
                         this.fixViewXY();
                         this.dispatchEvent(new Event("onscroll"));
-                    }).bind(this));
+                    }).bind(this);
+                    this.player.addEventHandler("update", scroll);
                     this.view_x = this.player.x - 96;
                     this.view_y = this.player.y - 176;
                     this.fixViewXY();
