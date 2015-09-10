@@ -69,7 +69,7 @@ module Game {
         get centery(): number { return this.y + this.height / 2; }
         set centery(v: number) { this.y = v - this.height / 2; }
 
-        constructor(x: number, y: number, imagemanager: ImageManager, label: string, code: number = 0, dx: number = 1, dy: number = 1) {
+        constructor(x: number, y: number, public imagemanager: ImageManager, public label: string, code: number = 0, dx: number = 1, dy: number = 1) {
             super();
             this.addEventHandler("update", this.update);
 
@@ -182,6 +182,7 @@ module Game {
             // 処理中にthis._spritesの要素が変化する可能性があるため、配列のコピーを回す
             var sps = this._sprites.slice(0);
             for (var i = 0; i < sps.length; i++) {
+            //for (var i = sps.length-1; i >= 0; i--) {
                 sps[i].dispatchEvent(new Event("update"));
             }
         }

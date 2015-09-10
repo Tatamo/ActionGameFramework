@@ -1,4 +1,4 @@
-﻿/// <reference path="entity.ts"/>
+﻿/// <reference path="enemy.ts"/>
 module Game {
     export class Jumper extends Enemy {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {

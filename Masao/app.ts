@@ -32,7 +32,7 @@ window.onload = () => {
         "a....aa.a....B............aaaaa..............9.aaaaa........",
         "aaaa.a..aaaaaa......aa..................B...aaaaaaaa........",
         ".......aa...........a...............aaaaa...9.9aa999........",
-        "..aaaaaa............................9.9.9...aaaaaaaa........",
+        "..aaaaaa.......E....................9.9.9...aaaaaaaa........",
         "...........aaaaaa..aaaaaa....................9.aaaaa........",
         ".A........aaaaaaa..aaaaaa...................aaaaaaaa........",
         "bbbbbbbbbbbbbbbbb..bbbbbb.bbbbbbbbbbbbbbbbbbbbbbbbbb5bbbbbb.",

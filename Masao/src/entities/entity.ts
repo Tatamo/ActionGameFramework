@@ -7,6 +7,7 @@
             super(x, y, imagemanager, label, 0, dx, dy);
             this.counter = {};
             this.flags = {};
+            this.z = 256;
         }
     }
     export class EntityStateMachine extends StateMachine {

@@ -7,7 +7,7 @@ module Game {
         public special: PlayerStateMachine;
         public view_x: number; // Stageのほうで勝手に数値を代入してくれることを期待している
         public view_y: number;
-        constructor(input: GameKey, x: number, y: number, public imagemanager: ImageManager, public label: string, dx: number = 1, dy: number = 1) {
+        constructor(input: GameKey, x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
             super(x, y, imagemanager, label, dx, dy);
             this.code = 100;
             this.gk = input;
@@ -626,7 +626,7 @@ module Game {
     }
     export class PlayerSuperJumpEffect extends Sprite {
         public ss: SpriteSystem;
-        constructor(x: number, y: number, imagemanager: ImageManager, private label: string, dx: number, dy: number, code: number, reverse_horizontal: boolean) {
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number, dy: number, code: number, reverse_horizontal: boolean) {
             super(x, y, imagemanager, label, 100, dx, dy);
             this.code = code;
             this.z = 129;

@@ -71,7 +71,7 @@ window.onload = function () {
         "a....aa.a....B............aaaaa..............9.aaaaa........",
         "aaaa.a..aaaaaa......aa..................B...aaaaaaaa........",
         ".......aa...........a...............aaaaa...9.9aa999........",
-        "..aaaaaa............................9.9.9...aaaaaaaa........",
+        "..aaaaaa.......E....................9.9.9...aaaaaaaa........",
         "...........aaaaaa..aaaaaa....................9.aaaaa........",
         ".A........aaaaaaa..aaaaaa...................aaaaaaaa........",
         "bbbbbbbbbbbbbbbbb..bbbbbb.bbbbbbbbbbbbbbbbbbbbbbbbbb5bbbbbb.",
@@ -155,6 +155,7 @@ var Game;
             _super.call(this, x, y, imagemanager, label, 0, dx, dy);
             this.counter = {};
             this.flags = {};
+            this.z = 256;
         }
         return Entity;
     })(Game.Sprite);
@@ -407,7 +408,269 @@ var Game;
         States.AbstractStampableAlive = AbstractStampableAlive;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
-/// <reference path="entity.ts"/>
+/// <reference path="enemy.ts"/>
+var Game;
+(function (Game) {
+    var ElectricShooter = (function (_super) {
+        __extends(ElectricShooter, _super);
+        function ElectricShooter(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.ElectricShooterWaiting());
+            //this.code = 140;
+            this.addEventHandler("onstamped", this.onStamped);
+            //this.addEventHandler("onhit", this.onHit);
+        }
+        ElectricShooter.prototype.onStamped = function (e) {
+            if (this.flags["isAlive"])
+                this.moving.replace(new States.ElectricShooterStamped());
+            this.vx = 0;
+            this.vy = 0;
+        };
+        return ElectricShooter;
+    })(Game.Enemy);
+    Game.ElectricShooter = ElectricShooter;
+    var States;
+    (function (States) {
+        var ElectricShooterWaiting = (function (_super) {
+            __extends(ElectricShooterWaiting, _super);
+            function ElectricShooterWaiting() {
+                _super.apply(this, arguments);
+            }
+            ElectricShooterWaiting.prototype.enter = function (sm) {
+            };
+            ElectricShooterWaiting.prototype.update = function (sm) {
+                var e = sm.e;
+                e.vx = 0;
+                e.vy = 0;
+                e.code = 143;
+                var players = sm.e.ss.Players.get_all();
+                if (e.counter["ac"] <= 0) {
+                    var flg = false;
+                    for (var i = 0; i < players.length; i++) {
+                        var p = players[i];
+                        if (p.x >= e.x - 241 && p.x <= e.x + 241) {
+                            flg = true;
+                            break;
+                        }
+                    }
+                    if (flg) {
+                        e.counter["ac"] = 0;
+                        e.vy = -140 + 10;
+                        sm.replace(new ElectricShooterJumping());
+                    }
+                }
+                else {
+                    e.counter["ac"] -= 1;
+                }
+                var pt = null; // 最も近いプレイヤー
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (pt == null) {
+                        pt = p;
+                    }
+                    else if (Math.abs(p.x - e.x) < Math.abs(pt.x - e.x)) {
+                        pt = p;
+                    }
+                }
+                if (pt != null) {
+                    if (e.x + 8 >= pt.x)
+                        e.reverse_horizontal = false; // 最も近いプレイヤーに合わせて反転状態を決定
+                    else
+                        e.reverse_horizontal = true;
+                }
+                this.checkCollisionWithPlayer(sm);
+            };
+            return ElectricShooterWaiting;
+        })(States.AbstractStampableAlive);
+        States.ElectricShooterWaiting = ElectricShooterWaiting;
+        var ElectricShooterJumping = (function (_super) {
+            __extends(ElectricShooterJumping, _super);
+            function ElectricShooterJumping() {
+                _super.apply(this, arguments);
+            }
+            ElectricShooterJumping.prototype.enter = function (sm) {
+                sm.e.flags["isOnGround"] = false;
+            };
+            ElectricShooterJumping.prototype.update = function (sm) {
+                var e = sm.e;
+                e.vy += 10; // y速度加算
+                if (e.vy > 140)
+                    e.vy = 140;
+                if (e.vy <= -10) {
+                    e.code = 144;
+                }
+                else {
+                    e.code = 145;
+                }
+                var players = sm.e.ss.Players.get_all();
+                var pt = null; // 最も近いプレイヤー
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (pt == null) {
+                        pt = p;
+                    }
+                    else if (Math.abs(p.x - e.x) < Math.abs(pt.x - e.x)) {
+                        pt = p;
+                    }
+                }
+                if (e.vy == 0 && pt != null && (Math.abs(pt.x - e.x) > 32 || e.y <= pt.y)) {
+                    // 攻撃
+                    var attack = new ElectricShot(pt, e.x, e.y, e.imagemanager, e.label);
+                    e.ss.add(attack);
+                    attack.update();
+                }
+                if (pt != null) {
+                    if (e.x + 8 >= pt.x)
+                        e.reverse_horizontal = false; // 最も近いプレイヤーに合わせて反転状態を決定
+                    else
+                        e.reverse_horizontal = true;
+                }
+                if (e.flags["isOnGround"]) {
+                    e.counter["ac"] = 30;
+                    sm.replace(new ElectricShooterWaiting());
+                    sm.update();
+                }
+                this.checkCollisionWithPlayer(sm);
+            };
+            return ElectricShooterJumping;
+        })(States.AbstractStampableAlive);
+        States.ElectricShooterJumping = ElectricShooterJumping;
+        var ElectricShooterStamped = (function (_super) {
+            __extends(ElectricShooterStamped, _super);
+            function ElectricShooterStamped() {
+                _super.apply(this, arguments);
+            }
+            ElectricShooterStamped.prototype.enter = function (sm) {
+                sm.e.counter["ac"] = 0;
+                sm.e.code = 146;
+                sm.e.flags["isAlive"] = false;
+            };
+            ElectricShooterStamped.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] += 1;
+                e.code = 146;
+                e.vx = 0;
+                e.vy = 0;
+                if (e.counter["ac"] >= 10) {
+                    e.kill();
+                }
+            };
+            return ElectricShooterStamped;
+        })(States.AbstractState);
+        States.ElectricShooterStamped = ElectricShooterStamped;
+    })(States = Game.States || (Game.States = {}));
+    var ElectricShot = (function (_super) {
+        __extends(ElectricShot, _super);
+        function ElectricShot(target, x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.z = 256; // 敵と同じだけど、どうせ敵より後に生成されるはず
+            this.counter["ac"] = 0;
+            this.flags["isAlive"] = true;
+            this.code = 120;
+            /*
+            var players = <Array<Player>>this.ss.Players.get_all();
+            var pt: Player = null; // 最も近いプレイヤー
+            for (var i = 0; i < players.length; i++) {
+                var p = players[i];
+                if (pt == null) {
+                    pt = p;
+                }
+                else if (Math.abs(p.x - this.x) < Math.abs(pt.x - this.x)) { // よりx座標が近いなら
+                    if (Math.abs(p.x - this.x) > 32 || this.y <= p.y) { // 攻撃対象となる条件を満たしているなら
+                        pt = p;
+                    }
+                }
+            }
+            if (pt == null) {
+                this.kill();
+            }
+            else { // ターゲットとなるプレイヤーが決定
+
+            }*/
+            var dx = target.x - this.x;
+            var dy = target.y - this.y;
+            var r = Math.floor(Math.sqrt(dx * dx + dy * dy));
+            if (r < 48) {
+                this.flags["isAlive"] = false;
+                return;
+            }
+            this.vx = Math.floor(14 * dx / r) * 10;
+            this.vy = Math.floor(14 * dy / r) * 10;
+            this.x += Math.floor(this.vx * 16 / 140);
+            this.y += Math.floor(this.vy * 16 / 140);
+            console.log(this.x, this.y);
+            // 水で消える設定の時の判定はここに書く
+        }
+        ElectricShot.prototype.update = function () {
+            if (!this.flags["isAlive"]) {
+                this.kill();
+                return;
+            }
+            this.x += Math.floor(this.vx / 10);
+            this.y += Math.floor(this.vy / 10);
+            this.counter["ac"] = (this.counter["ac"] + 1) % 2;
+            if (this.counter["ac"] == 0)
+                this.code = 120;
+            else
+                this.code = 121;
+            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
+            for (var i = 0; i < blocks.length; i++) {
+                var b = blocks[i];
+                var bc = b.getCollision();
+                // ブロックと衝突したら消失
+                if (new Game.Point(this.centerx, this.centery - 3).collision(bc) || new Game.Point(this.centerx, this.centery + 3).collision(bc)) {
+                    this.flags["isAlive"] = false;
+                    this.kill();
+                    return;
+                }
+            }
+            // スクロール範囲外に出ていたら消失
+            var players = this.ss.Players.get_all();
+            var flg = false;
+            for (var i = 0; i < players.length; i++) {
+                var p = players[i];
+                if (this.x >= p.view_x - this.width && this.x <= p.view_x + Game.SCREEN_WIDTH + this.width * 4 && this.y >= p.view_y - this.width - Game.SCREEN_HEIGHT / 2 && this.y <= p.view_y + Game.SCREEN_HEIGHT) {
+                    flg = true;
+                    break;
+                }
+            }
+            if (!flg) {
+                this.flags["isAlive"] = false;
+                return;
+            }
+            this.checkCollisionWithPlayer();
+        };
+        // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+        // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+        ElectricShot.prototype.checkCollisionWithPlayer = function () {
+            var _this = this;
+            var players = this.ss.Players.get_all();
+            for (var i = 0; i < players.length; i++) {
+                var p = players[i];
+                // 現在のpをスコープに束縛
+                (function (p) {
+                    p.addOnceEventHandler("update", function () {
+                        var dx = Math.abs(_this.x - p.x); // プレイヤーとのx座標の差
+                        var dy = Math.abs(_this.y - p.y); // プレイヤーとのy座標の差
+                        if (p.flags["isAlive"] && dx <= 23 && dy <= 28) {
+                            // TODO:バリア判定はここに書く
+                            // プレイヤーにダメージ
+                            p.dispatchEvent(new Game.PlayerMissEvent("miss", 2));
+                        }
+                    });
+                })(p);
+            }
+        };
+        return ElectricShot;
+    })(Game.Entity);
+    Game.ElectricShot = ElectricShot;
+})(Game || (Game = {}));
+/// <reference path="enemy.ts"/>
 var Game;
 (function (Game) {
     var Jumper = (function (_super) {
@@ -630,8 +893,6 @@ var Game;
             if (dx === void 0) { dx = 1; }
             if (dy === void 0) { dy = 1; }
             _super.call(this, x, y, imagemanager, label, dx, dy);
-            this.imagemanager = imagemanager;
-            this.label = label;
             this.code = 100;
             this.gk = input;
             this.moving = new PlayerStateMachine(this);
@@ -1348,7 +1609,6 @@ var Game;
         __extends(PlayerSuperJumpEffect, _super);
         function PlayerSuperJumpEffect(x, y, imagemanager, label, dx, dy, code, reverse_horizontal) {
             _super.call(this, x, y, imagemanager, label, 100, dx, dy);
-            this.label = label;
             this.code = code;
             this.z = 129;
             this.reverse_horizontal = reverse_horizontal;
@@ -1359,7 +1619,7 @@ var Game;
     })(Game.Sprite);
     Game.PlayerSuperJumpEffect = PlayerSuperJumpEffect;
 })(Game || (Game = {}));
-/// <reference path="entity.ts"/>
+/// <reference path="enemy.ts"/>
 var Game;
 (function (Game) {
     var Kame = (function (_super) {
@@ -1778,6 +2038,7 @@ var Game;
             this.lookup["A"] = Game.Player;
             this.lookup["B"] = Game.Kame;
             this.lookup["C"] = Game.KameFallable;
+            this.lookup["E"] = Game.ElectricShooter;
             this.lookup["O"] = Game.Jumper;
             this.lookup["a"] = Game.Block1;
             this.lookup["b"] = Game.Block2;

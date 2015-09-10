@@ -298,6 +298,8 @@ declare module Game {
         getCollision(): IShape;
     }
     class Sprite extends EventDispatcher implements ISprite {
+        imagemanager: ImageManager;
+        label: string;
         x: number;
         y: number;
         z: number;
