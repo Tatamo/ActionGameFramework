@@ -20,6 +20,7 @@
   <ItemGroup>
     <Content Include="app.css" />
     <Content Include="app.js" />
+    <Content Include="ending.gif" />
     <Content Include="gameover.gif" />
     <Content Include="index.html" />
     <Content Include="pattern.gif" />
@@ -49,6 +50,7 @@
     <TypeScriptCompile Include="src\entities\player.ts" />
     <TypeScriptCompile Include="src\score.ts" />
     <TypeScriptCompile Include="src\spritesystem.ts" />
+    <TypeScriptCompile Include="src\states\ending.ts" />
     <TypeScriptCompile Include="src\states\gameover.ts" />
     <TypeScriptCompile Include="src\states\pause.ts" />
     <TypeScriptCompile Include="src\states\preload.ts" />

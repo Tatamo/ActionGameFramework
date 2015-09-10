@@ -51,13 +51,42 @@ module Game {
             update(sm: EntityStateMachine) {
                 var e = sm.e;
                 e.counter["ac"] = (e.counter["ac"] + 1) % 8;
-                e.code = 90 + Math.floor(e.counter["ac"]/2);
+                e.code = 90 + Math.floor(e.counter["ac"] / 2);
 
                 this.checkCollisionWithPlayer(sm);
             }
             onHitWithPlayer(sm: EntityStateMachine, p: Player) {
                 var e = sm.e;
                 p.dispatchEvent(new ScoreEvent("addscore", 5));
+                e.kill();
+            }
+        }
+    }
+    export class GoalStar extends AbstractItem {
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
+            super(x, y, imagemanager, label, dx, dy);
+            this.moving = new EntityStateMachine(this);
+            this.moving.push(new States.GoalStarExisting());
+        }
+    }
+    export module States {
+        export class GoalStarExisting extends AbstractItemAlive {
+            enter(sm: EntityStateMachine) {
+                var e = sm.e;
+                e.counter["ac"] = 0;
+
+            }
+            update(sm: EntityStateMachine) {
+                var e = sm.e;
+                e.counter["ac"] = (e.counter["ac"] + 1) % 8;
+                e.code = 94 + Math.floor(e.counter["ac"] / 4);
+
+                this.checkCollisionWithPlayer(sm);
+            }
+            onHitWithPlayer(sm: EntityStateMachine, p: Player) {
+                var e = sm.e;
+                p.dispatchEvent(new ScoreEvent("addscore", 100));
+                p.dispatchEvent(new Event("ongoal"));
                 e.kill();
             }
         }

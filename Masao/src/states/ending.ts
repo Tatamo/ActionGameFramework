@@ -1,10 +1,10 @@
 ﻿module Game {
     export module States {
-        export class GameOver extends GameState {
+        export class Ending extends GameState {
             bg: HTMLCanvasElement;
             private counter: number;
             enter(sm: GameStateMachine) {
-                this.bg = sm.game.assets.image.get("gameover");
+                this.bg = sm.game.assets.image.get("ending");
                 this.counter = 0;
             }
             update(sm: GameStateMachine) {
@@ -13,7 +13,7 @@
                     sm.pop(); // タイトルに戻る
                 }
                 this.counter += 1;
-                if (this.counter >= 45 / 14 * 14) sm.pop(); // タイトルに戻る
+                if (this.counter >= 120 / 14 * 14) sm.pop(); // タイトルに戻る
             }
         }
     }

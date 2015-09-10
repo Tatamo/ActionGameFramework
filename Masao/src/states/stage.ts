@@ -6,13 +6,15 @@
             mm: MapGenerator;
             view_x: number;
             view_y: number;
-            private is_initialized: boolean;
+            private _is_initialized: boolean;
+            private _c_gameclear: number;
             constructor() {
                 super();
-                this.is_initialized = false;
+                this._is_initialized = false;
             }
             enter(sm: GameStateMachine) {
-                if (!this.is_initialized) {
+                if (!this._is_initialized) {
+                    this._c_gameclear = 0;
                     sm.game.score.SetScore(0);
                     sm.game.hud_highscore = sm.game.score.GetHighScore();
                     this.ss = new SpriteSystem(sm.game.screen);
@@ -22,7 +24,7 @@
                         this.ss.add(new AbstractBlock(-32, -320 + i * 32, sm.game.assets.image, "pattern"));
                         this.ss.add(new AbstractBlock(32 * 180, -320 + i * 32, sm.game.assets.image, "pattern"));
                     }
-                    for (var i: number = 0; i < 180; i++) {
+                    for (var i: number = 0; i < 180; i++) { // TODO: 敵は跳ね返らずに外に出ていくようにする
                         this.ss.add(new AbstractBlock(i * 32, -320, sm.game.assets.image, "pattern"));
                     }
                     /*
@@ -43,7 +45,9 @@
                     this.player = new Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
                     this.ss.add(this.player);*/
                     this.player = this.mm.player;
+                    //this.player.addEventHandler("ondie",((e: Event) => { sm.replace(new GameOver()); }).bind(this)); // ゲームクリア判定のほうを優先させる
                     this.player.addEventHandler("ondie",(e: Event) => { sm.replace(new GameOver()); });
+                    this.player.addEventHandler("ongoal",((e: Event) => { this._c_gameclear = 1; }).bind(this));
                     this.player.addEventHandler("addscore",(e: ScoreEvent) => { sm.game.score.AddScore(e.value); });
                     this.addEventHandler("onscroll",(e: Event) => {
                         this.player.view_x = this.view_x;
@@ -80,7 +84,7 @@
                     this.fixViewXY();
                     this.dispatchEvent(new Event("onscroll"));
 
-                    this.is_initialized = true;
+                    this._is_initialized = true;
                 }
             }
             update(sm: GameStateMachine) {
@@ -96,6 +100,14 @@
                 }
                 if (sm.game.gamekey.isOnDown(84)) { // T
                     sm.pop(); // タイトルに戻る
+                }
+                if (this._c_gameclear > 0) { // ゲームクリア判定成立
+                    this._c_gameclear += 1;
+                    if (this._c_gameclear > 28) {
+                        // TODO: 制限時間に応じて加点
+                        // sm.game.score.AddScore(0);
+                        sm.replace(new Ending());
+                    }
                 }
             }
             protected fixViewXY() { // view_xおよびview_yが画面外へ行かないよう補正する

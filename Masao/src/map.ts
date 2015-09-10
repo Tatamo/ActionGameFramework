@@ -158,6 +158,7 @@
             this.lookup["2"] = CloudRight;
             this.lookup["3"] = Grass;
             this.lookup["7"] = Torch;
+            this.lookup["8"] = GoalStar;
             this.lookup["9"] = Coin;
         }
         setSS(ss: ISpriteSystem) {

@@ -25,6 +25,7 @@ var Game;
                 var assets = sm.game.assets;
                 assets.image.regist_image("title", "title.gif");
                 assets.image.regist_image("gameover", "gameover.gif");
+                assets.image.regist_image("ending", "ending.gif");
                 assets.image.regist_pattern("pattern", "pattern.gif", 32, 32);
                 assets.load();
             };
@@ -73,7 +74,7 @@ window.onload = function () {
         ".......aa...........a...............aaaaa...9.9aa999........",
         "..aaaaaa7......E....................9.9.9...aaaaaaaa........",
         "...........aaaaaa..aaaaaa....................9.aaaaa........",
-        ".A.333....aaaaaaa..aaaaaa.......F...........aaaaaaaa........",
+        "...333....aaaaaaa..aaaaaa.......F...........aaaaaaaa........",
         "bbbbbbbbbbbbbbbbb..bbbbbb.bbbbbbbbbbbbbbbbbbbbbbbbbb5bbbbbb.",
         "............................................................",
         "............................................................",
@@ -128,7 +129,7 @@ window.onload = function () {
         "............................................................",
         "............................................................",
         "........................................................8...",
-        "..................99........12.....12....12....12.......a...",
+        "..................99........12.....12....12....12.......aA..",
         "..................dd...................................aaa..",
         "..e.ef...................9.9.9.9......................aaaaa.",
         "..e..e.............................................F.aaaaaaa",
@@ -138,6 +139,7 @@ window.onload = function () {
     ];
     var images = {
         "gameover": "gameover.gif",
+        "ending": "ending.gif",
         "title": "title.gif",
         "pattern": "pattern.gif"
     };
@@ -871,6 +873,45 @@ var Game;
             return CoinExisting;
         })(States.AbstractItemAlive);
         States.CoinExisting = CoinExisting;
+    })(States = Game.States || (Game.States = {}));
+    var GoalStar = (function (_super) {
+        __extends(GoalStar, _super);
+        function GoalStar(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.GoalStarExisting());
+        }
+        return GoalStar;
+    })(AbstractItem);
+    Game.GoalStar = GoalStar;
+    var States;
+    (function (States) {
+        var GoalStarExisting = (function (_super) {
+            __extends(GoalStarExisting, _super);
+            function GoalStarExisting() {
+                _super.apply(this, arguments);
+            }
+            GoalStarExisting.prototype.enter = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = 0;
+            };
+            GoalStarExisting.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = (e.counter["ac"] + 1) % 8;
+                e.code = 94 + Math.floor(e.counter["ac"] / 4);
+                this.checkCollisionWithPlayer(sm);
+            };
+            GoalStarExisting.prototype.onHitWithPlayer = function (sm, p) {
+                var e = sm.e;
+                p.dispatchEvent(new Game.ScoreEvent("addscore", 100));
+                p.dispatchEvent(new Game.Event("ongoal"));
+                e.kill();
+            };
+            return GoalStarExisting;
+        })(States.AbstractItemAlive);
+        States.GoalStarExisting = GoalStarExisting;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
 /// <reference path="enemy.ts"/>
@@ -2502,6 +2543,7 @@ var Game;
             this.lookup["2"] = Game.CloudRight;
             this.lookup["3"] = Game.Grass;
             this.lookup["7"] = Game.Torch;
+            this.lookup["8"] = Game.GoalStar;
             this.lookup["9"] = Game.Coin;
         };
         MapGenerator.prototype.setSS = function (ss) {
@@ -2581,6 +2623,33 @@ var Game;
 (function (Game) {
     var States;
     (function (States) {
+        var Ending = (function (_super) {
+            __extends(Ending, _super);
+            function Ending() {
+                _super.apply(this, arguments);
+            }
+            Ending.prototype.enter = function (sm) {
+                this.bg = sm.game.assets.image.get("ending");
+                this.counter = 0;
+            };
+            Ending.prototype.update = function (sm) {
+                sm.game.screen.context.drawImage(this.bg, 0, 0);
+                if (sm.game.gamekey.isOnDown(84)) {
+                    sm.pop(); // タイトルに戻る
+                }
+                this.counter += 1;
+                if (this.counter >= 120 / 14 * 14)
+                    sm.pop(); // タイトルに戻る
+            };
+            return Ending;
+        })(States.GameState);
+        States.Ending = Ending;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var States;
+    (function (States) {
         var GameOver = (function (_super) {
             __extends(GameOver, _super);
             function GameOver() {
@@ -2596,7 +2665,7 @@ var Game;
                     sm.pop(); // タイトルに戻る
                 }
                 this.counter += 1;
-                if (this.counter >= 14 * 10)
+                if (this.counter >= 45 / 14 * 14)
                     sm.pop(); // タイトルに戻る
             };
             return GameOver;
@@ -2647,11 +2716,12 @@ var Game;
             __extends(Stage, _super);
             function Stage() {
                 _super.call(this);
-                this.is_initialized = false;
+                this._is_initialized = false;
             }
             Stage.prototype.enter = function (sm) {
                 var _this = this;
-                if (!this.is_initialized) {
+                if (!this._is_initialized) {
+                    this._c_gameclear = 0;
                     sm.game.score.SetScore(0);
                     sm.game.hud_highscore = sm.game.score.GetHighScore();
                     this.ss = new Game.SpriteSystem(sm.game.screen);
@@ -2682,9 +2752,13 @@ var Game;
                     this.player = new Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
                     this.ss.add(this.player);*/
                     this.player = this.mm.player;
+                    //this.player.addEventHandler("ondie",((e: Event) => { sm.replace(new GameOver()); }).bind(this)); // ゲームクリア判定のほうを優先させる
                     this.player.addEventHandler("ondie", function (e) {
                         sm.replace(new States.GameOver());
                     });
+                    this.player.addEventHandler("ongoal", (function (e) {
+                        _this._c_gameclear = 1;
+                    }).bind(this));
                     this.player.addEventHandler("addscore", function (e) {
                         sm.game.score.AddScore(e.value);
                     });
@@ -2721,7 +2795,7 @@ var Game;
                     this.view_y = this.player.y - 176;
                     this.fixViewXY();
                     this.dispatchEvent(new Game.Event("onscroll"));
-                    this.is_initialized = true;
+                    this._is_initialized = true;
                 }
             };
             Stage.prototype.update = function (sm) {
@@ -2735,6 +2809,14 @@ var Game;
                 }
                 if (sm.game.gamekey.isOnDown(84)) {
                     sm.pop(); // タイトルに戻る
+                }
+                if (this._c_gameclear > 0) {
+                    this._c_gameclear += 1;
+                    if (this._c_gameclear > 28) {
+                        // TODO: 制限時間に応じて加点
+                        // sm.game.score.AddScore(0);
+                        sm.replace(new States.Ending());
+                    }
                 }
             };
             Stage.prototype.fixViewXY = function () {
