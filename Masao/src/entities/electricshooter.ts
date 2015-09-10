@@ -144,9 +144,6 @@ module Game {
         constructor(target: ISprite, x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
             super(x, y, imagemanager, label, dx, dy);
             this.z = 256; // 敵と同じだけど、どうせ敵より後に生成されるはず
-            this.counter["ac"] = 0;
-            this.flags["isAlive"] = true;
-            this.code = 120;
             var dx = target.x - this.x;
             var dy = target.y - this.y;
             var r = Math.floor(Math.sqrt(dx * dx + dy * dy));
@@ -158,69 +155,83 @@ module Game {
             this.vy = Math.floor(14 * dy / r) * 10;
             this.x += Math.floor(this.vx * 16 / 140);
             this.y += Math.floor(this.vy * 16 / 140);
+        }
+    }
+    export module States {
+        export class ElectricShotMoving extends AbstractState {
+            enter(sm: EntityStateMachine) {
+                var e = sm.e;
+                e.counter["ac"] = 0;
+                e.code = 120;
             // 水で消える設定の時の判定はここに書く
 
-        }
-        update() {
-            if (!this.flags["isAlive"]) {
-                this.kill();
-                return;
             }
-            this.x += Math.floor(this.vx / 10);
-            this.y += Math.floor(this.vy / 10);
-            this.counter["ac"] = (this.counter["ac"] + 1) % 2;
-            if (this.counter["ac"] == 0) this.code = 120;
-            else this.code = 121;
-
-            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
-            for (var i = 0; i < blocks.length; i++) {
-                var b = blocks[i];
-                var bc = b.getCollision();
-
-                // ブロックと衝突したら消失
-                if (new Point(this.centerx, this.centery - 3).collision(bc) || new Point(this.centerx, this.centery + 3).collision(bc)) { // 中心よりやや上下の点で判定
-                    this.flags["isAlive"] = false;
-                    this.kill();
+            update(sm: EntityStateMachine) {
+                var e = sm.e;
+                if (!e.flags["isAlive"]) {
+                    e.kill();
                     return;
                 }
+                e.x += Math.floor(e.vx / 10);
+                e.y += Math.floor(e.vy / 10);
+                e.counter["ac"] = (e.counter["ac"] + 1) % 2;
+                if (e.counter["ac"] == 0) e.code = 120;
+                else e.code = 121;
 
+                var blocks = e.ss.getBlocks(e.x, e.y, e.width, e.height);
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
+
+                    // ブロックと衝突したら消失
+                    if (new Point(e.centerx, e.centery - 3).collision(bc) || new Point(e.centerx, e.centery + 3).collision(bc)) { // 中心よりやや上下の点で判定
+                        e.flags["isAlive"] = false;
+                        e.kill();
+                        return;
+                    }
+                }
+                this.checkOutOfScreen(sm);
+                this.checkCollisionWithPlayer(sm);
             }
-            // スクロール範囲外に出ていたら消失
-            var players = <Array<Player>>this.ss.Players.get_all();
-            var flg = false;
-            for (var i = 0; i < players.length; i++) {
-                var p = players[i];
-                if (this.x >= p.view_x - this.width && this.x <= p.view_x + SCREEN_WIDTH + this.width * 4 &&
-                    this.y >= p.view_y - this.width - SCREEN_HEIGHT / 2 && this.y <= p.view_y + SCREEN_HEIGHT) {
-                    flg = true;
-                    break;
+            checkOutOfScreen(sm: EntityStateMachine) {
+                var e = sm.e;
+                // スクロール範囲外に出ていたら消失
+                var players = <Array<Player>>e.ss.Players.get_all();
+                var flg = false;
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (e.x >= p.view_x - e.width && e.x <= p.view_x + SCREEN_WIDTH + e.width * 4 &&
+                        e.y >= p.view_y - e.width - SCREEN_HEIGHT / 2 && e.y <= p.view_y + SCREEN_HEIGHT) {
+                        flg = true;
+                        break;
+                    }
+                }
+                if (!flg) {
+                    e.kill();
+                    return;
                 }
             }
-            if (!flg) {
-                this.flags["isAlive"] = false;
-                return;
-            }
-            this.checkCollisionWithPlayer();
-        }
-        // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
-        // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
-        checkCollisionWithPlayer() {
-            var players = <Array<Player>>this.ss.Players.get_all();
-            for (var i = 0; i < players.length; i++) {
-                var p = players[i];
-                // 現在のpをスコープに束縛
-                ((p: Player) => {
-                    p.addOnceEventHandler("update",() => {
-                        var dx = Math.abs(this.x - p.x); // プレイヤーとのx座標の差
-                        var dy = Math.abs(this.y - p.y); // プレイヤーとのy座標の差
-                        if (p.flags["isAlive"] && dx <= 23 && dy <= 28) { // プレイヤーと接触した
-                            // TODO:バリア判定はここに書く
-                            // プレイヤーにダメージ
-                            p.dispatchEvent(new PlayerMissEvent("miss", 2));
-                            //this.kill();
-                        }
-                    });
-                })(p);
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+            checkCollisionWithPlayer(sm: EntityStateMachine) {
+                var e = sm.e;
+                var players = <Array<Player>>e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    ((p: Player) => {
+                        p.addOnceEventHandler("update",() => {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
+                            if (p.flags["isAlive"] && dx <= 23 && dy <= 28) { // プレイヤーと接触した
+                                // TODO:バリア判定はここに書く
+                                // プレイヤーにダメージ
+                                p.dispatchEvent(new PlayerMissEvent("miss", 2));
+                                //this.kill();
+                            }
+                        });
+                    })(p);
+                }
             }
         }
     }

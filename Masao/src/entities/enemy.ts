@@ -1,12 +1,10 @@
 ﻿/// <reference path="entity.ts"/>
 module Game {
     export class Enemy extends Entity {
-        public moving: EntityStateMachine;
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
             super(x, y, imagemanager, label, dx, dy);
             this.z = 256;
             this.counter["ac"] = 0;
-            this.flags["isAlive"] = true;
             this.flags["isActivated"] = false;
             this.flags["isOnGround"] = false;
             this.counter["viewx_activate"] = Math.floor(x / this.width) * this.width - SCREEN_WIDTH - this.width;
@@ -42,7 +40,7 @@ module Game {
                 }
             }
 
-            this.moving.update();
+            if (this.moving) this.moving.update();
             this.move();
         }
         protected move() {

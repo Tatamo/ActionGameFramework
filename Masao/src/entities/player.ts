@@ -296,11 +296,10 @@ module Game {
             }
         }
     }
-    export class PlayerStateMachine extends StateMachine {
-        public pl: Player;
-        constructor(pl: Player, parent: any = null) {
-            super(parent);
-            this.pl = pl;
+    export class PlayerStateMachine extends EntityStateMachine {
+        public e: Player;
+        constructor(e: Player, parent: any = null) {
+            super(e, parent);
         }
     }
     export class PlayerMissEvent extends Event {
@@ -318,7 +317,7 @@ module Game {
         // 処理中にジャンプなどに一瞬だけ状態が遷移することで、脈絡なくenterが再度呼ばれる可能性があることに注意
         export class PlayerGlobalMove extends AbstractState {
             update(sm: PlayerStateMachine) {
-                var pl = sm.pl;
+                var pl = sm.e;
                 if (pl.flags["isAlive"]) {
                     if (pl.flags["isOnGround"]) { // 地上にいる
                     }
@@ -361,11 +360,11 @@ module Game {
         export class PlayerWalkingLeft extends AbstractState {
             enter(sm: PlayerStateMachine) {
                 //console.log("walk left ");
-                sm.pl.flags["isRunning"] = false;
-                sm.pl.flags["isWalking"] = true;
+                sm.e.flags["isRunning"] = false;
+                sm.e.flags["isWalking"] = true;
             }
             update(sm: PlayerStateMachine) {
-                var pl = sm.pl;
+                var pl = sm.e;
                 if (pl.counter["stamp_waiting"] > 0) { // 硬直中
                     pl.vx = (pl.vx - 10 > -60) ? pl.vx - 10 : -60;
                 }
@@ -387,11 +386,11 @@ module Game {
         export class PlayerRunningLeft extends AbstractState {
             enter(sm: PlayerStateMachine) {
                 //console.log("run left ");
-                sm.pl.flags["isRunning"] = true;
-                sm.pl.flags["isWalking"] = false;
+                sm.e.flags["isRunning"] = true;
+                sm.e.flags["isWalking"] = false;
             }
             update(sm: PlayerStateMachine) {
-                var pl = sm.pl;
+                var pl = sm.e;
                 if (pl.counter["stamp_waiting"] > 0) { // 硬直中
                     pl.vx = (pl.vx - 10 > -60) ? pl.vx - 10 : -60;
                 }
@@ -413,11 +412,11 @@ module Game {
         export class PlayerWalkingRight extends AbstractState {
             enter(sm: PlayerStateMachine) {
                 //console.log("walk right ");
-                sm.pl.flags["isRunning"] = false;
-                sm.pl.flags["isWalking"] = true;
+                sm.e.flags["isRunning"] = false;
+                sm.e.flags["isWalking"] = true;
             }
             update(sm: PlayerStateMachine) {
-                var pl = sm.pl;
+                var pl = sm.e;
                 if (pl.counter["stamp_waiting"] > 0) { // 硬直中
                     pl.vx = (pl.vx + 10 < 60) ? pl.vx + 10 : 60;
                 }
@@ -439,11 +438,11 @@ module Game {
         export class PlayerRunningRight extends AbstractState {
             enter(sm: PlayerStateMachine) {
                 //console.log("run right ");
-                sm.pl.flags["isRunning"] = true;
-                sm.pl.flags["isWalking"] = false;
+                sm.e.flags["isRunning"] = true;
+                sm.e.flags["isWalking"] = false;
             }
             update(sm: PlayerStateMachine) {
-                var pl = sm.pl;
+                var pl = sm.e;
                 if (pl.counter["stamp_waiting"] > 0) { // 硬直中
                     pl.vx = (pl.vx + 10 < 60) ? pl.vx + 10 : 60;
                 }
@@ -466,7 +465,7 @@ module Game {
             update(sm: PlayerStateMachine) {
                 sm.pop(); // 即座にもとのStateに戻す
                 sm.update(); // もとのStateのupdateを先に行う
-                var pl = sm.pl;
+                var pl = sm.e;
                 pl.checkCollisionWithBlocksHorizontal();
                 if (pl.counter["stamp_waiting"] > 0) return; // 硬直中
                 pl.flags["isJumping"] = true;
@@ -516,7 +515,7 @@ module Game {
                 //console.log("move interial ");
             }
             update(sm: PlayerStateMachine) {
-                var pl = sm.pl;
+                var pl = sm.e;
                 if (pl.flags["isOnGround"]) { // 地上にいる
                     if (pl.vx < 0) {
                         pl.reverse_horizontal = false;
@@ -546,8 +545,8 @@ module Game {
                     }
 
                     if (pl.vx == 0) {
-                        sm.pl.flags["isRunning"] = false;
-                        sm.pl.flags["isWalking"] = false;
+                        pl.flags["isRunning"] = false;
+                        pl.flags["isWalking"] = false;
                         pl.code = 100;
                     }
                 }
@@ -558,12 +557,12 @@ module Game {
         export class PlayerDyingDirect extends AbstractState {
             enter(sm: PlayerStateMachine) {
                 //console.log("dying");
-                var pl = sm.pl;
+                var pl = sm.e;
                 pl.flags["isAlive"] = false;
                 pl.counter["dying"] = 0;
             }
             update(sm: PlayerStateMachine) {
-                var pl = sm.pl;
+                var pl = sm.e;
                 if (pl.counter["dying"] == 0) {
                     pl.vx = 0;
                     pl.vy = -280; // 跳ね上がる
@@ -581,12 +580,12 @@ module Game {
         export class PlayerDyingInDirect extends AbstractState {
             enter(sm: PlayerStateMachine) {
                 //console.log("dying");
-                var pl = sm.pl;
+                var pl = sm.e;
                 pl.flags["isAlive"] = false;
                 pl.counter["dying"] = 0;
             }
             update(sm: PlayerStateMachine) {
-                var pl = sm.pl;
+                var pl = sm.e;
                 if (pl.counter["dying"] == 0) {
                     pl.vx = 0;
                 }
@@ -604,12 +603,13 @@ module Game {
             private wait: number;
             enter(sm: PlayerStateMachine) {
                 //console.log("stamping");
-                sm.pl.code = 109;
-                sm.pl.flags["isStamping"] = true;
-                sm.pl.counter["stamp_waiting"] = 5;
-                sm.pl.vy = -160;
-                //sm.pl.vy = -220;
-                if (sm.pl.counter["superjump_effect"] >= 0) sm.pl.counter["superjump_effect"] = 100;
+                var pl = sm.e;
+                pl.code = 109;
+                pl.flags["isStamping"] = true;
+                pl.counter["stamp_waiting"] = 5;
+                pl.vy = -160;
+                //pl.vy = -220;
+                if (pl.counter["superjump_effect"] >= 0) pl.counter["superjump_effect"] = 100;
                 sm.pop(); // update時ではなくenter直後にもとのstateに戻す
             }
             update(sm: PlayerStateMachine) {

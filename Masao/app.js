@@ -155,8 +155,13 @@ var Game;
             _super.call(this, x, y, imagemanager, label, 0, dx, dy);
             this.counter = {};
             this.flags = {};
+            this.flags["isAlive"] = true;
             this.z = 256;
         }
+        Entity.prototype.update = function () {
+            if (this.moving)
+                this.moving.update();
+        };
         return Entity;
     })(Game.Sprite);
     Game.Entity = Entity;
@@ -269,7 +274,6 @@ var Game;
             _super.call(this, x, y, imagemanager, label, dx, dy);
             this.z = 256;
             this.counter["ac"] = 0;
-            this.flags["isAlive"] = true;
             this.flags["isActivated"] = false;
             this.flags["isOnGround"] = false;
             this.counter["viewx_activate"] = Math.floor(x / this.width) * this.width - Game.SCREEN_WIDTH - this.width;
@@ -305,7 +309,8 @@ var Game;
                     this.update();
                 }
             }
-            this.moving.update();
+            if (this.moving)
+                this.moving.update();
             this.move();
         };
         Enemy.prototype.move = function () {
@@ -569,9 +574,6 @@ var Game;
             if (dy === void 0) { dy = 1; }
             _super.call(this, x, y, imagemanager, label, dx, dy);
             this.z = 256; // 敵と同じだけど、どうせ敵より後に生成されるはず
-            this.counter["ac"] = 0;
-            this.flags["isAlive"] = true;
-            this.code = 120;
             var dx = target.x - this.x;
             var dy = target.y - this.y;
             var r = Math.floor(Math.sqrt(dx * dx + dy * dy));
@@ -583,71 +585,92 @@ var Game;
             this.vy = Math.floor(14 * dy / r) * 10;
             this.x += Math.floor(this.vx * 16 / 140);
             this.y += Math.floor(this.vy * 16 / 140);
-            // 水で消える設定の時の判定はここに書く
         }
-        ElectricShot.prototype.update = function () {
-            if (!this.flags["isAlive"]) {
-                this.kill();
-                return;
-            }
-            this.x += Math.floor(this.vx / 10);
-            this.y += Math.floor(this.vy / 10);
-            this.counter["ac"] = (this.counter["ac"] + 1) % 2;
-            if (this.counter["ac"] == 0)
-                this.code = 120;
-            else
-                this.code = 121;
-            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
-            for (var i = 0; i < blocks.length; i++) {
-                var b = blocks[i];
-                var bc = b.getCollision();
-                // ブロックと衝突したら消失
-                if (new Game.Point(this.centerx, this.centery - 3).collision(bc) || new Game.Point(this.centerx, this.centery + 3).collision(bc)) {
-                    this.flags["isAlive"] = false;
-                    this.kill();
-                    return;
-                }
-            }
-            // スクロール範囲外に出ていたら消失
-            var players = this.ss.Players.get_all();
-            var flg = false;
-            for (var i = 0; i < players.length; i++) {
-                var p = players[i];
-                if (this.x >= p.view_x - this.width && this.x <= p.view_x + Game.SCREEN_WIDTH + this.width * 4 && this.y >= p.view_y - this.width - Game.SCREEN_HEIGHT / 2 && this.y <= p.view_y + Game.SCREEN_HEIGHT) {
-                    flg = true;
-                    break;
-                }
-            }
-            if (!flg) {
-                this.flags["isAlive"] = false;
-                return;
-            }
-            this.checkCollisionWithPlayer();
-        };
-        // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
-        // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
-        ElectricShot.prototype.checkCollisionWithPlayer = function () {
-            var _this = this;
-            var players = this.ss.Players.get_all();
-            for (var i = 0; i < players.length; i++) {
-                var p = players[i];
-                // 現在のpをスコープに束縛
-                (function (p) {
-                    p.addOnceEventHandler("update", function () {
-                        var dx = Math.abs(_this.x - p.x); // プレイヤーとのx座標の差
-                        var dy = Math.abs(_this.y - p.y); // プレイヤーとのy座標の差
-                        if (p.flags["isAlive"] && dx <= 23 && dy <= 28) {
-                            // TODO:バリア判定はここに書く
-                            // プレイヤーにダメージ
-                            p.dispatchEvent(new Game.PlayerMissEvent("miss", 2));
-                        }
-                    });
-                })(p);
-            }
-        };
         return ElectricShot;
     })(Game.Entity);
     Game.ElectricShot = ElectricShot;
+    var States;
+    (function (States) {
+        var ElectricShotMoving = (function (_super) {
+            __extends(ElectricShotMoving, _super);
+            function ElectricShotMoving() {
+                _super.apply(this, arguments);
+            }
+            ElectricShotMoving.prototype.enter = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = 0;
+                e.code = 120;
+                // 水で消える設定の時の判定はここに書く
+            };
+            ElectricShotMoving.prototype.update = function (sm) {
+                var e = sm.e;
+                if (!e.flags["isAlive"]) {
+                    e.kill();
+                    return;
+                }
+                e.x += Math.floor(e.vx / 10);
+                e.y += Math.floor(e.vy / 10);
+                e.counter["ac"] = (e.counter["ac"] + 1) % 2;
+                if (e.counter["ac"] == 0)
+                    e.code = 120;
+                else
+                    e.code = 121;
+                var blocks = e.ss.getBlocks(e.x, e.y, e.width, e.height);
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
+                    // ブロックと衝突したら消失
+                    if (new Game.Point(e.centerx, e.centery - 3).collision(bc) || new Game.Point(e.centerx, e.centery + 3).collision(bc)) {
+                        e.flags["isAlive"] = false;
+                        e.kill();
+                        return;
+                    }
+                }
+                this.checkOutOfScreen(sm);
+                this.checkCollisionWithPlayer(sm);
+            };
+            ElectricShotMoving.prototype.checkOutOfScreen = function (sm) {
+                var e = sm.e;
+                // スクロール範囲外に出ていたら消失
+                var players = e.ss.Players.get_all();
+                var flg = false;
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (e.x >= p.view_x - e.width && e.x <= p.view_x + Game.SCREEN_WIDTH + e.width * 4 && e.y >= p.view_y - e.width - Game.SCREEN_HEIGHT / 2 && e.y <= p.view_y + Game.SCREEN_HEIGHT) {
+                        flg = true;
+                        break;
+                    }
+                }
+                if (!flg) {
+                    e.kill();
+                    return;
+                }
+            };
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+            ElectricShotMoving.prototype.checkCollisionWithPlayer = function (sm) {
+                var e = sm.e;
+                var players = e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    (function (p) {
+                        p.addOnceEventHandler("update", function () {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
+                            if (p.flags["isAlive"] && dx <= 23 && dy <= 28) {
+                                // TODO:バリア判定はここに書く
+                                // プレイヤーにダメージ
+                                p.dispatchEvent(new Game.PlayerMissEvent("miss", 2));
+                            }
+                        });
+                    })(p);
+                }
+            };
+            return ElectricShotMoving;
+        })(States.AbstractState);
+        States.ElectricShotMoving = ElectricShotMoving;
+    })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
 /// <reference path="enemy.ts"/>
 var Game;
@@ -1155,13 +1178,12 @@ var Game;
     Game.Player = Player;
     var PlayerStateMachine = (function (_super) {
         __extends(PlayerStateMachine, _super);
-        function PlayerStateMachine(pl, parent) {
+        function PlayerStateMachine(e, parent) {
             if (parent === void 0) { parent = null; }
-            _super.call(this, parent);
-            this.pl = pl;
+            _super.call(this, e, parent);
         }
         return PlayerStateMachine;
-    })(Game.StateMachine);
+    })(Game.EntityStateMachine);
     Game.PlayerStateMachine = PlayerStateMachine;
     var PlayerMissEvent = (function (_super) {
         __extends(PlayerMissEvent, _super);
@@ -1188,7 +1210,7 @@ var Game;
                 _super.apply(this, arguments);
             }
             PlayerGlobalMove.prototype.update = function (sm) {
-                var pl = sm.pl;
+                var pl = sm.e;
                 if (pl.flags["isAlive"]) {
                     if (pl.flags["isOnGround"]) {
                     }
@@ -1242,11 +1264,11 @@ var Game;
             }
             PlayerWalkingLeft.prototype.enter = function (sm) {
                 //console.log("walk left ");
-                sm.pl.flags["isRunning"] = false;
-                sm.pl.flags["isWalking"] = true;
+                sm.e.flags["isRunning"] = false;
+                sm.e.flags["isWalking"] = true;
             };
             PlayerWalkingLeft.prototype.update = function (sm) {
-                var pl = sm.pl;
+                var pl = sm.e;
                 if (pl.counter["stamp_waiting"] > 0) {
                     pl.vx = (pl.vx - 10 > -60) ? pl.vx - 10 : -60;
                 }
@@ -1278,11 +1300,11 @@ var Game;
             }
             PlayerRunningLeft.prototype.enter = function (sm) {
                 //console.log("run left ");
-                sm.pl.flags["isRunning"] = true;
-                sm.pl.flags["isWalking"] = false;
+                sm.e.flags["isRunning"] = true;
+                sm.e.flags["isWalking"] = false;
             };
             PlayerRunningLeft.prototype.update = function (sm) {
-                var pl = sm.pl;
+                var pl = sm.e;
                 if (pl.counter["stamp_waiting"] > 0) {
                     pl.vx = (pl.vx - 10 > -60) ? pl.vx - 10 : -60;
                 }
@@ -1314,11 +1336,11 @@ var Game;
             }
             PlayerWalkingRight.prototype.enter = function (sm) {
                 //console.log("walk right ");
-                sm.pl.flags["isRunning"] = false;
-                sm.pl.flags["isWalking"] = true;
+                sm.e.flags["isRunning"] = false;
+                sm.e.flags["isWalking"] = true;
             };
             PlayerWalkingRight.prototype.update = function (sm) {
-                var pl = sm.pl;
+                var pl = sm.e;
                 if (pl.counter["stamp_waiting"] > 0) {
                     pl.vx = (pl.vx + 10 < 60) ? pl.vx + 10 : 60;
                 }
@@ -1350,11 +1372,11 @@ var Game;
             }
             PlayerRunningRight.prototype.enter = function (sm) {
                 //console.log("run right ");
-                sm.pl.flags["isRunning"] = true;
-                sm.pl.flags["isWalking"] = false;
+                sm.e.flags["isRunning"] = true;
+                sm.e.flags["isWalking"] = false;
             };
             PlayerRunningRight.prototype.update = function (sm) {
-                var pl = sm.pl;
+                var pl = sm.e;
                 if (pl.counter["stamp_waiting"] > 0) {
                     pl.vx = (pl.vx + 10 < 60) ? pl.vx + 10 : 60;
                 }
@@ -1387,7 +1409,7 @@ var Game;
             PlayerJumping.prototype.update = function (sm) {
                 sm.pop(); // 即座にもとのStateに戻す
                 sm.update(); // もとのStateのupdateを先に行う
-                var pl = sm.pl;
+                var pl = sm.e;
                 pl.checkCollisionWithBlocksHorizontal();
                 if (pl.counter["stamp_waiting"] > 0)
                     return; // 硬直中
@@ -1444,7 +1466,7 @@ var Game;
                 //console.log("move interial ");
             };
             PlayerInterialMove.prototype.update = function (sm) {
-                var pl = sm.pl;
+                var pl = sm.e;
                 if (pl.flags["isOnGround"]) {
                     if (pl.vx < 0) {
                         pl.reverse_horizontal = false;
@@ -1478,8 +1500,8 @@ var Game;
                             pl.vx = 0;
                     }
                     if (pl.vx == 0) {
-                        sm.pl.flags["isRunning"] = false;
-                        sm.pl.flags["isWalking"] = false;
+                        pl.flags["isRunning"] = false;
+                        pl.flags["isWalking"] = false;
                         pl.code = 100;
                     }
                 }
@@ -1496,12 +1518,12 @@ var Game;
             }
             PlayerDyingDirect.prototype.enter = function (sm) {
                 //console.log("dying");
-                var pl = sm.pl;
+                var pl = sm.e;
                 pl.flags["isAlive"] = false;
                 pl.counter["dying"] = 0;
             };
             PlayerDyingDirect.prototype.update = function (sm) {
-                var pl = sm.pl;
+                var pl = sm.e;
                 if (pl.counter["dying"] == 0) {
                     pl.vx = 0;
                     pl.vy = -280; // 跳ね上がる
@@ -1527,12 +1549,12 @@ var Game;
             }
             PlayerDyingInDirect.prototype.enter = function (sm) {
                 //console.log("dying");
-                var pl = sm.pl;
+                var pl = sm.e;
                 pl.flags["isAlive"] = false;
                 pl.counter["dying"] = 0;
             };
             PlayerDyingInDirect.prototype.update = function (sm) {
-                var pl = sm.pl;
+                var pl = sm.e;
                 if (pl.counter["dying"] == 0) {
                     pl.vx = 0;
                 }
@@ -1557,13 +1579,14 @@ var Game;
             }
             PlayerStamping.prototype.enter = function (sm) {
                 //console.log("stamping");
-                sm.pl.code = 109;
-                sm.pl.flags["isStamping"] = true;
-                sm.pl.counter["stamp_waiting"] = 5;
-                sm.pl.vy = -160;
-                //sm.pl.vy = -220;
-                if (sm.pl.counter["superjump_effect"] >= 0)
-                    sm.pl.counter["superjump_effect"] = 100;
+                var pl = sm.e;
+                pl.code = 109;
+                pl.flags["isStamping"] = true;
+                pl.counter["stamp_waiting"] = 5;
+                pl.vy = -160;
+                //pl.vy = -220;
+                if (pl.counter["superjump_effect"] >= 0)
+                    pl.counter["superjump_effect"] = 100;
                 sm.pop(); // update時ではなくenter直後にもとのstateに戻す
             };
             PlayerStamping.prototype.update = function (sm) {
