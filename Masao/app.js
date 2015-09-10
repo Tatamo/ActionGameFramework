@@ -617,7 +617,6 @@ var Game;
                     // 攻撃
                     var attack = new ElectricShot(e.x, e.y, e.imagemanager, e.label, 1, 1, pt);
                     e.ss.add(attack);
-                    attack.update();
                 }
                 if (pt != null) {
                     if (e.x + 8 >= pt.x)
@@ -1153,7 +1152,6 @@ var Game;
                             var attack = new LeafShotLeft(e.x, e.y, e.imagemanager, e.label, 1, 1);
                         }
                         e.ss.add(attack);
-                        attack.update();
                     }
                     if (e.counter["ac"] > 86)
                         e.counter["ac"] = 0;

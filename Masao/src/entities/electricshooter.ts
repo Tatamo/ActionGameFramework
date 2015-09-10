@@ -106,7 +106,6 @@ module Game {
                     // 攻撃
                     var attack = new ElectricShot(e.x, e.y, e.imagemanager, e.label, 1, 1, pt);
                     e.ss.add(attack);
-                    attack.update();
                 }
 
                 if (pt != null) {

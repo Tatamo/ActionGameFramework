@@ -53,7 +53,6 @@ module Game {
                             var attack = new LeafShotLeft(e.x, e.y, e.imagemanager, e.label, 1, 1);
                         }
                             e.ss.add(attack);
-                            attack.update();
                     }
                     if (e.counter["ac"] > 86) e.counter["ac"] = 0;
                 }
