@@ -142,6 +142,7 @@
             this.lookup["B"] = Kame;
             this.lookup["C"] = KameFallable;
             this.lookup["E"] = ElectricShooter;
+            this.lookup["F"] = LeafShooter;
             this.lookup["O"] = Jumper;
             this.lookup["a"] = Block1;
             this.lookup["b"] = Block2;

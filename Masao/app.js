@@ -73,7 +73,7 @@ window.onload = function () {
         ".......aa...........a...............aaaaa...9.9aa999........",
         "..aaaaaa.......E....................9.9.9...aaaaaaaa........",
         "...........aaaaaa..aaaaaa....................9.aaaaa........",
-        ".A........aaaaaaa..aaaaaa...................aaaaaaaa........",
+        ".A........aaaaaaa..aaaaaa......F............aaaaaaaa........",
         "bbbbbbbbbbbbbbbbb..bbbbbb.bbbbbbbbbbbbbbbbbbbbbbbbbb5bbbbbb.",
         "............................................................",
         "............................................................",
@@ -905,6 +905,226 @@ var Game;
             return JumperStamped;
         })(States.AbstractState);
         States.JumperStamped = JumperStamped;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+/// <reference path="enemy.ts"/>
+var Game;
+(function (Game) {
+    var LeafShooter = (function (_super) {
+        __extends(LeafShooter, _super);
+        function LeafShooter(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.LeafShooterWaiting());
+            this.addEventHandler("onstamped", this.onStamped);
+        }
+        LeafShooter.prototype.onStamped = function (e) {
+            if (this.flags["isAlive"])
+                this.moving.replace(new States.LeafShooterStamped());
+            this.vx = 0;
+            this.vy = 0;
+        };
+        return LeafShooter;
+    })(Game.Enemy);
+    Game.LeafShooter = LeafShooter;
+    var States;
+    (function (States) {
+        var LeafShooterWaiting = (function (_super) {
+            __extends(LeafShooterWaiting, _super);
+            function LeafShooterWaiting() {
+                _super.apply(this, arguments);
+            }
+            LeafShooterWaiting.prototype.enter = function (sm) {
+            };
+            LeafShooterWaiting.prototype.update = function (sm) {
+                var e = sm.e;
+                e.vx = 0;
+                e.vy = 0;
+                e.code = 150;
+                var players = sm.e.ss.Players.get_all();
+                var pt = null; // 最も近いプレイヤー
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (pt == null) {
+                        pt = p;
+                    }
+                    else if (Math.abs(p.x - e.x) < Math.abs(pt.x - e.x)) {
+                        pt = p;
+                    }
+                }
+                if (pt != null) {
+                    if (e.x + 8 >= pt.x)
+                        e.reverse_horizontal = false; // 最も近いプレイヤーに合わせて反転状態を決定
+                    else
+                        e.reverse_horizontal = true;
+                }
+                if (e.counter["ac"] > 0) {
+                    e.counter["ac"] += 1;
+                    if (e.counter["ac"] == 2 || e.counter["ac"] == 10 || e.counter["ac"] == 18 || e.counter["ac"] == 26) {
+                        if (e.reverse_horizontal) {
+                            // 右向きに発射
+                            var attack = new LeafShotRight(e.x, e.y, e.imagemanager, e.label, 1, 1);
+                        }
+                        else {
+                            // 左向きに発射
+                            var attack = new LeafShotLeft(e.x, e.y, e.imagemanager, e.label, 1, 1);
+                        }
+                        e.ss.add(attack);
+                        attack.update();
+                    }
+                    if (e.counter["ac"] > 86)
+                        e.counter["ac"] = 0;
+                }
+                else {
+                    var flg = false;
+                    for (var i = 0; i < players.length; i++) {
+                        var p = players[i];
+                        if (p.x >= e.x - 257 && p.x <= e.x + 257) {
+                            flg = true;
+                            break;
+                        }
+                    }
+                    if (flg) {
+                        e.counter["ac"] = 1;
+                    }
+                }
+                this.checkCollisionWithPlayer(sm);
+            };
+            return LeafShooterWaiting;
+        })(States.AbstractStampableAlive);
+        States.LeafShooterWaiting = LeafShooterWaiting;
+        var LeafShooterStamped = (function (_super) {
+            __extends(LeafShooterStamped, _super);
+            function LeafShooterStamped() {
+                _super.apply(this, arguments);
+            }
+            LeafShooterStamped.prototype.enter = function (sm) {
+                sm.e.counter["ac"] = 0;
+                sm.e.code = 151;
+                sm.e.flags["isAlive"] = false;
+            };
+            LeafShooterStamped.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] += 1;
+                e.code = 151;
+                e.vx = 0;
+                e.vy = 0;
+                if (e.counter["ac"] >= 10) {
+                    e.kill();
+                }
+            };
+            return LeafShooterStamped;
+        })(States.AbstractState);
+        States.LeafShooterStamped = LeafShooterStamped;
+    })(States = Game.States || (Game.States = {}));
+    var LeafShotLeft = (function (_super) {
+        __extends(LeafShotLeft, _super);
+        function LeafShotLeft(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.LeafShotMoving());
+            this.vx = -40 - Math.floor(Math.random() * 6) * 10; // TODO: シード付き乱数を使うようにする
+            this.vy = -220;
+            this.x += this.vx / 10;
+            this.y += this.vy / 10;
+        }
+        return LeafShotLeft;
+    })(Game.Entity);
+    Game.LeafShotLeft = LeafShotLeft;
+    var LeafShotRight = (function (_super) {
+        __extends(LeafShotRight, _super);
+        function LeafShotRight(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.LeafShotMoving());
+            this.vx = 40 + Math.floor(Math.random() * 6) * 10; // TODO: シード付き乱数を使うようにする
+            this.vy = -220;
+            this.x += this.vx / 10;
+            this.y += this.vy / 10;
+        }
+        return LeafShotRight;
+    })(Game.Entity);
+    Game.LeafShotRight = LeafShotRight;
+    var States;
+    (function (States) {
+        var LeafShotMoving = (function (_super) {
+            __extends(LeafShotMoving, _super);
+            function LeafShotMoving() {
+                _super.apply(this, arguments);
+            }
+            LeafShotMoving.prototype.enter = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = 0;
+                e.code = 120;
+            };
+            LeafShotMoving.prototype.update = function (sm) {
+                var e = sm.e;
+                if (!e.flags["isAlive"]) {
+                    e.kill();
+                    return;
+                }
+                e.x += Math.floor(e.vx / 10);
+                e.vy += 20;
+                if (e.vy > 120)
+                    e.vy = 120;
+                if (e.vy < -180) {
+                    e.y += -18;
+                }
+                else {
+                    e.y += Math.floor(e.vy / 10);
+                }
+                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
+                e.code = 122 + e.counter["ac"];
+                this.checkOutOfScreen(sm);
+                this.checkCollisionWithPlayer(sm);
+            };
+            LeafShotMoving.prototype.checkOutOfScreen = function (sm) {
+                var e = sm.e;
+                // スクロール範囲外に出ていたら消失
+                var players = e.ss.Players.get_all();
+                var flg = false;
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (e.y < p.view_y + Game.SCREEN_HEIGHT) {
+                        flg = true;
+                        break;
+                    }
+                }
+                if (!flg) {
+                    e.kill();
+                    return;
+                }
+            };
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+            LeafShotMoving.prototype.checkCollisionWithPlayer = function (sm) {
+                var e = sm.e;
+                var players = e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    (function (p) {
+                        p.addOnceEventHandler("update", function () {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
+                            if (p.flags["isAlive"] && dx <= 23 && dy <= 28) {
+                                // TODO:バリア判定はここに書く
+                                // プレイヤーにダメージ
+                                p.dispatchEvent(new Game.PlayerMissEvent("miss", 2));
+                            }
+                        });
+                    })(p);
+                }
+            };
+            return LeafShotMoving;
+        })(States.AbstractState);
+        States.LeafShotMoving = LeafShotMoving;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
 /// <reference path="entity.ts"/>
@@ -2066,6 +2286,7 @@ var Game;
             this.lookup["B"] = Game.Kame;
             this.lookup["C"] = Game.KameFallable;
             this.lookup["E"] = Game.ElectricShooter;
+            this.lookup["F"] = Game.LeafShooter;
             this.lookup["O"] = Game.Jumper;
             this.lookup["a"] = Game.Block1;
             this.lookup["b"] = Game.Block2;
