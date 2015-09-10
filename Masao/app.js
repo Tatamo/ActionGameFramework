@@ -727,12 +727,21 @@ var Game;
                 if (tmp_bottom < this.bottom) {
                     if (this.getHitBlock(this.centerx + muki_x, tmp_bottom + 1) == null) {
                         if (this.getHitBlock(this.centerx + muki_x, this.bottom + 1) != null) {
-                            if (this.flags["isWalking"] || this.flags["isRunning"])
+                            if (this.gk.isDown(37) || this.gk.isDown(39)) {
+                                //if (this.flags["isWalking"] || this.flags["isRunning"]) {
                                 this.x += muki_x; // トンネルに入れるようにする
-                            this.checkCollisionWithBlocksVertical();
-                            this.vy = 0;
-                            //_ptc = 103;
-                            this.counter["running"] = 1;
+                                /*var cs = this.moving.current_state;
+                                if (muki_x < 0 && cs instanceof States.PlayerWalkingLeft && cs instanceof States.PlayerRunningLeft) {
+                                    this.x += muki_x;
+                                }
+                                else if (muki_x > 0 && cs instanceof States.PlayerWalkingRight && cs instanceof States.PlayerRunningRight) {
+                                    this.x += muki_x;
+                                }*/
+                                this.checkCollisionWithBlocksVertical();
+                                this.vy = 0;
+                                //_ptc = 103;
+                                this.counter["running"] = 1;
+                            }
                         }
                     }
                 }
@@ -741,12 +750,21 @@ var Game;
                 if (tmp_top > this.top) {
                     if (this.getHitBlock(this.centerx + muki_x, tmp_top) == null) {
                         if (this.getHitBlock(this.centerx + muki_x, this.top) != null) {
-                            if (this.flags["isWalking"] || this.flags["isRunning"])
+                            if (this.gk.isDown(37) || this.gk.isDown(39)) {
+                                //if (this.flags["isWalking"] || this.flags["isRunning"]) {
                                 this.x += muki_x; // トンネルに入れるようにする
-                            this.checkCollisionWithBlocksVertical();
-                            this.vy = 0;
-                            //_ptc = 103;
-                            this.counter["running"] = 1;
+                                /*var cs = this.moving.current_state;
+                                if (muki_x < 0 && cs instanceof States.PlayerWalkingLeft && cs instanceof States.PlayerRunningLeft) {
+                                    this.x += muki_x;
+                                }
+                                else if (muki_x > 0 && cs instanceof States.PlayerWalkingRight && cs instanceof States.PlayerRunningRight) {
+                                    this.x += muki_x;
+                                }*/
+                                this.checkCollisionWithBlocksVertical();
+                                this.vy = 0;
+                                //_ptc = 103;
+                                this.counter["running"] = 1;
+                            }
                         }
                     }
                 }

@@ -101,11 +101,21 @@ module Game {
                 if (tmp_bottom < this.bottom) {
                     if (this.getHitBlock(this.centerx + muki_x, tmp_bottom + 1) == null) { // 移動前 自機の足元にブロックが無い
                         if (this.getHitBlock(this.centerx + muki_x, this.bottom + 1) != null) { // 移動後 自機の足元にブロックがある
-                            if (this.flags["isWalking"] || this.flags["isRunning"]) this.x += muki_x; // トンネルに入れるようにする
-                            this.checkCollisionWithBlocksVertical();
-                            this.vy = 0;
-                            //_ptc = 103;
-                            this.counter["running"] = 1;
+                            if (this.gk.isDown(37) || this.gk.isDown(39)) {
+                                //if (this.flags["isWalking"] || this.flags["isRunning"]) {
+                                this.x += muki_x; // トンネルに入れるようにする
+                                /*var cs = this.moving.current_state;
+                                if (muki_x < 0 && cs instanceof States.PlayerWalkingLeft && cs instanceof States.PlayerRunningLeft) {
+                                    this.x += muki_x;
+                                }
+                                else if (muki_x > 0 && cs instanceof States.PlayerWalkingRight && cs instanceof States.PlayerRunningRight) {
+                                    this.x += muki_x;
+                                }*/
+                                this.checkCollisionWithBlocksVertical();
+                                this.vy = 0;
+                                //_ptc = 103;
+                                this.counter["running"] = 1;
+                            }
                         }
                     }
                 }
@@ -114,11 +124,21 @@ module Game {
                 if (tmp_top > this.top) {
                     if (this.getHitBlock(this.centerx + muki_x, tmp_top) == null) { // 移動前 自機の頭にブロックが無い
                         if (this.getHitBlock(this.centerx + muki_x, this.top) != null) { // 移動後 自機の頭にブロックがある
-                            if (this.flags["isWalking"] || this.flags["isRunning"]) this.x += muki_x; // トンネルに入れるようにする
-                            this.checkCollisionWithBlocksVertical();
-                            this.vy = 0;
-                            //_ptc = 103;
-                            this.counter["running"] = 1;
+                            if (this.gk.isDown(37) || this.gk.isDown(39)) {
+                                //if (this.flags["isWalking"] || this.flags["isRunning"]) {
+                                this.x += muki_x; // トンネルに入れるようにする
+                                /*var cs = this.moving.current_state;
+                                if (muki_x < 0 && cs instanceof States.PlayerWalkingLeft && cs instanceof States.PlayerRunningLeft) {
+                                    this.x += muki_x;
+                                }
+                                else if (muki_x > 0 && cs instanceof States.PlayerWalkingRight && cs instanceof States.PlayerRunningRight) {
+                                    this.x += muki_x;
+                                }*/
+                                this.checkCollisionWithBlocksVertical();
+                                this.vy = 0;
+                                //_ptc = 103;
+                                this.counter["running"] = 1;
+                            }
                         }
                     }
                 }
@@ -169,8 +189,8 @@ module Game {
                     // up
                     if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
                         b.y < this.bottom && b.bottom >= this.y) {
-                    //if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.bottom, bc.width, 0))) &&
-                    //    !(col.collision(new Point(bc.left, bc.top))) && !(col.collision(new Point(bc.right, bc.bottom)))) { // ブロックの右の辺と上の辺を除いた部分と判定を行う
+                        //if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.bottom, bc.width, 0))) &&
+                        //    !(col.collision(new Point(bc.left, bc.top))) && !(col.collision(new Point(bc.right, bc.bottom)))) { // ブロックの右の辺と上の辺を除いた部分と判定を行う
                         this.y = b.bottom;
                         this.vy = 0;
                     }
@@ -214,8 +234,8 @@ module Game {
                     // left
                     if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
                         b.y <= this.bottom && b.bottom > this.y) {
-                    //if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.top, bc.width, 0))) &&
-                    //    !(col.collision(new Point(bc.right, bc.top))) && !(col.collision(new Point(bc.left, bc.bottom)))) { // ブロックの右の辺と下の辺を除いた部分と判定を行う
+                        //if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.top, bc.width, 0))) &&
+                        //    !(col.collision(new Point(bc.right, bc.top))) && !(col.collision(new Point(bc.left, bc.bottom)))) { // ブロックの右の辺と下の辺を除いた部分と判定を行う
                         this.centerx = b.right;
                         this.vx = 0;
                     }
@@ -485,7 +505,7 @@ module Game {
                         pl.counter["superjump_effect"] = 1;
                         var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, 1, 1, 101, pl.reverse_horizontal);
                         pl.ss.add(effect);
-                        pl.sjump_effects=[null,null,null,null,null,effect];
+                        pl.sjump_effects = [null, null, null, null, null, effect];
                     }
                 }
                 pl.checkCollisionWithBlocksVertical();
@@ -606,7 +626,7 @@ module Game {
     }
     export class PlayerSuperJumpEffect extends Sprite {
         public ss: SpriteSystem;
-        constructor(x: number, y: number, imagemanager: ImageManager, private label: string, dx: number, dy: number, code: number, reverse_horizontal:boolean) {
+        constructor(x: number, y: number, imagemanager: ImageManager, private label: string, dx: number, dy: number, code: number, reverse_horizontal: boolean) {
             super(x, y, imagemanager, label, 100, dx, dy);
             this.code = code;
             this.z = 129;
