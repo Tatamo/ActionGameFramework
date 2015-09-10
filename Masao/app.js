@@ -1529,7 +1529,8 @@ var Game;
                 pl.vy += 25; // 重力を受ける
                 if (pl.vy > 80)
                     pl.vy = 80;
-                pl.counter["dying"] += 1;
+                if (pl.counter["dying"] < 18)
+                    pl.counter["dying"] += 1;
                 pl.code = 110 + pl.counter["dying"] % 4;
                 if (pl.y > 320 * 3) {
                     pl.kill();
@@ -1556,9 +1557,10 @@ var Game;
                     pl.vx = 0;
                 }
                 pl.vy = 0; // その場で回転する
-                pl.counter["dying"] += 1;
+                if (pl.counter["dying"] < 18)
+                    pl.counter["dying"] += 1;
                 pl.code = 110 + pl.counter["dying"] % 4;
-                if (pl.counter["dying"] >= 16)
+                if (pl.counter["dying"] >= 18)
                     pl.vy = 80;
                 if (pl.y > 320 * 3) {
                     pl.kill();
