@@ -15,6 +15,7 @@
             this.groups.push(this.AllSprites, this.Players, this.MapBlocks);
         }
         public add(s: ISprite) {
+            if (s.is_killed) return; // 既にkillされていた場合追加はできない
             this.AllSprites.add(s);
             if (s instanceof Player) {
                 this.Players.add(s);

@@ -572,31 +572,11 @@ var Game;
             this.counter["ac"] = 0;
             this.flags["isAlive"] = true;
             this.code = 120;
-            /*
-            var players = <Array<Player>>this.ss.Players.get_all();
-            var pt: Player = null; // 最も近いプレイヤー
-            for (var i = 0; i < players.length; i++) {
-                var p = players[i];
-                if (pt == null) {
-                    pt = p;
-                }
-                else if (Math.abs(p.x - this.x) < Math.abs(pt.x - this.x)) { // よりx座標が近いなら
-                    if (Math.abs(p.x - this.x) > 32 || this.y <= p.y) { // 攻撃対象となる条件を満たしているなら
-                        pt = p;
-                    }
-                }
-            }
-            if (pt == null) {
-                this.kill();
-            }
-            else { // ターゲットとなるプレイヤーが決定
-
-            }*/
             var dx = target.x - this.x;
             var dy = target.y - this.y;
             var r = Math.floor(Math.sqrt(dx * dx + dy * dy));
             if (r < 48) {
-                this.flags["isAlive"] = false;
+                this.kill();
                 return;
             }
             this.vx = Math.floor(14 * dx / r) * 10;
@@ -1932,6 +1912,8 @@ var Game;
             return 0;
         };
         MapGroup.prototype.add = function (sprite) {
+            if (sprite.is_killed)
+                return; // 既にkillされていた場合追加はできない
             var nx = Math.floor(sprite.x / this.chipwidth);
             var ny = Math.floor(sprite.y / this.chipheight);
             if (!this._map[ny] || !this._map[ny][nx]) {
@@ -2091,6 +2073,8 @@ var Game;
             this.groups.push(this.AllSprites, this.Players, this.MapBlocks);
         }
         SpriteSystem.prototype.add = function (s) {
+            if (s.is_killed)
+                return; // 既にkillされていた場合追加はできない
             this.AllSprites.add(s);
             if (s instanceof Game.Player) {
                 this.Players.add(s);

@@ -40,6 +40,7 @@
             return 0;
         }
         add(sprite: ISprite) {
+            if (sprite.is_killed) return; // 既にkillされていた場合追加はできない
             var nx = Math.floor(sprite.x / this.chipwidth);
             var ny = Math.floor(sprite.y / this.chipheight);
             if (!this._map[ny] || !this._map[ny][nx]) {

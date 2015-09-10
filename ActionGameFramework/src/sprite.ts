@@ -18,6 +18,7 @@ module Game {
         centerx: number;
         centery: number;
         ss: ISpriteSystem;
+        is_killed: boolean;
         surface: Surface;
         update();
         kill();
@@ -33,11 +34,18 @@ module Game {
         vx: number;
         vy: number;
         private _ss: ISpriteSystem;
+        private _killed: boolean;
         get ss(): ISpriteSystem {
             return this._ss;
         }
         set ss(ss: ISpriteSystem) {
-            this._ss = ss;
+            if (!this.is_killed) this._ss = ss;
+            else {
+                ss.remove(this);
+            }
+        }
+        get is_killed(): boolean {
+            return this._killed;
         }
         surface: PatternSurface;
         get width(): number {
@@ -82,6 +90,7 @@ module Game {
 
             this.ss = null;
             this.surface = new PatternSurface(imagemanager, label, code, dx, dy);
+            this._killed = false;
         }
         /*// Surfaceの初期化
         setsurface(screen: Surface) {
@@ -106,7 +115,8 @@ module Game {
         }
         kill() {
             this.dispatchEvent(new Event("killed"));
-            this.ss.remove(this);
+            if (this.ss) this.ss.remove(this);
+            this._killed = true;
         }
         getRect(): Rect {
             return new Rect(this.x, this.y, this.width, this.height);
@@ -149,6 +159,7 @@ module Game {
             return 0;
         }
         add(sprite: ISprite) { // ソート方法に沿って要素を追加 比較対象の要素が同じ場合、新しいものは後ろに追加する
+            if (sprite.is_killed) return; // 既にkillされていた場合追加はできない
             var i = this._sprites.length - 1;
             while (i >= 0) {
                 if (this.compare(sprite, this._sprites[i]) >= 0) {
@@ -182,7 +193,7 @@ module Game {
             // 処理中にthis._spritesの要素が変化する可能性があるため、配列のコピーを回す
             var sps = this._sprites.slice(0);
             for (var i = 0; i < sps.length; i++) {
-            //for (var i = sps.length-1; i >= 0; i--) {
+                //for (var i = sps.length-1; i >= 0; i--) {
                 sps[i].dispatchEvent(new Event("update"));
             }
         }
