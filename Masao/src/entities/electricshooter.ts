@@ -115,7 +115,7 @@ module Game {
                 }
 
                 if (e.flags["isOnGround"]) {
-                    e.counter["ac"] = 30;
+                    e.counter["ac"] = 30 + 1;
                     sm.replace(new ElectricShooterWaiting());
                     sm.update();
                 }

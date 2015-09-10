@@ -73,7 +73,7 @@ window.onload = function () {
         ".......aa...........a...............aaaaa...9.9aa999........",
         "..aaaaaa.......E....................9.9.9...aaaaaaaa........",
         "...........aaaaaa..aaaaaa....................9.aaaaa........",
-        ".A........aaaaaaa..aaaaaa......F............aaaaaaaa........",
+        ".A........aaaaaaa..aaaaaa.......F...........aaaaaaaa........",
         "bbbbbbbbbbbbbbbbb..bbbbbb.bbbbbbbbbbbbbbbbbbbbbbbbbb5bbbbbb.",
         "............................................................",
         "............................................................",
@@ -534,7 +534,7 @@ var Game;
                         e.reverse_horizontal = true;
                 }
                 if (e.flags["isOnGround"]) {
-                    e.counter["ac"] = 30;
+                    e.counter["ac"] = 30 + 1;
                     sm.replace(new ElectricShooterWaiting());
                     sm.update();
                 }
@@ -1091,7 +1091,7 @@ var Game;
                 var flg = false;
                 for (var i = 0; i < players.length; i++) {
                     var p = players[i];
-                    if (e.y < p.view_y + Game.SCREEN_HEIGHT) {
+                    if (e.y < p.view_y + Game.SCREEN_HEIGHT + e.width) {
                         flg = true;
                         break;
                     }
