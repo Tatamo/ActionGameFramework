@@ -150,6 +150,10 @@
             this.lookup["d"] = Block4;
             this.lookup["e"] = Block5;
             this.lookup["f"] = Block6;
+            this.lookup["1"] = CloudLeft;
+            this.lookup["2"] = CloudRight;
+            this.lookup["3"] = Grass;
+            this.lookup["7"] = Torch;
         }
         setSS(ss: ISpriteSystem) {
             this.ss = ss;
