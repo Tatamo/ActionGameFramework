@@ -198,11 +198,13 @@ module Game {
             }
         }
         draw(view_x: number = 0, view_y: number = 0) {
+            /*
+            //TODO: ハードコーディングをなんとかする
             // 補正 ハードコーディング
             if (view_x < 0) view_x = 0;
             if (view_y < 0) view_y = 0;
             if (view_x > 32 * 180 - 512) view_x = 32 * 180 - 512;
-            if (view_y > 32 * 30 - 320) view_y = 32 * 30 - 320;
+            if (view_y > 32 * 30 - 320) view_y = 32 * 30 - 320;*/
             for (var i = 0; i < this._sprites.length; i++) {
                 this.screen.drawSurface(this._sprites[i].surface, Math.round(this._sprites[i].x) - view_x, Math.round(this._sprites[i].y - view_y));
             }

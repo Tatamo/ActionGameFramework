@@ -2,6 +2,7 @@
     // ステージマップの役割を持つGroup。
     // 座標からSpriteを取得でき、かつ取得がそこそこ高速であることが期待される。
     // 座標が変化することのないSpriteが登録されるべきである。
+    // TODO: 突貫工事で上と左右に番兵をつけているのをどうにかする
     export class MapGroup implements IGroup {
         screen: Surface;
         private _map: Array<Array<ISprite>>;
@@ -15,9 +16,9 @@
         constructor(screen: Surface, width: number = 180, height: number = 30, chipwidth: number = 32, chipheight: number = 32) {
             this.screen = screen;
             this._map = new Array<Array<ISprite>>();
-            for (var i = 0; i < height; i++) { // _mapの初期化
+            for (var i = 0; i < height + 12; i++) { // _mapの初期化
                 this._map.push(new Array<ISprite>());
-                for (var ii = 0; ii < width; ii++) {
+                for (var ii = 0; ii < width + 2; ii++) {
                     this._map[i].push(null);
                 }
             }
@@ -41,8 +42,9 @@
         }
         add(sprite: ISprite) {
             if (sprite.is_killed) return; // 既にkillされていた場合追加はできない
-            var nx = Math.floor(sprite.x / this.chipwidth);
-            var ny = Math.floor(sprite.y / this.chipheight);
+            var nx = Math.floor(sprite.x / this.chipwidth) + 1;
+            var ny = Math.floor(sprite.y / this.chipheight) + 11;
+            if (nx < 0 || nx >= this._width + 2 || ny < 0 || ny >= this._height + 12) return; // TODO:もう少しマシにする
             if (!this._map[ny] || !this._map[ny][nx]) {
                 this._map[ny][nx] = sprite;
                 var i = this._sprites.length - 1;
@@ -57,17 +59,19 @@
             else throw new Error("sprite already registered")
         }
         getByXY(nx: number, ny: number): ISprite {
-            if (this._map[ny] && this._map[ny][nx]) return this._map[ny][nx];
+            if (this._map[ny + 11] && this._map[ny + 11][nx + 1]) return this._map[ny + 11][nx + 1];
             else return null;
         }
         getByXYReal(x: number, y: number): ISprite { // 本家正男とは座標がずれていることに注意
-            var nx = Math.floor(x / this.chipwidth);
-            var ny = Math.floor(y / this.chipheight);
+            var nx = Math.floor(x / this.chipwidth) + 1;
+            var ny = Math.floor(y / this.chipheight) + 11;
             if (this._map[ny] && this._map[ny][nx]) return this._map[ny][nx];
             return null;
         }
         getByRect(nx: number, ny: number, nwidth: number, nheight: number): Array<ISprite> {
             var result = new Array<ISprite>();
+            ny = ny + 11;
+            nx = nx + 1;
             for (var i = ny; i < ny + nwidth; i++) {
                 for (var ii = nx; ii < nx + nheight; ii++) {
                     if (this._map[i] && this._map[i][ii]) result.push(this._map[i][ii]);
@@ -77,10 +81,10 @@
         }
         getByRectReal(x: number, y: number, width: number, height: number): Array<ISprite> {
             var result = new Array<ISprite>();
-            var nx = Math.floor(x / this.chipwidth);
-            var ny = Math.floor(y / this.chipheight);
-            var nx2 = Math.ceil((x + width) / this.chipwidth)
-            var ny2 = Math.ceil((y + height) / this.chipheight)
+            var nx = Math.floor(x / this.chipwidth) + 1;
+            var ny = Math.floor(y / this.chipheight) + 11;
+            var nx2 = Math.ceil((x + width) / this.chipwidth) + 1;
+            var ny2 = Math.ceil((y + height) / this.chipheight) + 11;
             for (var i = ny; i < ny2; i++) {
                 for (var ii = nx; ii < nx2; ii++) {
                     if (this._map[i] && this._map[i][ii]) result.push(this._map[i][ii]);
@@ -89,8 +93,8 @@
             return result;
         }
         remove(sprite: ISprite) {
-            for (var i = 0; i < this._height; i++) {
-                for (var ii = 0; ii < this._width; ii++) {
+            for (var i = 0; i < this._height + 12; i++) {
+                for (var ii = 0; ii < this._width + 2; ii++) {
                     if (this._map[i][ii] == sprite) {
                         this._map[i][ii] = null;
                     }
@@ -98,8 +102,8 @@
             }
         }
         remove_all() {
-            for (var i = 0; i < this._height; i++) {
-                for (var ii = 0; ii < this._width; ii++) {
+            for (var i = 0; i < this._height + 12; i++) {
+                for (var ii = 0; ii < this._width + 2; ii++) {
                     if (this._map[i][ii]) this.remove(this._map[i][ii]);
                 }
             }
@@ -125,7 +129,7 @@
             }
         }
     }
-    	// マップの管理
+    // マップの管理
     export class MapGenerator {
         private ss: ISpriteSystem;
         private lookup: { [key: string]: any };

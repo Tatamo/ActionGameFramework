@@ -191,7 +191,7 @@ var Game;
         }
         // to be overridden
         AbstractBlock.prototype.initPatternCode = function () {
-            this.code = 20;
+            this.code = 0;
         };
         return AbstractBlock;
     })(Game.AbstractEntity);
@@ -1391,6 +1391,19 @@ var Game;
                 this.x += Math.floor(this.vx / 10);
                 this.y += this.vy > -320 ? Math.floor(this.vy / 10) : -32;
             }
+            /* やめた
+            // 画面外処理
+            if (this.x < this.view_x - this.width / 2 + 1) {
+                this.x = this.view_x - this.width / 2 + 1;
+                if (this.vx < 0) this.vx = 0;
+            }
+            else if (this.x > this.view_x + SCREEN_WIDTH + this.width / 2) {
+                this.x = this.view_x + SCREEN_WIDTH + this.width / 2;
+                if (this.vx > 0) this.vx = 0;
+            }*/
+            if (this.y > this.view_y + Game.SCREEN_HEIGHT) {
+                this.dispatchEvent(new PlayerMissEvent("miss", 2));
+            }
         };
         // 速度に応じて自機の座標を移動させる
         Player.prototype.move = function () {
@@ -1869,6 +1882,13 @@ var Game;
                         pl.counter["superjump_effect"] = 1;
                         var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, 1, 1, 101, pl.reverse_horizontal);
                         pl.ss.add(effect);
+                        if (pl.sjump_effects) {
+                            for (var i = 0; i < pl.sjump_effects.length; i++) {
+                                var ef = pl.sjump_effects[i];
+                                if (ef)
+                                    ef.kill();
+                            }
+                        }
                         pl.sjump_effects = [null, null, null, null, null, effect];
                     }
                 }
@@ -2308,6 +2328,7 @@ var Game;
     // ステージマップの役割を持つGroup。
     // 座標からSpriteを取得でき、かつ取得がそこそこ高速であることが期待される。
     // 座標が変化することのないSpriteが登録されるべきである。
+    // TODO: 突貫工事で上と左右に番兵をつけているのをどうにかする
     var MapGroup = (function () {
         function MapGroup(screen, width, height, chipwidth, chipheight) {
             if (width === void 0) { width = 180; }
@@ -2316,9 +2337,9 @@ var Game;
             if (chipheight === void 0) { chipheight = 32; }
             this.screen = screen;
             this._map = new Array();
-            for (var i = 0; i < height; i++) {
+            for (var i = 0; i < height + 12; i++) {
                 this._map.push(new Array());
-                for (var ii = 0; ii < width; ii++) {
+                for (var ii = 0; ii < width + 2; ii++) {
                     this._map[i].push(null);
                 }
             }
@@ -2357,8 +2378,10 @@ var Game;
         MapGroup.prototype.add = function (sprite) {
             if (sprite.is_killed)
                 return; // 既にkillされていた場合追加はできない
-            var nx = Math.floor(sprite.x / this.chipwidth);
-            var ny = Math.floor(sprite.y / this.chipheight);
+            var nx = Math.floor(sprite.x / this.chipwidth) + 1;
+            var ny = Math.floor(sprite.y / this.chipheight) + 11;
+            if (nx < 0 || nx >= this._width + 2 || ny < 0 || ny >= this._height + 12)
+                return; // TODO:もう少しマシにする
             if (!this._map[ny] || !this._map[ny][nx]) {
                 this._map[ny][nx] = sprite;
                 var i = this._sprites.length - 1;
@@ -2374,20 +2397,22 @@ var Game;
                 throw new Error("sprite already registered");
         };
         MapGroup.prototype.getByXY = function (nx, ny) {
-            if (this._map[ny] && this._map[ny][nx])
-                return this._map[ny][nx];
+            if (this._map[ny + 11] && this._map[ny + 11][nx + 1])
+                return this._map[ny + 11][nx + 1];
             else
                 return null;
         };
         MapGroup.prototype.getByXYReal = function (x, y) {
-            var nx = Math.floor(x / this.chipwidth);
-            var ny = Math.floor(y / this.chipheight);
+            var nx = Math.floor(x / this.chipwidth) + 1;
+            var ny = Math.floor(y / this.chipheight) + 11;
             if (this._map[ny] && this._map[ny][nx])
                 return this._map[ny][nx];
             return null;
         };
         MapGroup.prototype.getByRect = function (nx, ny, nwidth, nheight) {
             var result = new Array();
+            ny = ny + 11;
+            nx = nx + 1;
             for (var i = ny; i < ny + nwidth; i++) {
                 for (var ii = nx; ii < nx + nheight; ii++) {
                     if (this._map[i] && this._map[i][ii])
@@ -2398,10 +2423,10 @@ var Game;
         };
         MapGroup.prototype.getByRectReal = function (x, y, width, height) {
             var result = new Array();
-            var nx = Math.floor(x / this.chipwidth);
-            var ny = Math.floor(y / this.chipheight);
-            var nx2 = Math.ceil((x + width) / this.chipwidth);
-            var ny2 = Math.ceil((y + height) / this.chipheight);
+            var nx = Math.floor(x / this.chipwidth) + 1;
+            var ny = Math.floor(y / this.chipheight) + 11;
+            var nx2 = Math.ceil((x + width) / this.chipwidth) + 1;
+            var ny2 = Math.ceil((y + height) / this.chipheight) + 11;
             for (var i = ny; i < ny2; i++) {
                 for (var ii = nx; ii < nx2; ii++) {
                     if (this._map[i] && this._map[i][ii])
@@ -2411,8 +2436,8 @@ var Game;
             return result;
         };
         MapGroup.prototype.remove = function (sprite) {
-            for (var i = 0; i < this._height; i++) {
-                for (var ii = 0; ii < this._width; ii++) {
+            for (var i = 0; i < this._height + 12; i++) {
+                for (var ii = 0; ii < this._width + 2; ii++) {
                     if (this._map[i][ii] == sprite) {
                         this._map[i][ii] = null;
                     }
@@ -2420,8 +2445,8 @@ var Game;
             }
         };
         MapGroup.prototype.remove_all = function () {
-            for (var i = 0; i < this._height; i++) {
-                for (var ii = 0; ii < this._width; ii++) {
+            for (var i = 0; i < this._height + 12; i++) {
+                for (var ii = 0; ii < this._width + 2; ii++) {
                     if (this._map[i][ii])
                         this.remove(this._map[i][ii]);
                 }
@@ -2632,6 +2657,13 @@ var Game;
                     this.ss = new Game.SpriteSystem(sm.game.screen);
                     this.mm = new Game.MapGenerator(this.ss);
                     this.mm.generateMap(sm.game.config.map, 32, 32, sm.game);
+                    for (var i = 0; i < 40; i++) {
+                        this.ss.add(new Game.AbstractBlock(-32, -320 + i * 32, sm.game.assets.image, "pattern"));
+                        this.ss.add(new Game.AbstractBlock(32 * 180, -320 + i * 32, sm.game.assets.image, "pattern"));
+                    }
+                    for (var i = 0; i < 180; i++) {
+                        this.ss.add(new Game.AbstractBlock(i * 32, -320, sm.game.assets.image, "pattern"));
+                    }
                     /*
                     for (var i: number = 0; i < 6; i++) {
                         this.ss.add(new Block1(128 + i * 32, 160, sm.game.assets.image, "pattern"));
@@ -2706,7 +2738,7 @@ var Game;
                 }
             };
             Stage.prototype.fixViewXY = function () {
-                /* マップサイズ決め打ちのため要改善 */
+                // TODO: マップサイズ決め打ちを改善
                 if (this.view_x < 0) {
                     this.view_x = 0;
                 }

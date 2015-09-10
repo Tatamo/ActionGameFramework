@@ -9,7 +9,7 @@ module Game {
         }
         // to be overridden
         initPatternCode() {
-            this.code = 20;
+            this.code = 0;
         }
         /*onHit(e: SpriteCollisionEvent) {
             var s = e.sprite;

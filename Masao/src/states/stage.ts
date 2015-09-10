@@ -18,6 +18,13 @@
                     this.ss = new SpriteSystem(sm.game.screen);
                     this.mm = new MapGenerator(this.ss);
                     this.mm.generateMap(sm.game.config.map, 32, 32, sm.game);
+                    for (var i: number = 0; i < 40; i++) { // TODO: もっとましにする
+                        this.ss.add(new AbstractBlock(-32, -320 + i * 32, sm.game.assets.image, "pattern"));
+                        this.ss.add(new AbstractBlock(32 * 180, -320 + i * 32, sm.game.assets.image, "pattern"));
+                    }
+                    for (var i: number = 0; i < 180; i++) {
+                        this.ss.add(new AbstractBlock(i * 32, -320, sm.game.assets.image, "pattern"));
+                    }
                     /*
                     for (var i: number = 0; i < 6; i++) {
                         this.ss.add(new Block1(128 + i * 32, 160, sm.game.assets.image, "pattern"));
@@ -82,7 +89,7 @@
                 sm.game.screen.context.fillRect(0, 0, screen.width, screen.height);
 
                 this.ss.AllSprites.update();
-                this.ss.AllSprites.draw(this.view_x,this.view_y);
+                this.ss.AllSprites.draw(this.view_x, this.view_y);
 
                 if (sm.game.gamekey.isOnDown(80)) { // Pキー
                     sm.push(new Pause(sm)); // ポーズ
@@ -92,7 +99,7 @@
                 }
             }
             protected fixViewXY() { // view_xおよびview_yが画面外へ行かないよう補正する
-                /* マップサイズ決め打ちのため要改善 */
+                // TODO: マップサイズ決め打ちを改善
                 if (this.view_x < 0) {
                     this.view_x = 0;
                 }

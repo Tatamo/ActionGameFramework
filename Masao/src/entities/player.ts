@@ -82,6 +82,19 @@ module Game {
                 this.x += Math.floor(this.vx / 10);
                 this.y += this.vy > -320 ? Math.floor(this.vy / 10) : -32;
             }
+            /* やめた
+            // 画面外処理
+            if (this.x < this.view_x - this.width / 2 + 1) {
+                this.x = this.view_x - this.width / 2 + 1;
+                if (this.vx < 0) this.vx = 0;
+            }
+            else if (this.x > this.view_x + SCREEN_WIDTH + this.width / 2) {
+                this.x = this.view_x + SCREEN_WIDTH + this.width / 2;
+                if (this.vx > 0) this.vx = 0;
+            }*/
+            if (this.y > this.view_y + SCREEN_HEIGHT) {
+                this.dispatchEvent(new PlayerMissEvent("miss", 2));
+            }
         }
         // 速度に応じて自機の座標を移動させる
         private move() {
@@ -504,6 +517,12 @@ module Game {
                         pl.counter["superjump_effect"] = 1;
                         var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, 1, 1, 101, pl.reverse_horizontal);
                         pl.ss.add(effect);
+                        if (pl.sjump_effects) {
+                            for (var i = 0; i < pl.sjump_effects.length; i++) {
+                                var ef = pl.sjump_effects[i];
+                                if (ef) ef.kill();
+                            }
+                        }
                         pl.sjump_effects = [null, null, null, null, null, effect];
                     }
                 }
