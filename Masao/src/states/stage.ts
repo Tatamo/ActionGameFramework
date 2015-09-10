@@ -45,8 +45,7 @@
                     this.player = new Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
                     this.ss.add(this.player);*/
                     this.player = this.mm.player;
-                    //this.player.addEventHandler("ondie",((e: Event) => { sm.replace(new GameOver()); }).bind(this)); // ゲームクリア判定のほうを優先させる
-                    this.player.addEventHandler("ondie",(e: Event) => { sm.replace(new GameOver()); });
+                    this.player.addEventHandler("ondie",((e: Event) => { sm.replace(new GameOver()); }).bind(this)); // ゲームクリア判定のほうを優先させる
                     this.player.addEventHandler("ongoal",((e: Event) => { this._c_gameclear = 1; }).bind(this));
                     this.player.addEventHandler("addscore",(e: ScoreEvent) => { sm.game.score.AddScore(e.value); });
                     this.addEventHandler("onscroll",(e: Event) => {

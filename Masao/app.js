@@ -1442,7 +1442,7 @@ var Game;
                 this.x = this.view_x + SCREEN_WIDTH + this.width / 2;
                 if (this.vx > 0) this.vx = 0;
             }*/
-            if (this.y > this.view_y + Game.SCREEN_HEIGHT) {
+            if (this.flags["isAlive"] && this.y > this.view_y + Game.SCREEN_HEIGHT) {
                 this.dispatchEvent(new PlayerMissEvent("miss", 2));
             }
         };
@@ -2752,10 +2752,9 @@ var Game;
                     this.player = new Player(sm.game.gamekey, 224, 128, sm.game.assets.image, "pattern");
                     this.ss.add(this.player);*/
                     this.player = this.mm.player;
-                    //this.player.addEventHandler("ondie",((e: Event) => { sm.replace(new GameOver()); }).bind(this)); // ゲームクリア判定のほうを優先させる
-                    this.player.addEventHandler("ondie", function (e) {
+                    this.player.addEventHandler("ondie", (function (e) {
                         sm.replace(new States.GameOver());
-                    });
+                    }).bind(this)); // ゲームクリア判定のほうを優先させる
                     this.player.addEventHandler("ongoal", (function (e) {
                         _this._c_gameclear = 1;
                     }).bind(this));

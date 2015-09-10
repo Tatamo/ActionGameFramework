@@ -92,7 +92,7 @@ module Game {
                 this.x = this.view_x + SCREEN_WIDTH + this.width / 2;
                 if (this.vx > 0) this.vx = 0;
             }*/
-            if (this.y > this.view_y + SCREEN_HEIGHT) {
+            if (this.flags["isAlive"] && this.y > this.view_y + SCREEN_HEIGHT) {
                 this.dispatchEvent(new PlayerMissEvent("miss", 2));
             }
         }
