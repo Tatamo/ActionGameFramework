@@ -1240,7 +1240,7 @@ var Game;
             LeafShotMoving.prototype.enter = function (sm) {
                 var e = sm.e;
                 e.counter["ac"] = 0;
-                e.code = 120;
+                e.code = 122;
             };
             LeafShotMoving.prototype.update = function (sm) {
                 var e = sm.e;

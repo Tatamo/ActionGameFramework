@@ -120,7 +120,7 @@ module Game {
             enter(sm: EntityStateMachine) {
                 var e = sm.e;
                 e.counter["ac"] = 0;
-                e.code = 120;
+                e.code = 122;
 
             }
             update(sm: EntityStateMachine) {
