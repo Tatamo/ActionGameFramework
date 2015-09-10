@@ -1524,15 +1524,15 @@ var Game;
                 var pl = sm.pl;
                 if (pl.counter["dying"] == 0) {
                     pl.vx = 0;
-                    pl.vy = -250; // 跳ね上がる
+                    pl.vy = -280; // 跳ね上がる
                 }
                 pl.vy += 25; // 重力を受ける
-                if (pl.vy > 80)
-                    pl.vy = 80;
+                if (pl.vy > 100)
+                    pl.vy = 100;
                 if (pl.counter["dying"] < 18)
                     pl.counter["dying"] += 1;
                 pl.code = 110 + pl.counter["dying"] % 4;
-                if (pl.y > 320 * 3) {
+                if (pl.y > pl.view_y + Game.SCREEN_HEIGHT + pl.height) {
                     pl.kill();
                     pl.dispatchEvent(new Game.Event("ondie"));
                 }
@@ -1562,7 +1562,7 @@ var Game;
                 pl.code = 110 + pl.counter["dying"] % 4;
                 if (pl.counter["dying"] >= 18)
                     pl.vy = 80;
-                if (pl.y > 320 * 3) {
+                if (pl.y > pl.view_y + Game.SCREEN_HEIGHT + pl.height) {
                     pl.kill();
                     pl.dispatchEvent(new Game.Event("ondie"));
                 }
