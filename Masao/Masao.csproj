@@ -35,6 +35,9 @@
     <TypeScriptCompile Include="src\entities\entity.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="src\entities\item.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="src\entities\jumper.ts" />
     <TypeScriptCompile Include="src\entities\leafshooter.ts">
       <SubType>Code</SubType>

@@ -114,7 +114,7 @@ module Game {
         update() {
         }
         kill() {
-            this.dispatchEvent(new Event("killed"));
+            this.dispatchEvent(new Event("killed")); // TODO: 既にkillされた後にkill()が呼ばれたときにイベントが発火するのが正しい動作なのかどうか考える
             if (this.ss) this.ss.remove(this);
             this._killed = true;
         }

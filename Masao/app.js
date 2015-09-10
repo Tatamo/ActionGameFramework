@@ -785,6 +785,95 @@ var Game;
         States.ElectricShotMoving = ElectricShotMoving;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
+/// <reference path="entity.ts"/>
+var Game;
+(function (Game) {
+    var AbstractItem = (function (_super) {
+        __extends(AbstractItem, _super);
+        function AbstractItem(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.z = 256;
+            this.counter["ac"] = 0;
+        }
+        return AbstractItem;
+    })(Game.AbstractEntity);
+    Game.AbstractItem = AbstractItem;
+    var States;
+    (function (States) {
+        var AbstractItemAlive = (function (_super) {
+            __extends(AbstractItemAlive, _super);
+            function AbstractItemAlive() {
+                _super.apply(this, arguments);
+            }
+            AbstractItemAlive.prototype.update = function (sm) {
+                this.checkCollisionWithPlayer(sm);
+            };
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+            AbstractItemAlive.prototype.checkCollisionWithPlayer = function (sm) {
+                var _this = this;
+                var e = sm.e;
+                var players = sm.e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    (function (p) {
+                        p.addOnceEventHandler("update", function () {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            if (p.flags["isAlive"] && dx <= 14 && e.y <= p.y + 26 && e.y + 15 >= p.y) {
+                                _this.onHitWithPlayer(sm, p);
+                            }
+                        });
+                    })(p);
+                }
+            };
+            AbstractItemAlive.prototype.onHitWithPlayer = function (sm, p) {
+            };
+            return AbstractItemAlive;
+        })(States.AbstractState);
+        States.AbstractItemAlive = AbstractItemAlive;
+    })(States = Game.States || (Game.States = {}));
+    var Coin = (function (_super) {
+        __extends(Coin, _super);
+        function Coin(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.CoinExisting());
+        }
+        return Coin;
+    })(AbstractItem);
+    Game.Coin = Coin;
+    var States;
+    (function (States) {
+        var CoinExisting = (function (_super) {
+            __extends(CoinExisting, _super);
+            function CoinExisting() {
+                _super.apply(this, arguments);
+            }
+            CoinExisting.prototype.enter = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = 0;
+            };
+            CoinExisting.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = (e.counter["ac"] + 1) % 8;
+                e.code = 90 + Math.floor(e.counter["ac"] / 2);
+                this.checkCollisionWithPlayer(sm);
+            };
+            CoinExisting.prototype.onHitWithPlayer = function (sm, p) {
+                var e = sm.e;
+                p.dispatchEvent(new Game.ScoreEvent("addscore", 5));
+                e.kill();
+            };
+            return CoinExisting;
+        })(States.AbstractItemAlive);
+        States.CoinExisting = CoinExisting;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
 /// <reference path="enemy.ts"/>
 var Game;
 (function (Game) {
@@ -2390,6 +2479,7 @@ var Game;
             this.lookup["2"] = Game.CloudRight;
             this.lookup["3"] = Game.Grass;
             this.lookup["7"] = Game.Torch;
+            this.lookup["9"] = Game.Coin;
         };
         MapGenerator.prototype.setSS = function (ss) {
             this.ss = ss;
