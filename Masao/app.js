@@ -523,7 +523,7 @@ var Game;
                 }
                 if (e.vy == 0 && pt != null && (Math.abs(pt.x - e.x) > 32 || e.y <= pt.y)) {
                     // 攻撃
-                    var attack = new ElectricShot(pt, e.x, e.y, e.imagemanager, e.label);
+                    var attack = new ElectricShot(e.x, e.y, e.imagemanager, e.label, 1, 1, pt);
                     e.ss.add(attack);
                     attack.update();
                 }
@@ -569,10 +569,31 @@ var Game;
     })(States = Game.States || (Game.States = {}));
     var ElectricShot = (function (_super) {
         __extends(ElectricShot, _super);
-        function ElectricShot(target, x, y, imagemanager, label, dx, dy) {
+        function ElectricShot(x, y, imagemanager, label, dx, dy, target) {
             if (dx === void 0) { dx = 1; }
             if (dy === void 0) { dy = 1; }
+            if (target === void 0) { target = null; }
             _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.ElectricShotMoving());
+            if (target == null) {
+                var players = this.ss.Players.get_all();
+                var pt = null; // 最も近いプレイヤー
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (pt == null) {
+                        pt = p;
+                    }
+                    else if (Math.abs(p.x - this.x) < Math.abs(pt.x - this.x)) {
+                        pt = p;
+                    }
+                }
+                target = pt;
+                if (target == null) {
+                    this.kill();
+                    return;
+                }
+            }
             this.z = 256; // 敵と同じだけど、どうせ敵より後に生成されるはず
             var dx = target.x - this.x;
             var dy = target.y - this.y;

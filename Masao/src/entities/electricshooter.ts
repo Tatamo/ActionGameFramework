@@ -104,7 +104,7 @@ module Game {
 
                 if (e.vy == 0 && pt != null && (Math.abs(pt.x - e.x) > 32 || e.y <= pt.y)) {
                     // 攻撃
-                    var attack = new ElectricShot(pt,e.x, e.y, e.imagemanager, e.label);
+                    var attack = new ElectricShot(e.x, e.y, e.imagemanager, e.label, 1, 1, pt);
                     e.ss.add(attack);
                     attack.update();
                 }
@@ -141,8 +141,29 @@ module Game {
         }
     }
     export class ElectricShot extends Entity {
-        constructor(target: ISprite, x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1, target: ISprite = null) {
             super(x, y, imagemanager, label, dx, dy);
+            this.moving = new EntityStateMachine(this);
+            this.moving.push(new States.ElectricShotMoving());
+
+            if (target == null) { // とりあえず近いプレイヤーを探す
+                var players = <Array<Player>>this.ss.Players.get_all();
+                var pt: Player = null; // 最も近いプレイヤー
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (pt == null) {
+                        pt = p;
+                    }
+                    else if (Math.abs(p.x - this.x) < Math.abs(pt.x - this.x)) { // よりx座標が近いなら
+                        pt = p;
+                    }
+                }
+                target = pt;
+                if (target == null) { // 見つからなかった
+                    this.kill();
+                    return;
+                }
+            }
             this.z = 256; // 敵と同じだけど、どうせ敵より後に生成されるはず
             var dx = target.x - this.x;
             var dy = target.y - this.y;
