@@ -31,6 +31,13 @@ module Game {
             this.moving.replace(new States.WalkerWalkingFallable());
         }
     }
+    export class ThreeWalkerFallableGenerator extends AbstractEntity {
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
+            super(x, y, imagemanager, label, dx, dy);
+            this.moving = new EntityStateMachine(this);
+            this.moving.push(new States.Generate3FallableKameState());
+        }
+    }
     export module States {
         export class WalkerWalking extends AbstractStampableAlive {
             enter(sm: EntityStateMachine) {
@@ -102,6 +109,19 @@ module Game {
                 if (e.counter["ac"] >= 10) {
                     e.kill();
                 }
+            }
+        }
+        export class Generate3FallableKameState extends AbstractState {
+            enter(sm: EntityStateMachine) {
+            }
+            update(sm: EntityStateMachine) {
+                var e = sm.e;
+                for (var i = 0; i < 3; i++) {
+                    var entity = new WalkerFallable(e.x + 75 * i, e.y, e.imagemanager, e.label);
+                    e.ss.add(entity);
+                    entity.update();
+                }
+                e.kill();
             }
         }
     }

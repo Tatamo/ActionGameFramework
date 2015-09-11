@@ -74,7 +74,7 @@ window.onload = function () {
         "8......aa...........a...............aaaaa...9.9aa999........",
         "..aaaaaa7......E....................9.9.9...aaaaaaaa........",
         "...........aaaaaa..aaaaaa....................9.aaaaa........",
-        ".A.333....aaaaaaa..aaaaaa.......F...........aaaaaaaa........",
+        ".A.333....aaaaaaa..aaaaaa............D......aaaaaaaa........",
         "bbbbbbbbbbbbbbbbb..bbbbbb.bbbbbbbbbbbbbbbbbbbbbbbbbb5bbbbbb.",
         "............................................................",
         "............................................................",
@@ -2139,6 +2139,18 @@ var Game;
         return WalkerFallable;
     })(Walker);
     Game.WalkerFallable = WalkerFallable;
+    var ThreeWalkerFallableGenerator = (function (_super) {
+        __extends(ThreeWalkerFallableGenerator, _super);
+        function ThreeWalkerFallableGenerator(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.Generate3FallableKameState());
+        }
+        return ThreeWalkerFallableGenerator;
+    })(Game.AbstractEntity);
+    Game.ThreeWalkerFallableGenerator = ThreeWalkerFallableGenerator;
     var States;
     (function (States) {
         var WalkerWalking = (function (_super) {
@@ -2237,6 +2249,25 @@ var Game;
             return WalkerStamped;
         })(States.AbstractState);
         States.WalkerStamped = WalkerStamped;
+        var Generate3FallableKameState = (function (_super) {
+            __extends(Generate3FallableKameState, _super);
+            function Generate3FallableKameState() {
+                _super.apply(this, arguments);
+            }
+            Generate3FallableKameState.prototype.enter = function (sm) {
+            };
+            Generate3FallableKameState.prototype.update = function (sm) {
+                var e = sm.e;
+                for (var i = 0; i < 3; i++) {
+                    var entity = new WalkerFallable(e.x + 75 * i, e.y, e.imagemanager, e.label);
+                    e.ss.add(entity);
+                    entity.update();
+                }
+                e.kill();
+            };
+            return Generate3FallableKameState;
+        })(States.AbstractState);
+        States.Generate3FallableKameState = Generate3FallableKameState;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
 var Game;
@@ -2530,6 +2561,7 @@ var Game;
             this.lookup["A"] = Game.Player;
             this.lookup["B"] = Game.Walker;
             this.lookup["C"] = Game.WalkerFallable;
+            this.lookup["D"] = Game.ThreeWalkerFallableGenerator;
             this.lookup["E"] = Game.ElectricShooter;
             this.lookup["F"] = Game.LeafShooter;
             this.lookup["O"] = Game.Jumper;

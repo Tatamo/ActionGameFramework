@@ -145,6 +145,7 @@
             this.lookup["A"] = Player;
             this.lookup["B"] = Walker;
             this.lookup["C"] = WalkerFallable;
+            this.lookup["D"] = ThreeWalkerFallableGenerator;
             this.lookup["E"] = ElectricShooter;
             this.lookup["F"] = LeafShooter;
             this.lookup["O"] = Jumper;
