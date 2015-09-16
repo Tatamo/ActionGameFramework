@@ -186,7 +186,7 @@ module Game {
         checkCollisionWithBlocksVertical() {
             this.flags["isOnGround"] = false;
             // check
-            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
+            var blocks = this.getBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
 
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
@@ -223,7 +223,7 @@ module Game {
         }
         checkCollisionWithBlocksHorizontal() {
             // check
-            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
+            var blocks = this.getBlocks(this.x, this.y, this.width, this.height);
 
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
@@ -261,6 +261,29 @@ module Game {
             var b: ISprite = this.ss.getBlock(x, y);
             if (b) return b;
             return null;
+        }
+        // SpriteSystem.getBlocks()をラップし、間に画面外に出るのを阻止するための処理を挟む
+        getBlocks(x: number, y: number, w: number, h: number): Array<ISprite> {
+            var result = this.ss.getBlocks(x, y, w, h);
+            var additions = new Array<ISprite>();
+            if (x <= 0) { // TODO: マップサイズのハードコーディング解消
+                additions.push(new AbstractBlock(-32, this.y - this.y % 32, this.imagemanager, this.label));
+                additions.push(new AbstractBlock(-32, this.y - this.y % 32 - 32, this.imagemanager, this.label));
+                additions.push(new AbstractBlock(-32, this.y - this.y % 32 + 32, this.imagemanager, this.label));
+            }
+            if (x + w >= 32 * 180) {
+                additions.push(new AbstractBlock(32 * 180, this.y - this.y % 32, this.imagemanager, this.label));
+                additions.push(new AbstractBlock(32 * 180, this.y - this.y % 32 - 32, this.imagemanager, this.label));
+                additions.push(new AbstractBlock(32 * 180, this.y - this.y % 32 + 32, this.imagemanager, this.label));
+            }
+            if (y <= -320) {
+                additions.push(new AbstractBlock(this.x - this.x % 32, -320 - 32, this.imagemanager, this.label));
+                additions.push(new AbstractBlock(this.x - this.x % 32 - 32, -320 - 32, this.imagemanager, this.label));
+                additions.push(new AbstractBlock(this.x - this.x % 32 + 32, -320 - 32, this.imagemanager, this.label));
+            }
+            result = result.concat(additions);
+            return result;
+
         }
         checkInput() {
             //if (this.gk.isDown(37) && this.gk.isDown(39)) { } // 左右同時に押されていたらとりあえず何もしないことに

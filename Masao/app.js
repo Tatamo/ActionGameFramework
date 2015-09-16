@@ -1538,7 +1538,7 @@ var Game;
         Player.prototype.checkCollisionWithBlocksVertical = function () {
             this.flags["isOnGround"] = false;
             // check
-            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
+            var blocks = this.getBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
                 /*if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
@@ -1570,7 +1570,7 @@ var Game;
         };
         Player.prototype.checkCollisionWithBlocksHorizontal = function () {
             // check
-            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
+            var blocks = this.getBlocks(this.x, this.y, this.width, this.height);
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
                 /*if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
@@ -1605,6 +1605,28 @@ var Game;
             if (b)
                 return b;
             return null;
+        };
+        // SpriteSystem.getBlocks()をラップし、間に画面外に出るのを阻止するための処理を挟む
+        Player.prototype.getBlocks = function (x, y, w, h) {
+            var result = this.ss.getBlocks(x, y, w, h);
+            var additions = new Array();
+            if (x <= 0) {
+                additions.push(new Game.AbstractBlock(-32, this.y - this.y % 32, this.imagemanager, this.label));
+                additions.push(new Game.AbstractBlock(-32, this.y - this.y % 32 - 32, this.imagemanager, this.label));
+                additions.push(new Game.AbstractBlock(-32, this.y - this.y % 32 + 32, this.imagemanager, this.label));
+            }
+            if (x + w >= 32 * 180) {
+                additions.push(new Game.AbstractBlock(32 * 180, this.y - this.y % 32, this.imagemanager, this.label));
+                additions.push(new Game.AbstractBlock(32 * 180, this.y - this.y % 32 - 32, this.imagemanager, this.label));
+                additions.push(new Game.AbstractBlock(32 * 180, this.y - this.y % 32 + 32, this.imagemanager, this.label));
+            }
+            if (y <= -320) {
+                additions.push(new Game.AbstractBlock(this.x - this.x % 32, -320 - 32, this.imagemanager, this.label));
+                additions.push(new Game.AbstractBlock(this.x - this.x % 32 - 32, -320 - 32, this.imagemanager, this.label));
+                additions.push(new Game.AbstractBlock(this.x - this.x % 32 + 32, -320 - 32, this.imagemanager, this.label));
+            }
+            result = result.concat(additions);
+            return result;
         };
         Player.prototype.checkInput = function () {
             //if (this.gk.isDown(37) && this.gk.isDown(39)) { } // 左右同時に押されていたらとりあえず何もしないことに
@@ -2759,13 +2781,13 @@ var Game;
                     this.ss = new Game.SpriteSystem(sm.game.screen);
                     this.mm = new Game.MapGenerator(this.ss);
                     this.mm.generateMap(sm.game.config.map, 32, 32, sm.game);
-                    for (var i = 0; i < 40; i++) {
-                        this.ss.add(new Game.AbstractBlock(-32, -320 + i * 32, sm.game.assets.image, "pattern"));
-                        this.ss.add(new Game.AbstractBlock(32 * 180, -320 + i * 32, sm.game.assets.image, "pattern"));
+                    /*for (var i: number = 0; i < 40; i++) { // TODO: もっとましにする
+                        this.ss.add(new AbstractBlock(-32, -320 + i * 32, sm.game.assets.image, "pattern"));
+                        this.ss.add(new AbstractBlock(32 * 180, -320 + i * 32, sm.game.assets.image, "pattern"));
                     }
-                    for (var i = 0; i < 180; i++) {
-                        this.ss.add(new Game.AbstractBlock(i * 32, -320, sm.game.assets.image, "pattern"));
-                    }
+                    for (var i: number = 0; i < 180; i++) { // TODO: 敵は跳ね返らずに外に出ていくようにする
+                        this.ss.add(new AbstractBlock(i * 32, -320, sm.game.assets.image, "pattern"));
+                    }*/
                     /*
                     for (var i: number = 0; i < 6; i++) {
                         this.ss.add(new Block1(128 + i * 32, 160, sm.game.assets.image, "pattern"));

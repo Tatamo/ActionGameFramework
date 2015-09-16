@@ -20,13 +20,13 @@
                     this.ss = new SpriteSystem(sm.game.screen);
                     this.mm = new MapGenerator(this.ss);
                     this.mm.generateMap(sm.game.config.map, 32, 32, sm.game);
-                    for (var i: number = 0; i < 40; i++) { // TODO: もっとましにする
+                    /*for (var i: number = 0; i < 40; i++) { // TODO: もっとましにする
                         this.ss.add(new AbstractBlock(-32, -320 + i * 32, sm.game.assets.image, "pattern"));
                         this.ss.add(new AbstractBlock(32 * 180, -320 + i * 32, sm.game.assets.image, "pattern"));
                     }
                     for (var i: number = 0; i < 180; i++) { // TODO: 敵は跳ね返らずに外に出ていくようにする
                         this.ss.add(new AbstractBlock(i * 32, -320, sm.game.assets.image, "pattern"));
-                    }
+                    }*/
                     /*
                     for (var i: number = 0; i < 6; i++) {
                         this.ss.add(new Block1(128 + i * 32, 160, sm.game.assets.image, "pattern"));
