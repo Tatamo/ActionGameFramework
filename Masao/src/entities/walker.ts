@@ -1,8 +1,8 @@
 ﻿/// <reference path="enemy.ts"/>
 module Game {
     export class Walker extends AbstractEnemy {
-        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
-            super(x, y, imagemanager, label, dx, dy);
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
+            super(x, y, imagemanager, label, 1, 1);
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.WalkerWalking());
             //this.code = 140;
@@ -26,14 +26,14 @@ module Game {
         }*/
     }
     export class FallableWalker extends Walker {
-        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
-            super(x, y, imagemanager, label, dx, dy);
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
+            super(x, y, imagemanager, label);
             this.moving.replace(new States.FallableWalkerWalking());
         }
     }
     export class ThreeWalkerFallableGenerator extends AbstractEntity {
-        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
-            super(x, y, imagemanager, label, dx, dy);
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
+            super(x, y, imagemanager, label, 1, 1);
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.Generate3FallableWalkerState());
         }

@@ -1,8 +1,8 @@
 ﻿/// <reference path="entity.ts"/>
 module Game {
     export class UpwardNeedle extends AbstractEntity {
-        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
-            super(x, y, imagemanager, label, dx, dy);
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
+            super(x, y, imagemanager, label, 1, 1);
             this.z = 256;
             this.code = 5;
             this.moving = new EntityStateMachine(this);
@@ -10,8 +10,8 @@ module Game {
         }
     }
     export class DownwardNeedle extends AbstractEntity {
-        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
-            super(x, y, imagemanager, label, dx, dy);
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
+            super(x, y, imagemanager, label, 1, 1);
             this.z = 256;
             this.code = 6;
             this.moving = new EntityStateMachine(this);

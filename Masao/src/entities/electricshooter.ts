@@ -1,8 +1,8 @@
 ﻿/// <reference path="enemy.ts"/>
 module Game {
     export class ElectricShooter extends AbstractEnemy {
-        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
-            super(x, y, imagemanager, label, dx, dy);
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
+            super(x, y, imagemanager, label, 1, 1);
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.ElectricShooterWaiting());
             //this.code = 140;
@@ -104,7 +104,7 @@ module Game {
 
                 if (e.vy == 0 && pt != null && (Math.abs(pt.x - e.x) > 32 || e.y <= pt.y)) {
                     // 攻撃
-                    var attack = new ElectricShot(e.x, e.y, e.imagemanager, e.label, 1, 1, pt);
+                    var attack = new ElectricShot(e.x, e.y, e.imagemanager, e.label, pt);
                     e.ss.add(attack);
                 }
 
@@ -140,8 +140,8 @@ module Game {
         }
     }
     export class ElectricShot extends AbstractEntity {
-        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1, target: ISprite = null) {
-            super(x, y, imagemanager, label, dx, dy);
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string, target: ISprite = null) {
+            super(x, y, imagemanager, label, 1, 1);
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.ElectricShotMoving());
 
@@ -183,7 +183,7 @@ module Game {
                 var e = sm.e;
                 e.counter["ac"] = 0;
                 e.code = 120;
-            // 水で消える設定の時の判定はここに書く
+                // 水で消える設定の時の判定はここに書く
 
             }
             update(sm: EntityStateMachine) {

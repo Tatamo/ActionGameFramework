@@ -7,8 +7,8 @@ module Game {
         public special: PlayerStateMachine;
         public view_x: number; // Stageのほうで勝手に数値を代入してくれることを期待している
         public view_y: number;
-        constructor(input: GameKey, x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
-            super(x, y, imagemanager, label, dx, dy);
+        constructor(input: GameKey, x: number, y: number, imagemanager: ImageManager, label: string) {
+            super(x, y, imagemanager, label, 1, 1);
             this.code = 100;
             this.gk = input;
             this.moving = new PlayerStateMachine(this);
@@ -439,7 +439,7 @@ module Game {
                 }
                 if (pl.counter["superjump_effect"] >= 0) {
                     var del = (s: PlayerSuperJumpEffect) => { if (s) s.kill(); };
-                    var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, 1, 1, pl.code, pl.reverse_horizontal);
+                    var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, pl.code, pl.reverse_horizontal);
                     pl.ss.add(effect);
                     pl.sjump_effects.push(effect);
                     del(pl.sjump_effects.shift());
@@ -608,7 +608,7 @@ module Game {
                         pl.vy = -340;
                         pl.counter["jump_level"] = 5;
                         pl.counter["superjump_effect"] = 1;
-                        var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, 1, 1, 101, pl.reverse_horizontal);
+                        var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, 101, pl.reverse_horizontal);
                         pl.ss.add(effect);
                         if (pl.sjump_effects) {
                             for (var i = 0; i < pl.sjump_effects.length; i++) {
@@ -738,8 +738,8 @@ module Game {
     }
     export class PlayerSuperJumpEffect extends Sprite {
         public ss: SpriteSystem;
-        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number, dy: number, code: number, reverse_horizontal: boolean) {
-            super(x, y, imagemanager, label, 100, dx, dy);
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string, code: number, reverse_horizontal: boolean) {
+            super(x, y, imagemanager, label, 100, 1, 1);
             this.code = code;
             this.z = 129;
             this.reverse_horizontal = reverse_horizontal;

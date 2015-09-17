@@ -1,8 +1,8 @@
 ﻿/// <reference path="enemy.ts"/>
 module Game {
     export class LeafShooter extends AbstractEnemy {
-        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
-            super(x, y, imagemanager, label, dx, dy);
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
+            super(x, y, imagemanager, label, 1, 1);
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.LeafShooterWaiting());
             this.addEventHandler("onstamped", this.onStamped);

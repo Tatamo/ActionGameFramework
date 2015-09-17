@@ -512,10 +512,8 @@ var Game;
 (function (Game) {
     var ElectricShooter = (function (_super) {
         __extends(ElectricShooter, _super);
-        function ElectricShooter(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
+        function ElectricShooter(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.ElectricShooterWaiting());
             //this.code = 140;
@@ -617,7 +615,7 @@ var Game;
                 }
                 if (e.vy == 0 && pt != null && (Math.abs(pt.x - e.x) > 32 || e.y <= pt.y)) {
                     // 攻撃
-                    var attack = new ElectricShot(e.x, e.y, e.imagemanager, e.label, 1, 1, pt);
+                    var attack = new ElectricShot(e.x, e.y, e.imagemanager, e.label, pt);
                     e.ss.add(attack);
                 }
                 if (pt != null) {
@@ -662,11 +660,9 @@ var Game;
     })(States = Game.States || (Game.States = {}));
     var ElectricShot = (function (_super) {
         __extends(ElectricShot, _super);
-        function ElectricShot(x, y, imagemanager, label, dx, dy, target) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
+        function ElectricShot(x, y, imagemanager, label, target) {
             if (target === void 0) { target = null; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
+            _super.call(this, x, y, imagemanager, label, 1, 1);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.ElectricShotMoving());
             if (target == null) {
@@ -791,10 +787,8 @@ var Game;
 (function (Game) {
     var AbstractItem = (function (_super) {
         __extends(AbstractItem, _super);
-        function AbstractItem(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
+        function AbstractItem(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
             this.z = 256;
             this.counter["ac"] = 0;
         }
@@ -841,7 +835,7 @@ var Game;
         function Coin(x, y, imagemanager, label, dx, dy) {
             if (dx === void 0) { dx = 1; }
             if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
+            _super.call(this, x, y, imagemanager, label);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.CoinExisting());
         }
@@ -898,10 +892,8 @@ var Game;
     })(States = Game.States || (Game.States = {}));
     var GoalStar = (function (_super) {
         __extends(GoalStar, _super);
-        function GoalStar(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
+        function GoalStar(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.GoalStarExisting());
         }
@@ -961,10 +953,8 @@ var Game;
 (function (Game) {
     var Jumper = (function (_super) {
         __extends(Jumper, _super);
-        function Jumper(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
+        function Jumper(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.JumperWaiting());
             //this.code = 154;
@@ -1175,10 +1165,8 @@ var Game;
 (function (Game) {
     var LeafShooter = (function (_super) {
         __extends(LeafShooter, _super);
-        function LeafShooter(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
+        function LeafShooter(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.LeafShooterWaiting());
             this.addEventHandler("onstamped", this.onStamped);
@@ -1394,10 +1382,8 @@ var Game;
 (function (Game) {
     var UpwardNeedle = (function (_super) {
         __extends(UpwardNeedle, _super);
-        function UpwardNeedle(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
+        function UpwardNeedle(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
             this.z = 256;
             this.code = 5;
             this.moving = new Game.EntityStateMachine(this);
@@ -1408,10 +1394,8 @@ var Game;
     Game.UpwardNeedle = UpwardNeedle;
     var DownwardNeedle = (function (_super) {
         __extends(DownwardNeedle, _super);
-        function DownwardNeedle(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
+        function DownwardNeedle(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
             this.z = 256;
             this.code = 6;
             this.moving = new Game.EntityStateMachine(this);
@@ -1459,10 +1443,8 @@ var Game;
 (function (Game) {
     var Player = (function (_super) {
         __extends(Player, _super);
-        function Player(input, x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
+        function Player(input, x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
             this.code = 100;
             this.gk = input;
             this.moving = new PlayerStateMachine(this);
@@ -1913,7 +1895,7 @@ var Game;
                         if (s)
                             s.kill();
                     };
-                    var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, 1, 1, pl.code, pl.reverse_horizontal);
+                    var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, pl.code, pl.reverse_horizontal);
                     pl.ss.add(effect);
                     pl.sjump_effects.push(effect);
                     del(pl.sjump_effects.shift());
@@ -2130,7 +2112,7 @@ var Game;
                         pl.vy = -340;
                         pl.counter["jump_level"] = 5;
                         pl.counter["superjump_effect"] = 1;
-                        var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, 1, 1, 101, pl.reverse_horizontal);
+                        var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, 101, pl.reverse_horizontal);
                         pl.ss.add(effect);
                         if (pl.sjump_effects) {
                             for (var i = 0; i < pl.sjump_effects.length; i++) {
@@ -2301,8 +2283,8 @@ var Game;
     })(States = Game.States || (Game.States = {}));
     var PlayerSuperJumpEffect = (function (_super) {
         __extends(PlayerSuperJumpEffect, _super);
-        function PlayerSuperJumpEffect(x, y, imagemanager, label, dx, dy, code, reverse_horizontal) {
-            _super.call(this, x, y, imagemanager, label, 100, dx, dy);
+        function PlayerSuperJumpEffect(x, y, imagemanager, label, code, reverse_horizontal) {
+            _super.call(this, x, y, imagemanager, label, 100, 1, 1);
             this.code = code;
             this.z = 129;
             this.reverse_horizontal = reverse_horizontal;
@@ -2317,10 +2299,8 @@ var Game;
 (function (Game) {
     var UnStampableWalker = (function (_super) {
         __extends(UnStampableWalker, _super);
-        function UnStampableWalker(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
+        function UnStampableWalker(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.UnStampableWalkerWalking());
         }
@@ -2381,10 +2361,8 @@ var Game;
 (function (Game) {
     var Walker = (function (_super) {
         __extends(Walker, _super);
-        function Walker(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
+        function Walker(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.WalkerWalking());
             //this.code = 140;
@@ -2402,10 +2380,8 @@ var Game;
     Game.Walker = Walker;
     var FallableWalker = (function (_super) {
         __extends(FallableWalker, _super);
-        function FallableWalker(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
+        function FallableWalker(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label);
             this.moving.replace(new States.FallableWalkerWalking());
         }
         return FallableWalker;
@@ -2413,10 +2389,8 @@ var Game;
     Game.FallableWalker = FallableWalker;
     var ThreeWalkerFallableGenerator = (function (_super) {
         __extends(ThreeWalkerFallableGenerator, _super);
-        function ThreeWalkerFallableGenerator(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
+        function ThreeWalkerFallableGenerator(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.Generate3FallableWalkerState());
         }

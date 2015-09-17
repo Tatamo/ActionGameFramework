@@ -1,8 +1,8 @@
 ﻿/// <reference path="entity.ts"/>
 module Game {
     export class AbstractItem extends AbstractEntity {
-        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
-            super(x, y, imagemanager, label, dx, dy);
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
+            super(x, y, imagemanager, label, 1, 1);
             this.z = 256;
             this.counter["ac"] = 0;
         }
@@ -36,7 +36,7 @@ module Game {
     }
     export class Coin extends AbstractItem {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
-            super(x, y, imagemanager, label, dx, dy);
+            super(x, y, imagemanager, label);
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.CoinExisting());
         }
@@ -84,8 +84,8 @@ module Game {
         }
     }
     export class GoalStar extends AbstractItem {
-        constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
-            super(x, y, imagemanager, label, dx, dy);
+        constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
+            super(x, y, imagemanager, label);
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.GoalStarExisting());
         }
