@@ -65,16 +65,16 @@ window.onload = function () {
         "............................................................",
         "............................................................",
         "a...aa.aaa.....................99...........................",
-        "aa...........................................aa.............",
-        "a...aa.a.a...................................a..............",
-        "a...........................................................",
+        "aa.aaa.......................................aa.............",
+        "a...6..a.a...................................a..............",
+        "a..5........................................................",
         "a.aaaaa.aaa.........12.....9.9...aaa.....aa.aaaaaaaa...12...",
         "a....aa.a....B............aaaaa..............9.aaaaa........",
         "aaaa.a..aaaaaa......aa..................B...aaaaaaaa........",
         "8......aa...........a...............aaaaa...9.9aa999........",
         "..aaaaaa7......E....................9.9.9...aaaaaaaa........",
         "...........aaaaaa..aaaaaa....................9.aaaaa........",
-        ".A.333....aaaaaaa..aaaaaa............D......aaaaaaaa........",
+        ".A.33.....aaaaaaa..aaaaaa............D......aaaaaaaa........",
         "bbbbbbbbbbbbbbbbb..bbbbbb.bbbbbbbbbbbbbbbbbbbbbbbbbb5bbbbbb.",
         "............................................................",
         "............................................................",
@@ -1387,6 +1387,71 @@ var Game;
             return LeafShotMoving;
         })(States.AbstractState);
         States.LeafShotMoving = LeafShotMoving;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+/// <reference path="entity.ts"/>
+var Game;
+(function (Game) {
+    var UpwardNeedle = (function (_super) {
+        __extends(UpwardNeedle, _super);
+        function UpwardNeedle(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.z = 256;
+            this.code = 5;
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.NeedleExisting());
+        }
+        return UpwardNeedle;
+    })(Game.AbstractEntity);
+    Game.UpwardNeedle = UpwardNeedle;
+    var DownwardNeedle = (function (_super) {
+        __extends(DownwardNeedle, _super);
+        function DownwardNeedle(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.z = 256;
+            this.code = 6;
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.NeedleExisting());
+        }
+        return DownwardNeedle;
+    })(Game.AbstractEntity);
+    Game.DownwardNeedle = DownwardNeedle;
+    var States;
+    (function (States) {
+        var NeedleExisting = (function (_super) {
+            __extends(NeedleExisting, _super);
+            function NeedleExisting() {
+                _super.apply(this, arguments);
+            }
+            NeedleExisting.prototype.update = function (sm) {
+                this.checkCollisionWithPlayer(sm);
+            };
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+            NeedleExisting.prototype.checkCollisionWithPlayer = function (sm) {
+                var e = sm.e;
+                var players = sm.e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    (function (p) {
+                        p.addOnceEventHandler("update", function () {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            if (p.flags["isAlive"] && new Game.Point(p.x + p.width / 2 - 1, p.y + p.height / 2 - 1).collision(e.getCollision())) {
+                                p.y = Math.floor((p.y + p.width / 2 - 1) / 32) * 32;
+                                p.dispatchEvent(new Game.PlayerMissEvent("miss", 2));
+                            }
+                        });
+                    })(p);
+                }
+            };
+            return NeedleExisting;
+        })(States.AbstractState);
+        States.NeedleExisting = NeedleExisting;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
 /// <reference path="entity.ts"/>
@@ -2718,6 +2783,8 @@ var Game;
             this.lookup["1"] = Game.CloudLeft;
             this.lookup["2"] = Game.CloudRight;
             this.lookup["3"] = Game.Grass;
+            this.lookup["5"] = Game.UpwardNeedle;
+            this.lookup["6"] = Game.DownwardNeedle;
             this.lookup["7"] = Game.Torch;
             this.lookup["8"] = Game.GoalStar;
             this.lookup["9"] = Game.Coin;
