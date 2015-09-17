@@ -118,6 +118,7 @@ module Game {
                 var e = sm.e;
                 for (var i = 0; i < 3; i++) {
                     var entity = new FallableWalker(e.x + 75 * i, e.y, e.imagemanager, e.label);
+                    entity.counter["viewx_activate"] -= 64 * i;
                     e.ss.add(entity);
                     entity.update();
                 }
