@@ -63,7 +63,7 @@ window.onload = function () {
         "............................................................",
         "............................................aaa.............",
         "............................................................",
-        "............................................................",
+        "........G...................................................",
         "a...aa.aaa.....................99...........................",
         "aa.aaa.......................................aa.............",
         "a...6..a.a...................................a..............",
@@ -72,9 +72,9 @@ window.onload = function () {
         "a....aa.a....B............aaaaa..............9.aaaaa........",
         "aaaa.a..aaaaaa......aa..................B...aaaaaaaa........",
         "8......aa...........a...............aaaaa...9.9aa999........",
-        "..aaaaaa7......E....................9.9.9...aaaaaaaa........",
+        "..aaaaaa7......G....................9.9.9...aaaaaaaa........",
         "...........aaaaaa..aaaaaa....................9.aaaaa........",
-        ".A.33.....aaaaaaa..aaaaaa............D......aaaaaaaa........",
+        ".A.333....aaaaaaa..aaaaaa............D......aaaaaaaa........",
         "bbbbbbbbbbbbbbbbb..bbbbbb.bbbbbbbbbbbbbbbbbbbbbbbbbb5bbbbbb.",
         "............................................................",
         "............................................................",
@@ -2313,6 +2313,69 @@ var Game;
     })(Game.Sprite);
     Game.PlayerSuperJumpEffect = PlayerSuperJumpEffect;
 })(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var UnStampableWalker = (function (_super) {
+        __extends(UnStampableWalker, _super);
+        function UnStampableWalker(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.UnStampableWalkerWalking());
+        }
+        return UnStampableWalker;
+    })(Game.AbstractEnemy);
+    Game.UnStampableWalker = UnStampableWalker;
+    var States;
+    (function (States) {
+        var UnStampableWalkerWalking = (function (_super) {
+            __extends(UnStampableWalkerWalking, _super);
+            function UnStampableWalkerWalking() {
+                _super.apply(this, arguments);
+            }
+            UnStampableWalkerWalking.prototype.enter = function (sm) {
+            };
+            UnStampableWalkerWalking.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
+                if (e.counter["ac"] < 2)
+                    e.code = 152;
+                else
+                    e.code = 153;
+                e.vx = e.reverse_horizontal ? 40 : -40;
+                if (e.ss.MapBlocks.getByXYReal((e.reverse_horizontal ? e.right : e.x) + e.vx / 10, e.y + e.height + 1) == null) {
+                    e.reverse_horizontal = !e.reverse_horizontal;
+                    e.x = e.ss.MapBlocks.getByXYReal(e.centerx, e.y + e.height + 1).x;
+                    e.vx = 0;
+                }
+                this.checkCollisionWithPlayer(sm);
+            };
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+            UnStampableWalkerWalking.prototype.checkCollisionWithPlayer = function (sm) {
+                var e = sm.e;
+                var players = sm.e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    (function (p) {
+                        p.addOnceEventHandler("update", function () {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
+                            if (p.flags["isAlive"] && dx < 30 && dy < 23) {
+                                // プレイヤーにダメージ
+                                p.dispatchEvent(new Game.PlayerMissEvent("miss", 1));
+                            }
+                        });
+                    })(p);
+                }
+            };
+            return UnStampableWalkerWalking;
+        })(States.AbstractState);
+        States.UnStampableWalkerWalking = UnStampableWalkerWalking;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
 /// <reference path="enemy.ts"/>
 var Game;
 (function (Game) {
@@ -2337,17 +2400,17 @@ var Game;
         return Walker;
     })(Game.AbstractEnemy);
     Game.Walker = Walker;
-    var WalkerFallable = (function (_super) {
-        __extends(WalkerFallable, _super);
-        function WalkerFallable(x, y, imagemanager, label, dx, dy) {
+    var FallableWalker = (function (_super) {
+        __extends(FallableWalker, _super);
+        function FallableWalker(x, y, imagemanager, label, dx, dy) {
             if (dx === void 0) { dx = 1; }
             if (dy === void 0) { dy = 1; }
             _super.call(this, x, y, imagemanager, label, dx, dy);
-            this.moving.replace(new States.WalkerWalkingFallable());
+            this.moving.replace(new States.FallableWalkerWalking());
         }
-        return WalkerFallable;
+        return FallableWalker;
     })(Walker);
-    Game.WalkerFallable = WalkerFallable;
+    Game.FallableWalker = FallableWalker;
     var ThreeWalkerFallableGenerator = (function (_super) {
         __extends(ThreeWalkerFallableGenerator, _super);
         function ThreeWalkerFallableGenerator(x, y, imagemanager, label, dx, dy) {
@@ -2355,7 +2418,7 @@ var Game;
             if (dy === void 0) { dy = 1; }
             _super.call(this, x, y, imagemanager, label, dx, dy);
             this.moving = new Game.EntityStateMachine(this);
-            this.moving.push(new States.Generate3FallableKameState());
+            this.moving.push(new States.Generate3FallableWalkerState());
         }
         return ThreeWalkerFallableGenerator;
     })(Game.AbstractEntity);
@@ -2387,14 +2450,14 @@ var Game;
             return WalkerWalking;
         })(States.AbstractStampableAlive);
         States.WalkerWalking = WalkerWalking;
-        var WalkerWalkingFallable = (function (_super) {
-            __extends(WalkerWalkingFallable, _super);
-            function WalkerWalkingFallable() {
+        var FallableWalkerWalking = (function (_super) {
+            __extends(FallableWalkerWalking, _super);
+            function FallableWalkerWalking() {
                 _super.apply(this, arguments);
             }
-            WalkerWalkingFallable.prototype.enter = function (sm) {
+            FallableWalkerWalking.prototype.enter = function (sm) {
             };
-            WalkerWalkingFallable.prototype.update = function (sm) {
+            FallableWalkerWalking.prototype.update = function (sm) {
                 var e = sm.e;
                 e.counter["ac"] = (e.counter["ac"] + 1) % 4;
                 if (e.counter["ac"] < 2)
@@ -2409,9 +2472,9 @@ var Game;
                 }
                 this.checkCollisionWithPlayer(sm);
             };
-            return WalkerWalkingFallable;
+            return FallableWalkerWalking;
         })(States.AbstractStampableAlive);
-        States.WalkerWalkingFallable = WalkerWalkingFallable;
+        States.FallableWalkerWalking = FallableWalkerWalking;
         var WalkerFalling = (function (_super) {
             __extends(WalkerFalling, _super);
             function WalkerFalling() {
@@ -2423,7 +2486,7 @@ var Game;
             WalkerFalling.prototype.update = function (sm) {
                 var e = sm.e;
                 if (e.flags["isOnGround"]) {
-                    sm.replace(new WalkerWalkingFallable());
+                    sm.replace(new FallableWalkerWalking());
                     sm.update();
                 }
                 else {
@@ -2458,25 +2521,25 @@ var Game;
             return WalkerStamped;
         })(States.AbstractState);
         States.WalkerStamped = WalkerStamped;
-        var Generate3FallableKameState = (function (_super) {
-            __extends(Generate3FallableKameState, _super);
-            function Generate3FallableKameState() {
+        var Generate3FallableWalkerState = (function (_super) {
+            __extends(Generate3FallableWalkerState, _super);
+            function Generate3FallableWalkerState() {
                 _super.apply(this, arguments);
             }
-            Generate3FallableKameState.prototype.enter = function (sm) {
+            Generate3FallableWalkerState.prototype.enter = function (sm) {
             };
-            Generate3FallableKameState.prototype.update = function (sm) {
+            Generate3FallableWalkerState.prototype.update = function (sm) {
                 var e = sm.e;
                 for (var i = 0; i < 3; i++) {
-                    var entity = new WalkerFallable(e.x + 75 * i, e.y, e.imagemanager, e.label);
+                    var entity = new FallableWalker(e.x + 75 * i, e.y, e.imagemanager, e.label);
                     e.ss.add(entity);
                     entity.update();
                 }
                 e.kill();
             };
-            return Generate3FallableKameState;
+            return Generate3FallableWalkerState;
         })(States.AbstractState);
-        States.Generate3FallableKameState = Generate3FallableKameState;
+        States.Generate3FallableWalkerState = Generate3FallableWalkerState;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
 var Game;
@@ -2769,10 +2832,11 @@ var Game;
             this.lookup = {};
             this.lookup["A"] = Game.Player;
             this.lookup["B"] = Game.Walker;
-            this.lookup["C"] = Game.WalkerFallable;
+            this.lookup["C"] = Game.FallableWalker;
             this.lookup["D"] = Game.ThreeWalkerFallableGenerator;
             this.lookup["E"] = Game.ElectricShooter;
             this.lookup["F"] = Game.LeafShooter;
+            this.lookup["G"] = Game.UnStampableWalker;
             this.lookup["O"] = Game.Jumper;
             this.lookup["a"] = Game.Block1;
             this.lookup["b"] = Game.Block2;

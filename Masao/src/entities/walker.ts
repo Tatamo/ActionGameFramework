@@ -25,17 +25,17 @@ module Game {
             }
         }*/
     }
-    export class WalkerFallable extends Walker {
+    export class FallableWalker extends Walker {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
             super(x, y, imagemanager, label, dx, dy);
-            this.moving.replace(new States.WalkerWalkingFallable());
+            this.moving.replace(new States.FallableWalkerWalking());
         }
     }
     export class ThreeWalkerFallableGenerator extends AbstractEntity {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string, dx: number = 1, dy: number = 1) {
             super(x, y, imagemanager, label, dx, dy);
             this.moving = new EntityStateMachine(this);
-            this.moving.push(new States.Generate3FallableKameState());
+            this.moving.push(new States.Generate3FallableWalkerState());
         }
     }
     export module States {
@@ -58,7 +58,7 @@ module Game {
                 this.checkCollisionWithPlayer(sm);
             }
         }
-        export class WalkerWalkingFallable extends AbstractStampableAlive {
+        export class FallableWalkerWalking extends AbstractStampableAlive {
             enter(sm: EntityStateMachine) {
             }
             update(sm: EntityStateMachine) {
@@ -84,7 +84,7 @@ module Game {
             update(sm: EntityStateMachine) {
                 var e = sm.e;
                 if (e.flags["isOnGround"]) {
-                    sm.replace(new WalkerWalkingFallable());
+                    sm.replace(new FallableWalkerWalking());
                     sm.update();
                 }
                 else {
@@ -111,13 +111,13 @@ module Game {
                 }
             }
         }
-        export class Generate3FallableKameState extends AbstractState {
+        export class Generate3FallableWalkerState extends AbstractState {
             enter(sm: EntityStateMachine) {
             }
             update(sm: EntityStateMachine) {
                 var e = sm.e;
                 for (var i = 0; i < 3; i++) {
-                    var entity = new WalkerFallable(e.x + 75 * i, e.y, e.imagemanager, e.label);
+                    var entity = new FallableWalker(e.x + 75 * i, e.y, e.imagemanager, e.label);
                     e.ss.add(entity);
                     entity.update();
                 }

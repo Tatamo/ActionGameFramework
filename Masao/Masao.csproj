@@ -46,6 +46,7 @@
     <TypeScriptCompile Include="src\entities\needle.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="src\entities\unstampablewalker.ts" />
     <TypeScriptCompile Include="src\entities\walker.ts" />
     <TypeScriptCompile Include="src\event.ts" />
     <TypeScriptCompile Include="src\game.ts" />
