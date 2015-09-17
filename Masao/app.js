@@ -880,7 +880,7 @@ var Game;
                             if (p.flags["isAlive"] && dx <= 14 && e.y <= p.y + 26 && e.y + 15 >= p.y) {
                                 _this.onHitWithPlayer(sm, p);
                             }
-                            if (new Game.Point(p.x + p.width - 1, p.y + p.height - 1).collision(e.getCollision())) {
+                            if (p.flags["isAlive"] && new Game.Point(p.x + p.width / 2 - 1, p.y + p.height / 2 - 1).collision(e.getCollision())) {
                                 _this.onHitWithPlayer(sm, p);
                             }
                         });
@@ -938,7 +938,7 @@ var Game;
                             if (p.flags["isAlive"] && dx <= 14 && e.y <= p.y + 26 && e.y + 15 >= p.y) {
                                 _this.onHitWithPlayer(sm, p);
                             }
-                            if (new Game.Point(p.x + p.width - 1, p.y + p.height - 1).collision(e.getCollision())) {
+                            if (p.flags["isAlive"] && new Game.Point(p.x + p.width / 2 - 1, p.y + p.height / 2 - 1).collision(e.getCollision())) {
                                 _this.onHitWithPlayer(sm, p);
                             }
                         });
