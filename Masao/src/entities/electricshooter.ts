@@ -41,7 +41,7 @@ module Game {
                     var flg = false;
                     for (var i = 0; i < players.length; i++) {
                         var p = players[i];
-                        if (p.x >= e.x - 241 && p.x <= e.x + 241) { // x座標の差が241以下のプレイヤーを探す
+                        if (p.x >= e.x - 240 && p.x <= e.x + 240) { // x座標の差が240以下のプレイヤーを探す
                             flg = true;
                             break;
                         }

@@ -550,7 +550,7 @@ var Game;
                     var flg = false;
                     for (var i = 0; i < players.length; i++) {
                         var p = players[i];
-                        if (p.x >= e.x - 241 && p.x <= e.x + 241) {
+                        if (p.x >= e.x - 240 && p.x <= e.x + 240) {
                             flg = true;
                             break;
                         }
@@ -1201,7 +1201,7 @@ var Game;
                     var flg = false;
                     for (var i = 0; i < players.length; i++) {
                         var p = players[i];
-                        if (p.x >= e.x - 257 && p.x <= e.x + 257) {
+                        if (p.x >= e.x - 256 && p.x <= e.x + 256) {
                             flg = true;
                             break;
                         }
@@ -1455,25 +1455,64 @@ var Game;
                 muki_x = -1;
             this.x += Math.floor(this.vx / 10);
             this.checkCollisionWithBlocksHorizontal(); // 接触判定
-            var tmp_bottom = this.bottom;
-            var tmp_top = this.top;
+            var tmp_y = this.y;
             this.y += this.vy > -320 ? Math.floor(this.vy / 10) : -32;
             this.checkCollisionWithBlocksVertical(); // 接触判定
             // 補正
-            if (this.vy > 0) {
+            // TODO: タイル幅32が前提であるのを解消
+            if (this.vy < 0) {
+                if (Math.floor(tmp_y / 32) > Math.floor(this.y / 32)) {
+                    if (this.gk.isDown(37)) {
+                        var b1 = this.getHitBlock(this.x + this.width / 2 - 1 - 1, tmp_y);
+                        var b2 = this.getHitBlock(this.x + this.width / 2 - 1 - 1, this.y);
+                        if (b1 == null && b2 != null) {
+                            this.y = b2.y + b2.height;
+                            this.vy = 0;
+                        }
+                    }
+                    if (this.gk.isDown(39)) {
+                        var b1 = this.getHitBlock(this.x + this.width / 2 - 1 + 1, tmp_y);
+                        var b2 = this.getHitBlock(this.x + this.width / 2 - 1 + 1, this.y);
+                        if (b1 == null && b2 != null) {
+                            this.y = b2.y + b2.height;
+                            this.vy = 0;
+                        }
+                    }
+                }
+            }
+            else if (this.vy > 0) {
+                if (Math.floor((tmp_y + this.height - 1) / 32) < Math.floor((this.y + this.height - 1) / 32)) {
+                    if (this.gk.isDown(37)) {
+                        var b1 = this.getHitBlock(this.x + this.width / 2 - 1 - 1, tmp_y + this.height - 1);
+                        var b2 = this.getHitBlock(this.x + this.width / 2 - 1 - 1, this.y + this.height - 1);
+                        if (b1 == null && b2 != null) {
+                            this.y = b2.y - b2.height;
+                            this.vy = 0;
+                            //this.code = 103;
+                            this.x -= 1;
+                            this.checkCollisionWithBlocksVertical();
+                        }
+                    }
+                    if (this.gk.isDown(39)) {
+                        var b1 = this.getHitBlock(this.x + this.width / 2 - 1 + 1, tmp_y + this.height - 1);
+                        var b2 = this.getHitBlock(this.x + this.width / 2 - 1 + 1, this.y + this.height - 1);
+                        if (b1 == null && b2 != null) {
+                            this.y = b2.y - b2.height;
+                            this.vy = 0;
+                            //this.code = 103;
+                            this.x += 1;
+                            this.checkCollisionWithBlocksVertical();
+                        }
+                    }
+                }
+            }
+            /*if (this.vy > 0) { // 下降中
                 if (tmp_bottom < this.bottom) {
-                    if (this.getHitBlock(this.centerx + muki_x, tmp_bottom + 1) == null) {
-                        if (this.getHitBlock(this.centerx + muki_x, this.bottom + 1) != null) {
+                    if (this.getHitBlock(this.centerx + muki_x, tmp_bottom + 1) == null) { // 移動前 自機の足元にブロックが無い
+                        if (this.getHitBlock(this.centerx + muki_x, this.bottom + 1) != null) { // 移動後 自機の足元にブロックがある
                             if (this.gk.isDown(37) || this.gk.isDown(39)) {
                                 //if (this.flags["isWalking"] || this.flags["isRunning"]) {
                                 this.x += muki_x; // トンネルに入れるようにする
-                                /*var cs = this.moving.current_state;
-                                if (muki_x < 0 && cs instanceof States.PlayerWalkingLeft && cs instanceof States.PlayerRunningLeft) {
-                                    this.x += muki_x;
-                                }
-                                else if (muki_x > 0 && cs instanceof States.PlayerWalkingRight && cs instanceof States.PlayerRunningRight) {
-                                    this.x += muki_x;
-                                }*/
                                 this.checkCollisionWithBlocksVertical();
                                 this.vy = 0;
                                 //_ptc = 103;
@@ -1483,20 +1522,13 @@ var Game;
                     }
                 }
             }
-            else if (this.vy < 0) {
+            else if (this.vy < 0) { // 上昇中
                 if (tmp_top > this.top) {
-                    if (this.getHitBlock(this.centerx + muki_x, tmp_top) == null) {
-                        if (this.getHitBlock(this.centerx + muki_x, this.top) != null) {
+                    if (this.getHitBlock(this.centerx + muki_x, tmp_top) == null) { // 移動前 自機の頭にブロックが無い
+                        if (this.getHitBlock(this.centerx + muki_x, this.top) != null) { // 移動後 自機の頭にブロックがある
                             if (this.gk.isDown(37) || this.gk.isDown(39)) {
                                 //if (this.flags["isWalking"] || this.flags["isRunning"]) {
                                 this.x += muki_x; // トンネルに入れるようにする
-                                /*var cs = this.moving.current_state;
-                                if (muki_x < 0 && cs instanceof States.PlayerWalkingLeft && cs instanceof States.PlayerRunningLeft) {
-                                    this.x += muki_x;
-                                }
-                                else if (muki_x > 0 && cs instanceof States.PlayerWalkingRight && cs instanceof States.PlayerRunningRight) {
-                                    this.x += muki_x;
-                                }*/
                                 this.checkCollisionWithBlocksVertical();
                                 this.vy = 0;
                                 //_ptc = 103;
@@ -1505,7 +1537,7 @@ var Game;
                         }
                     }
                 }
-            }
+            }*/
         };
         Player.prototype.fixPatternCode = function () {
             if (this.flags["isStamping"]) {
@@ -1538,18 +1570,43 @@ var Game;
         Player.prototype.checkCollisionWithBlocksVertical = function () {
             this.flags["isOnGround"] = false;
             // check
-            var blocks = this.getBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
+            if (this.vy < 0) {
+                var b = this.getHitBlock(this.x + this.width / 2 - 1, this.y);
+                if (b != null) {
+                    this.y = b.y + b.height;
+                    this.vy = 0;
+                }
+            }
+            else if (this.vy > 0) {
+                var b = this.getHitBlock(this.x + this.width / 2 - 1, this.y + this.height);
+                if (b != null) {
+                    this.y = b.y - this.width;
+                    this.vy = 0;
+                }
+                if (this.getHitBlock(this.x + this.width / 2 - 1, this.y + this.height + 1) != null) {
+                    this.dispatchEvent(new Game.Event("onground"));
+                }
+            }
+            else {
+                if (this.getHitBlock(this.x + this.width / 2 - 1, this.y + this.height + 1) != null) {
+                    this.dispatchEvent(new Game.Event("onground"));
+                }
+            }
+            /*var blocks = this.getBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
-                /*if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
-                    this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "vertical", "center"));
-                }*/
+                //if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
+                //    this.y <= b.y + b.height && this.y + this.height >= b.y) {
+                //    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "vertical", "center"));
+                //}
+
                 //var bc = b.getRect(); // TODO: getCollisionに書き換えても問題なく動作するように
                 //var col = new Rect(this.centerx, this.y, 0, this.height);
+
                 if (this.vy < 0) {
                     // up
-                    if (b.x <= this.centerx && b.right > this.centerx && b.y < this.bottom && b.bottom >= this.y) {
+                    if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                        b.y < this.bottom && b.bottom >= this.y) {
                         //if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.bottom, bc.width, 0))) &&
                         //    !(col.collision(new Point(bc.left, bc.top))) && !(col.collision(new Point(bc.right, bc.bottom)))) { // ブロックの右の辺と上の辺を除いた部分と判定を行う
                         this.y = b.bottom;
@@ -1560,28 +1617,45 @@ var Game;
                     // down || //
                     //if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.top, bc.width, 0))) &&
                     //    !(col.collision(new Point(bc.right, bc.top))) && !(col.collision(new Point(bc.left, bc.bottom)))) { // ブロックの右の辺と下の辺を除いた部分と判定を行う
-                    if (b.x <= this.centerx && b.right > this.centerx && b.y <= this.bottom && b.bottom > this.y) {
-                        this.dispatchEvent(new Game.Event("onground"));
+                    if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                        b.y <= this.bottom && b.bottom > this.y) {
+                        this.dispatchEvent(new Event("onground"));
                         this.bottom = b.y;
                         this.vy = 0;
                     }
                 }
-            }
+            }*/
         };
         Player.prototype.checkCollisionWithBlocksHorizontal = function () {
             // check
-            var blocks = this.getBlocks(this.x, this.y, this.width, this.height);
+            var b1 = this.getHitBlock(this.x + this.width / 2 - 1, this.y); // (x+15,y)
+            var b2 = this.getHitBlock(this.x + this.width / 2 - 1, this.y + this.height - 1); // (x+15,y+31)
+            if (b1 != null || b2 != null) {
+                if (b1 == null)
+                    b1 = b2;
+                if (this.vx > 0) {
+                    this.x = b1.x - this.width / 2;
+                    this.vx = 0;
+                }
+                else if (this.vx < 0) {
+                    this.x = b1.x + this.width / 2 + 1;
+                    this.vx = 0;
+                }
+            }
+            /*var blocks = this.getBlocks(this.x, this.y, this.width, this.height);
             for (var i = 0; i < blocks.length; i++) {
                 var b = blocks[i];
-                /*if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
-                    this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "horizontal", "center"));
-                }*/
+                //if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
+                //    this.y <= b.y + b.height && this.y + this.height >= b.y) {
+                //    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "horizontal", "center"));
+                //}
                 //var bc = b.getCollision();
                 //var col = new Rect(this.centerx, this.y, 0, this.height);
+                
                 if (this.vx > 0) {
                     // right
-                    if (b.x <= this.centerx && b.right > this.centerx && b.y <= this.bottom && b.bottom > this.y) {
+                    if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                        b.y <= this.bottom && b.bottom > this.y) {
                         // rect:{(x,y)∈R^2:x∈[bc.left,bc.right),y∈[bc.top,bc.bottom]}の判定
                         this.centerx = b.x - 1;
                         this.vx = 0;
@@ -1589,21 +1663,28 @@ var Game;
                 }
                 else if (this.vx < 0) {
                     // left
-                    if (b.x <= this.centerx && b.right > this.centerx && b.y <= this.bottom && b.bottom > this.y) {
+                    if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                        b.y <= this.bottom && b.bottom > this.y) {
                         //if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.top, bc.width, 0))) &&
                         //    !(col.collision(new Point(bc.right, bc.top))) && !(col.collision(new Point(bc.left, bc.bottom)))) { // ブロックの右の辺と下の辺を除いた部分と判定を行う
                         this.centerx = b.right;
                         this.vx = 0;
                     }
                 }
-            }
+            }*/
         };
-        // 指定した座標地点にブロックがある場合、そのブロックを返す。
+        // 指定した座標地点(ピクセル座標)にブロックがある場合、そのブロックを返す。また画面外に出るのを阻止するための処理も挟む
         // そうでない場合、nullを返す。
         Player.prototype.getHitBlock = function (x, y) {
             var b = this.ss.getBlock(x, y);
             if (b)
                 return b;
+            if (Math.floor(x / 32) == -1)
+                return new Game.AbstractBlock(-32, Math.floor(y / 32) * 32, this.imagemanager, this.label);
+            if (Math.floor(x / 32) == 180)
+                return new Game.AbstractBlock(32 * 180, Math.floor(y / 32) * 32, this.imagemanager, this.label);
+            if (Math.floor(y / 32) == -10)
+                return new Game.AbstractBlock(Math.floor(x / 32) * 32, 32 * -10, this.imagemanager, this.label);
             return null;
         };
         // SpriteSystem.getBlocks()をラップし、間に画面外に出るのを阻止するための処理を挟む
@@ -1658,7 +1739,7 @@ var Game;
             else if (this.counter["able2runningRight"] > 0)
                 this.counter["able2runningRight"] += 1;
             if (this.flags["isOnGround"]) {
-                if (this.gk.isDown(90) && this.gk.getCount(90) < 5) {
+                if (this.gk.isDown(90) && this.gk.getCount(90) <= 5) {
                     this.moving.push(new States.PlayerJumping());
                 }
             }
@@ -1916,20 +1997,19 @@ var Game;
                 if (pl.ss.MapBlocks.getByXYReal(pl.centerx + pl.vx / 10, pl.y - 1) != null) {
                     pl.ss.MapBlocks.getByXYReal(pl.centerx + pl.vx / 10, pl.y - 1).dispatchEvent(new SpriteCollisionEvent("onhit", pl, "vertival"));
                 }*/
-                if (pl.ss.MapBlocks.getByXYReal(pl.centerx + pl.vx / 10, pl.y - 1) == null || pl.ss.MapBlocks.getByXYReal(pl.centerx, pl.y - 1) == null) {
-                    if (speed == 0) {
+                //if (pl.ss.MapBlocks.getByXYReal(pl.centerx + pl.vx / 10, pl.y - 1) == null || pl.ss.MapBlocks.getByXYReal(pl.centerx, pl.y - 1) == null) {
+                if (pl.getHitBlock(pl.x + pl.width / 2 - 1, pl.y - 1) == null) {
+                    if (pl.ss.MapBlocks.getByXYReal(pl.centerx + (pl.vx > 0 ? 1 : -1), pl.centery) != null) {
+                        pl.vy = -150;
+                        pl.counter["jump_level"] = 1;
+                    }
+                    else if (speed == 0) {
                         pl.vy = -150;
                         pl.counter["jump_level"] = 1;
                     }
                     else if (speed < 60) {
-                        if (pl.ss.MapBlocks.getByXYReal(pl.centerx + (pl.vx > 0 ? 1 : -1), pl.centery) != null) {
-                            pl.vy = -150;
-                            pl.counter["jump_level"] = 1;
-                        }
-                        else {
-                            pl.vy = -230;
-                            pl.counter["jump_level"] = 2;
-                        }
+                        pl.vy = -230;
+                        pl.counter["jump_level"] = 2;
                     }
                     else if (speed == 60) {
                         pl.vy = -260;

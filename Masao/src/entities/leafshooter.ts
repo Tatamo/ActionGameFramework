@@ -60,7 +60,7 @@ module Game {
                     var flg = false;
                     for (var i = 0; i < players.length; i++) {
                         var p = players[i];
-                        if (p.x >= e.x - 257 && p.x <= e.x + 257) { // x座標の差が257以下のプレイヤーを探す
+                        if (p.x >= e.x - 256 && p.x <= e.x + 256) { // x座標の差が256以下のプレイヤーを探す
                             flg = true;
                             break;
                         }
