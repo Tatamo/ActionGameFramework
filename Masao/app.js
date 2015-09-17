@@ -1998,7 +1998,7 @@ var Game;
                     pl.ss.MapBlocks.getByXYReal(pl.centerx + pl.vx / 10, pl.y - 1).dispatchEvent(new SpriteCollisionEvent("onhit", pl, "vertival"));
                 }*/
                 //if (pl.ss.MapBlocks.getByXYReal(pl.centerx + pl.vx / 10, pl.y - 1) == null || pl.ss.MapBlocks.getByXYReal(pl.centerx, pl.y - 1) == null) {
-                if (pl.getHitBlock(pl.x + pl.width / 2 - 1, pl.y - 1) == null) {
+                if (pl.getHitBlock(pl.x + pl.width / 2 - 1 + pl.vx / 10, pl.y - 1) == null) {
                     if (pl.ss.MapBlocks.getByXYReal(pl.centerx + (pl.vx > 0 ? 1 : -1), pl.centery) != null) {
                         pl.vy = -150;
                         pl.counter["jump_level"] = 1;
