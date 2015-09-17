@@ -865,6 +865,28 @@ var Game;
                 e.code = 90 + Math.floor(e.counter["ac"] / 2);
                 this.checkCollisionWithPlayer(sm);
             };
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+            CoinExisting.prototype.checkCollisionWithPlayer = function (sm) {
+                var _this = this;
+                var e = sm.e;
+                var players = sm.e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    (function (p) {
+                        p.addOnceEventHandler("update", function () {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            if (p.flags["isAlive"] && dx <= 14 && e.y <= p.y + 26 && e.y + 15 >= p.y) {
+                                _this.onHitWithPlayer(sm, p);
+                            }
+                            if (new Game.Point(p.x + p.width - 1, p.y + p.height - 1).collision(e.getCollision())) {
+                                _this.onHitWithPlayer(sm, p);
+                            }
+                        });
+                    })(p);
+                }
+            };
             CoinExisting.prototype.onHitWithPlayer = function (sm, p) {
                 var e = sm.e;
                 p.dispatchEvent(new Game.ScoreEvent("addscore", 5));
@@ -902,6 +924,26 @@ var Game;
                 e.counter["ac"] = (e.counter["ac"] + 1) % 8;
                 e.code = 94 + Math.floor(e.counter["ac"] / 4);
                 this.checkCollisionWithPlayer(sm);
+            };
+            GoalStarExisting.prototype.checkCollisionWithPlayer = function (sm) {
+                var _this = this;
+                var e = sm.e;
+                var players = sm.e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    (function (p) {
+                        p.addOnceEventHandler("update", function () {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            if (p.flags["isAlive"] && dx <= 14 && e.y <= p.y + 26 && e.y + 15 >= p.y) {
+                                _this.onHitWithPlayer(sm, p);
+                            }
+                            if (new Game.Point(p.x + p.width - 1, p.y + p.height - 1).collision(e.getCollision())) {
+                                _this.onHitWithPlayer(sm, p);
+                            }
+                        });
+                    })(p);
+                }
             };
             GoalStarExisting.prototype.onHitWithPlayer = function (sm, p) {
                 var e = sm.e;

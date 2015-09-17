@@ -55,6 +55,27 @@ module Game {
 
                 this.checkCollisionWithPlayer(sm);
             }
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+            checkCollisionWithPlayer(sm: EntityStateMachine) {
+                var e = sm.e;
+                var players = <Array<Player>>sm.e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    ((p: Player) => {
+                        p.addOnceEventHandler("update",() => {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            if (p.flags["isAlive"] && dx <= 14 && e.y <= p.y + 26 && e.y + 15 >= p.y) { // プレイヤーと接触した
+                                this.onHitWithPlayer(sm, p);
+                            }
+                            if (new Point(p.x + p.width - 1, p.y + p.height - 1).collision(e.getCollision())) {
+                                this.onHitWithPlayer(sm, p);
+                            }
+                        });
+                    })(p);
+                }
+            }
             onHitWithPlayer(sm: EntityStateMachine, p: Player) {
                 var e = sm.e;
                 p.dispatchEvent(new ScoreEvent("addscore", 5));
@@ -82,6 +103,25 @@ module Game {
                 e.code = 94 + Math.floor(e.counter["ac"] / 4);
 
                 this.checkCollisionWithPlayer(sm);
+            }
+            checkCollisionWithPlayer(sm: EntityStateMachine) {
+                var e = sm.e;
+                var players = <Array<Player>>sm.e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    ((p: Player) => {
+                        p.addOnceEventHandler("update",() => {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            if (p.flags["isAlive"] && dx <= 14 && e.y <= p.y + 26 && e.y + 15 >= p.y) { // プレイヤーと接触した
+                                this.onHitWithPlayer(sm, p);
+                            }
+                            if (new Point(p.x + p.width - 1, p.y + p.height - 1).collision(e.getCollision())) {
+                                this.onHitWithPlayer(sm, p);
+                            }
+                        });
+                    })(p);
+                }
             }
             onHitWithPlayer(sm: EntityStateMachine, p: Player) {
                 var e = sm.e;
