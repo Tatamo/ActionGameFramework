@@ -1,98 +1,4 @@
 declare module Game {
-    class Dictionary<T> implements WeakMap<any, T> {
-        private datalist;
-        constructor();
-        clear(): void;
-        set(key: number, value: T): any;
-        set(key: string, value: T): any;
-        delete(key: string): boolean;
-        delete(key: number): boolean;
-        get(key: string): T;
-        get(key: number): T;
-        getkey(value: T): string;
-        has(key: string): boolean;
-        has(key: number): boolean;
-        private checkType(key);
-    }
-    class Registrar<T> extends Dictionary<T> {
-        set(key: string, value: T): any;
-        set(key: number, value: T): any;
-    }
-    class AbstractDataGroup<T> {
-        private datalist;
-        sortmethod: (x: T, y: T) => number;
-        constructor();
-        clear(): void;
-        getArray(): T[];
-        getCount(): number;
-        add(value: T): void;
-        sort(): void;
-        del(value: T): void;
-    }
-}
-declare module Game {
-    class AssetsManagerManager {
-        loader: Loader;
-        image: ImageManager;
-        constructor();
-        load(): void;
-    }
-    enum PreloadStates {
-        UNLOAD = 0,
-        LOADING = 1,
-        NOTHING2LOAD = 2,
-    }
-    interface ILoader {
-        state: PreloadStates;
-        count: number;
-        count_loadeds: number;
-        load(cb?: () => void): any;
-    }
-    class Loader implements ILoader {
-        private loaders;
-        constructor(list: Array<ILoader>);
-        state: PreloadStates;
-        count: number;
-        count_loadeds: number;
-        load(cb?: () => void): void;
-    }
-    class AbstractLoader implements ILoader {
-        protected _unloadeds: Array<{
-            label: string;
-            path: string;
-            callback?: (file: any, label: string) => void;
-        }>;
-        protected _isloading: boolean;
-        state: PreloadStates;
-        private _count;
-        count: number;
-        count_loadeds: number;
-        constructor();
-        push(l: string, p: string, cb?: (file: any, label: string) => void): void;
-        load(cb?: () => void): void;
-        protected __load(cb: () => void): void;
-        protected _load(cb?: () => void): void;
-    }
-    class ImageLoader extends AbstractLoader {
-        _load(cb?: any): void;
-    }
-    class ImageManager {
-        private images;
-        loader: ILoader;
-        private _loader;
-        constructor();
-        get(name: string): any;
-        get(name: string, x: number, y: number): any;
-        get(name: string, code: number): any;
-        getwide(name: string, x: number, y: number, wx: number, wy: number): any;
-        getwide(name: string, code: number, wx: number, wy: number): any;
-        private set(name, img, chipwidth?, chipheight?);
-        regist_image(label: string, path: string): void;
-        regist_pattern(label: string, path: string, c_width: number, c_height: number): void;
-        load(): void;
-    }
-}
-declare module Game {
     class Config {
         rawmap: Array<string>;
         map: Array<string>;
@@ -199,6 +105,38 @@ declare module Game {
     }
 }
 declare module Game {
+    class Dictionary<T> implements WeakMap<any, T> {
+        private datalist;
+        constructor();
+        clear(): void;
+        set(key: number, value: T): any;
+        set(key: string, value: T): any;
+        delete(key: string): boolean;
+        delete(key: number): boolean;
+        get(key: string): T;
+        get(key: number): T;
+        getkey(value: T): string;
+        has(key: string): boolean;
+        has(key: number): boolean;
+        private checkType(key);
+    }
+    class Registrar<T> extends Dictionary<T> {
+        set(key: string, value: T): any;
+        set(key: number, value: T): any;
+    }
+    class AbstractDataGroup<T> {
+        private datalist;
+        sortmethod: (x: T, y: T) => number;
+        constructor();
+        clear(): void;
+        getArray(): T[];
+        getCount(): number;
+        add(value: T): void;
+        sort(): void;
+        del(value: T): void;
+    }
+}
+declare module Game {
     interface IEventDispatcher {
         addEventHandler(type: string, handler: (e: Event) => void): any;
         addOnceEventHandler(type: string, handler: (e: Event) => void): any;
@@ -244,6 +182,68 @@ declare module Game {
         isDown(key: number): boolean;
         isOnDown(key: number): boolean;
         getCount(key: number): number;
+    }
+}
+declare module Game {
+    class AssetsManagerManager {
+        loader: Loader;
+        image: ImageManager;
+        constructor();
+        load(): void;
+    }
+    enum PreloadStates {
+        UNLOAD = 0,
+        LOADING = 1,
+        NOTHING2LOAD = 2,
+    }
+    interface ILoader {
+        state: PreloadStates;
+        count: number;
+        count_loadeds: number;
+        load(cb?: () => void): any;
+    }
+    class Loader implements ILoader {
+        private loaders;
+        constructor(list: Array<ILoader>);
+        state: PreloadStates;
+        count: number;
+        count_loadeds: number;
+        load(cb?: () => void): void;
+    }
+    class AbstractLoader implements ILoader {
+        protected _unloadeds: Array<{
+            label: string;
+            path: string;
+            callback?: (file: any, label: string) => void;
+        }>;
+        protected _isloading: boolean;
+        state: PreloadStates;
+        private _count;
+        count: number;
+        count_loadeds: number;
+        constructor();
+        push(l: string, p: string, cb?: (file: any, label: string) => void): void;
+        load(cb?: () => void): void;
+        protected __load(cb: () => void): void;
+        protected _load(cb?: () => void): void;
+    }
+    class ImageLoader extends AbstractLoader {
+        _load(cb?: any): void;
+    }
+    class ImageManager {
+        private images;
+        loader: ILoader;
+        private _loader;
+        constructor();
+        get(name: string): any;
+        get(name: string, x: number, y: number): any;
+        get(name: string, code: number): any;
+        getwide(name: string, x: number, y: number, wx: number, wy: number): any;
+        getwide(name: string, code: number, wx: number, wy: number): any;
+        private set(name, img, chipwidth?, chipheight?);
+        regist_image(label: string, path: string): void;
+        regist_pattern(label: string, path: string, c_width: number, c_height: number): void;
+        load(): void;
     }
 }
 declare module Game {
