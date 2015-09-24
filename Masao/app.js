@@ -67,8 +67,8 @@ window.onload = function () {
         "a...aa.aaa.....................99...........................",
         "aa.aaa.......................................aa.............",
         "a...6..a.a...................................a..............",
-        "a..5........................................................",
-        "a.aaaaa.aaa....H....12.....9.9...aaa.....aa.aaaaaaaa...12...",
+        "a..5...............J........................................",
+        "a.aaaaa.aaa....H.I..12.....9.9...aaa.....aa.aaaaaaaa...12...",
         "a....aa.a..A..............aaaaa..............9.aaaaa........",
         "aaaa.a..aaaaaa......aa..................B...aaaaaaaa........",
         "8......aa...........a...............aaaaa...9.9aa999........",
@@ -785,39 +785,140 @@ var Game;
 /// <reference path="enemy.ts"/>
 var Game;
 (function (Game) {
+    var Flier = (function (_super) {
+        __extends(Flier, _super);
+        function Flier(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.FlierFlyingHorizontal());
+            this.addEventHandler("onstamped", this.onStamped);
+        }
+        Flier.prototype.onStamped = function (e) {
+            if (this.flags["isAlive"])
+                this.moving.replace(new States.FlierStamped());
+            this.vx = 0;
+            this.vy = 0;
+        };
+        Flier.prototype.move = function () {
+            this.x += this.vx / 10;
+            this.checkCollisionWithBlocksHorizontal(); // 接触判定
+            this.y += this.vy / 10;
+        };
+        Flier.prototype.checkCollisionWithBlocksHorizontal = function () {
+            // check
+            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
+            for (var i = 0; i < blocks.length; i++) {
+                var b = blocks[i];
+                var bc = b.getCollision();
+                if (this.vx > 0) {
+                    // right
+                    if (new Game.Point(this.centerx + this.width - 1, this.bottom - 1).collision(bc)) {
+                        this.right = b.x;
+                        this.vx = 0;
+                        this.reverse_horizontal = !this.reverse_horizontal;
+                    }
+                }
+                else if (this.vx < 0) {
+                    // left
+                    if (new Game.Point(this.centerx - this.width, this.bottom - 1).collision(bc)) {
+                        this.x = b.right;
+                        this.vx = 0;
+                        this.reverse_horizontal = !this.reverse_horizontal;
+                    }
+                }
+            }
+        };
+        return Flier;
+    })(Game.AbstractEnemy);
+    Game.Flier = Flier;
     var FlierUpDown = (function (_super) {
         __extends(FlierUpDown, _super);
         function FlierUpDown(x, y, imagemanager, label) {
-            _super.call(this, x, y, imagemanager, label, 1, 1);
+            _super.call(this, x, y, imagemanager, label);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.FlierFlyingVertical());
-            this.addEventHandler("onstamped", this.onStamped);
             this.counter["y_lower"] = this.y - 52;
             this.counter["y_upper"] = this.y - 12;
-            this.vy = -40;
         }
         FlierUpDown.prototype.move = function () {
             // 接触判定は行わない
             this.x += this.vx / 10;
             this.y += this.vy / 10;
         };
-        FlierUpDown.prototype.onStamped = function (e) {
-            if (this.flags["isAlive"])
-                this.moving.replace(new States.FlierStamped());
-            this.vx = 0;
-            this.vy = 0;
-        };
         return FlierUpDown;
-    })(Game.AbstractEnemy);
+    })(Flier);
     Game.FlierUpDown = FlierUpDown;
+    var ThreeFlierGenerator = (function (_super) {
+        __extends(ThreeFlierGenerator, _super);
+        function ThreeFlierGenerator(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.Generate3FlierState());
+        }
+        return ThreeFlierGenerator;
+    })(Game.AbstractEntity);
+    Game.ThreeFlierGenerator = ThreeFlierGenerator;
     var States;
     (function (States) {
+        var FlierFlyingHorizontal = (function (_super) {
+            __extends(FlierFlyingHorizontal, _super);
+            function FlierFlyingHorizontal() {
+                _super.apply(this, arguments);
+            }
+            FlierFlyingHorizontal.prototype.enter = function (sm) {
+            };
+            FlierFlyingHorizontal.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
+                if (e.counter["ac"] < 2)
+                    e.code = 147;
+                else
+                    e.code = 148;
+                e.vx = e.reverse_horizontal ? 30 : -30;
+                var players = sm.e.ss.Players.get_all();
+                this.checkCollisionWithPlayer(sm);
+            };
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+            FlierFlyingHorizontal.prototype.checkCollisionWithPlayer = function (sm) {
+                var e = sm.e;
+                var players = sm.e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    (function (p) {
+                        p.addOnceEventHandler("update", function () {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
+                            if (p.flags["isAlive"] && dx < 30 && dy < 23) {
+                                if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) {
+                                    e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
+                                    p.y = e.y - 12;
+                                    p.dispatchEvent(new Game.NumberEvent("onstamp", 2));
+                                    e.addOnceEventHandler("killed", function () {
+                                        p.dispatchEvent(new Game.ScoreEvent("addscore", 10));
+                                    });
+                                }
+                                else {
+                                    p.dispatchEvent(new Game.PlayerMissEvent("miss", 1));
+                                }
+                            }
+                        });
+                    })(p);
+                }
+            };
+            return FlierFlyingHorizontal;
+        })(States.AbstractState);
+        States.FlierFlyingHorizontal = FlierFlyingHorizontal;
         var FlierFlyingVertical = (function (_super) {
             __extends(FlierFlyingVertical, _super);
             function FlierFlyingVertical() {
                 _super.apply(this, arguments);
             }
             FlierFlyingVertical.prototype.enter = function (sm) {
+                var e = sm.e;
+                e.vx = 0;
+                e.vy = -40;
             };
             FlierFlyingVertical.prototype.update = function (sm) {
                 var e = sm.e;
@@ -855,37 +956,8 @@ var Game;
                 }
                 this.checkCollisionWithPlayer(sm);
             };
-            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
-            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
-            FlierFlyingVertical.prototype.checkCollisionWithPlayer = function (sm) {
-                var e = sm.e;
-                var players = sm.e.ss.Players.get_all();
-                for (var i = 0; i < players.length; i++) {
-                    var p = players[i];
-                    // 現在のpをスコープに束縛
-                    (function (p) {
-                        p.addOnceEventHandler("update", function () {
-                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
-                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
-                            if (p.flags["isAlive"] && dx < 30 && dy < 23) {
-                                if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) {
-                                    e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
-                                    p.y = e.y - 12;
-                                    p.dispatchEvent(new Game.NumberEvent("onstamp", 2));
-                                    e.addOnceEventHandler("killed", function () {
-                                        p.dispatchEvent(new Game.ScoreEvent("addscore", 10));
-                                    });
-                                }
-                                else {
-                                    p.dispatchEvent(new Game.PlayerMissEvent("miss", 1));
-                                }
-                            }
-                        });
-                    })(p);
-                }
-            };
             return FlierFlyingVertical;
-        })(States.AbstractState);
+        })(FlierFlyingHorizontal);
         States.FlierFlyingVertical = FlierFlyingVertical;
         var FlierStamped = (function (_super) {
             __extends(FlierStamped, _super);
@@ -910,6 +982,36 @@ var Game;
             return FlierStamped;
         })(States.AbstractState);
         States.FlierStamped = FlierStamped;
+        var Generate3FlierState = (function (_super) {
+            __extends(Generate3FlierState, _super);
+            function Generate3FlierState() {
+                _super.apply(this, arguments);
+            }
+            Generate3FlierState.prototype.enter = function (sm) {
+            };
+            Generate3FlierState.prototype.update = function (sm) {
+                var e = sm.e;
+                for (var i = 0; i < 3; i++) {
+                    var dx = 0;
+                    var dy = 0;
+                    if (i == 1) {
+                        dx = 80;
+                        dy = -40;
+                    }
+                    else if (i == 2) {
+                        dx = 140;
+                        dy = 38;
+                    }
+                    var entity = new Flier(e.x + dx, e.y + dy, e.imagemanager, e.label);
+                    entity.counter["viewx_activate"] -= 32 * (i + 1);
+                    e.ss.add(entity);
+                    entity.update();
+                }
+                e.kill();
+            };
+            return Generate3FlierState;
+        })(States.AbstractState);
+        States.Generate3FlierState = Generate3FlierState;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
 /// <reference path="entity.ts"/>
@@ -2957,6 +3059,8 @@ var Game;
             this.lookup["F"] = Game.LeafShooter;
             this.lookup["G"] = Game.UnStampableWalker;
             this.lookup["H"] = Game.FlierUpDown;
+            this.lookup["I"] = Game.Flier;
+            this.lookup["J"] = Game.ThreeFlierGenerator;
             this.lookup["O"] = Game.Jumper;
             this.lookup["a"] = Game.Block1;
             this.lookup["b"] = Game.Block2;

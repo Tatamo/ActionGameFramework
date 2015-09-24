@@ -150,6 +150,8 @@
             this.lookup["F"] = LeafShooter;
             this.lookup["G"] = UnStampableWalker;
             this.lookup["H"] = FlierUpDown;
+            this.lookup["I"] = Flier;
+            this.lookup["J"] = ThreeFlierGenerator;
             this.lookup["O"] = Jumper;
             this.lookup["a"] = Block1;
             this.lookup["b"] = Block2;
