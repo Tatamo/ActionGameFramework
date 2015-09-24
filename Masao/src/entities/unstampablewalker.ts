@@ -1,4 +1,5 @@
-﻿module Game {
+﻿/// <reference path="enemy.ts"/>
+module Game {
     export class UnStampableWalker extends AbstractEnemy {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
             super(x, y, imagemanager, label, 1, 1);

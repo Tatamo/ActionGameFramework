@@ -74,8 +74,13 @@
             }
         }
     }
-    export class Event{
+    export class Event {
         constructor(public type: string) {
+        }
+    }
+    export class NumberEvent extends Event {
+        constructor(public type: string, public value: number = 0) {
+            super(type);
         }
     }
 }

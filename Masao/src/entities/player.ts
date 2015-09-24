@@ -21,6 +21,7 @@ module Game {
             this.counter["running"] = 0;
             this.counter["jump_level"] = 0;
             this.counter["stamp_waiting"] = 0;
+            this.counter["stamp_level"] = 0;
             this.counter["dying"] = 0;
             this.counter["superjump_effect"] = -1;
             this.flags["isAlive"] = true; // まだミスをしていない状態
@@ -46,9 +47,13 @@ module Game {
             this.flags["isJumping"] = false;
             this.flags["isStamping"] = false;
             this.counter["jump_level"] = 0;
+            this.counter["stamp_level"] = 0;
             if (this.counter["superjump_effect"] >= 0) this.counter["superjump_effect"] = 100;
         }
-        private onStamp(e: Event) {
+        private onStamp(e: NumberEvent) {
+            var n = e.value;
+            if (n <= 0) n = 1;
+            this.counter["stamp_level"] = n;
             this.moving.push(new States.PlayerStamping());
         }
         private onMiss(e: PlayerMissEvent) {
@@ -719,8 +724,15 @@ module Game {
                 pl.code = 109;
                 pl.flags["isStamping"] = true;
                 pl.counter["stamp_waiting"] = 5;
-                pl.vy = -160;
-                //pl.vy = -220;
+                if (pl.counter["stamp_level"] == 1) {
+                    pl.vy = -160;
+                }
+                else if (pl.counter["stamp_level"] == 2) {
+                    pl.vy = -220;
+                }
+                else {
+                    pl.vy = -160;
+                }
                 if (pl.counter["superjump_effect"] >= 0) pl.counter["superjump_effect"] = 100;
                 sm.pop(); // update時ではなくenter直後にもとのstateに戻す
             }

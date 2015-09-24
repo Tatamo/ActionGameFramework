@@ -40,6 +40,7 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\entities\jumper.ts" />
+    <TypeScriptCompile Include="src\entities\flier.ts" />
     <TypeScriptCompile Include="src\entities\leafshooter.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>

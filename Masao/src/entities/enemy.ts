@@ -123,7 +123,7 @@ module Game {
                                 if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) { // 踏まれる
                                     e.dispatchEvent(new SpriteCollisionEvent("onstamped", p));
                                     p.y = e.y - 12;
-                                    p.dispatchEvent(new Event("onstamp"));
+                                    p.dispatchEvent(new NumberEvent("onstamp", 1));
                                     e.addOnceEventHandler("killed",() => {
                                         p.dispatchEvent(new ScoreEvent("addscore", 10));
                                     });

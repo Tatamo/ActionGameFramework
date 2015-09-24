@@ -1066,6 +1066,17 @@ var Game;
         return Event;
     })();
     Game.Event = Event;
+    var NumberEvent = (function (_super) {
+        __extends(NumberEvent, _super);
+        function NumberEvent(type, value) {
+            if (value === void 0) { value = 0; }
+            _super.call(this, type);
+            this.type = type;
+            this.value = value;
+        }
+        return NumberEvent;
+    })(Event);
+    Game.NumberEvent = NumberEvent;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {

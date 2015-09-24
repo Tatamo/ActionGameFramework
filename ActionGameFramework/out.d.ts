@@ -220,6 +220,11 @@ declare module Game {
         type: string;
         constructor(type: string);
     }
+    class NumberEvent extends Event {
+        type: string;
+        value: number;
+        constructor(type: string, value?: number);
+    }
 }
 declare module Game {
     class GameKey {

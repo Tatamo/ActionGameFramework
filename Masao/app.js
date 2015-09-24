@@ -68,13 +68,13 @@ window.onload = function () {
         "aa.aaa.......................................aa.............",
         "a...6..a.a...................................a..............",
         "a..5........................................................",
-        "a.aaaaa.aaa.........12.....9.9...aaa.....aa.aaaaaaaa...12...",
-        "a....aa.a....B............aaaaa..............9.aaaaa........",
+        "a.aaaaa.aaa....H....12.....9.9...aaa.....aa.aaaaaaaa...12...",
+        "a....aa.a..A..............aaaaa..............9.aaaaa........",
         "aaaa.a..aaaaaa......aa..................B...aaaaaaaa........",
         "8......aa...........a...............aaaaa...9.9aa999........",
-        "..aaaaaa7......G....................9.9.9...aaaaaaaa........",
+        "..aaaaaa7...........................9.9.9...aaaaaaaa........",
         "...........aaaaaa..aaaaaa....................9.aaaaa........",
-        ".A.333....aaaaaaa..aaaaaa............D......aaaaaaaa........",
+        "...333....aaaaaaa..aaaaaa............D......aaaaaaaa........",
         "bbbbbbbbbbbbbbbbb..bbbbbb.bbbbbbbbbbbbbbbbbbbbbbbbbb5bbbbbb.",
         "............................................................",
         "............................................................",
@@ -489,7 +489,7 @@ var Game;
                                 if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) {
                                     e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
                                     p.y = e.y - 12;
-                                    p.dispatchEvent(new Game.Event("onstamp"));
+                                    p.dispatchEvent(new Game.NumberEvent("onstamp", 1));
                                     e.addOnceEventHandler("killed", function () {
                                         p.dispatchEvent(new Game.ScoreEvent("addscore", 10));
                                     });
@@ -780,6 +780,136 @@ var Game;
             return ElectricShotMoving;
         })(States.AbstractState);
         States.ElectricShotMoving = ElectricShotMoving;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+/// <reference path="enemy.ts"/>
+var Game;
+(function (Game) {
+    var FlierUpDown = (function (_super) {
+        __extends(FlierUpDown, _super);
+        function FlierUpDown(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.FlierFlyingVertical());
+            this.addEventHandler("onstamped", this.onStamped);
+            this.counter["y_lower"] = this.y - 52;
+            this.counter["y_upper"] = this.y - 12;
+            this.vy = -40;
+        }
+        FlierUpDown.prototype.move = function () {
+            // 接触判定は行わない
+            this.x += this.vx / 10;
+            this.y += this.vy / 10;
+        };
+        FlierUpDown.prototype.onStamped = function (e) {
+            if (this.flags["isAlive"])
+                this.moving.replace(new States.FlierStamped());
+            this.vx = 0;
+            this.vy = 0;
+        };
+        return FlierUpDown;
+    })(Game.AbstractEnemy);
+    Game.FlierUpDown = FlierUpDown;
+    var States;
+    (function (States) {
+        var FlierFlyingVertical = (function (_super) {
+            __extends(FlierFlyingVertical, _super);
+            function FlierFlyingVertical() {
+                _super.apply(this, arguments);
+            }
+            FlierFlyingVertical.prototype.enter = function (sm) {
+            };
+            FlierFlyingVertical.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
+                if (e.counter["ac"] < 2)
+                    e.code = 147;
+                else
+                    e.code = 148;
+                if (e.y <= e.counter["y_lower"]) {
+                    e.vy += 10;
+                    if (e.vy > 40)
+                        e.vy = 40;
+                }
+                else if (e.y >= e.counter["y_upper"]) {
+                    e.vy -= 10;
+                    if (e.vy < -40)
+                        e.vy = -40;
+                }
+                var players = sm.e.ss.Players.get_all();
+                var pt = null; // 最も近いプレイヤー
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (pt == null) {
+                        pt = p;
+                    }
+                    else if (Math.abs(p.x - e.x) < Math.abs(pt.x - e.x)) {
+                        pt = p;
+                    }
+                }
+                if (pt != null) {
+                    if (e.x + 8 >= pt.x)
+                        e.reverse_horizontal = false; // 最も近いプレイヤーに合わせて反転状態を決定
+                    else
+                        e.reverse_horizontal = true;
+                }
+                this.checkCollisionWithPlayer(sm);
+            };
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+            FlierFlyingVertical.prototype.checkCollisionWithPlayer = function (sm) {
+                var e = sm.e;
+                var players = sm.e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    (function (p) {
+                        p.addOnceEventHandler("update", function () {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
+                            if (p.flags["isAlive"] && dx < 30 && dy < 23) {
+                                if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) {
+                                    e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
+                                    p.y = e.y - 12;
+                                    p.dispatchEvent(new Game.NumberEvent("onstamp", 2));
+                                    e.addOnceEventHandler("killed", function () {
+                                        p.dispatchEvent(new Game.ScoreEvent("addscore", 10));
+                                    });
+                                }
+                                else {
+                                    p.dispatchEvent(new Game.PlayerMissEvent("miss", 1));
+                                }
+                            }
+                        });
+                    })(p);
+                }
+            };
+            return FlierFlyingVertical;
+        })(States.AbstractState);
+        States.FlierFlyingVertical = FlierFlyingVertical;
+        var FlierStamped = (function (_super) {
+            __extends(FlierStamped, _super);
+            function FlierStamped() {
+                _super.apply(this, arguments);
+            }
+            FlierStamped.prototype.enter = function (sm) {
+                sm.e.counter["ac"] = 0;
+                sm.e.code = 149;
+                sm.e.flags["isAlive"] = false;
+            };
+            FlierStamped.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] += 1;
+                e.code = 149;
+                e.vx = 0;
+                e.vy = 0;
+                if (e.counter["ac"] >= 10) {
+                    e.kill();
+                }
+            };
+            return FlierStamped;
+        })(States.AbstractState);
+        States.FlierStamped = FlierStamped;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
 /// <reference path="entity.ts"/>
@@ -1457,6 +1587,7 @@ var Game;
             this.counter["running"] = 0;
             this.counter["jump_level"] = 0;
             this.counter["stamp_waiting"] = 0;
+            this.counter["stamp_level"] = 0;
             this.counter["dying"] = 0;
             this.counter["superjump_effect"] = -1;
             this.flags["isAlive"] = true; // まだミスをしていない状態
@@ -1486,10 +1617,15 @@ var Game;
             this.flags["isJumping"] = false;
             this.flags["isStamping"] = false;
             this.counter["jump_level"] = 0;
+            this.counter["stamp_level"] = 0;
             if (this.counter["superjump_effect"] >= 0)
                 this.counter["superjump_effect"] = 100;
         };
         Player.prototype.onStamp = function (e) {
+            var n = e.value;
+            if (n <= 0)
+                n = 1;
+            this.counter["stamp_level"] = n;
             this.moving.push(new States.PlayerStamping());
         };
         Player.prototype.onMiss = function (e) {
@@ -2255,8 +2391,15 @@ var Game;
                 pl.code = 109;
                 pl.flags["isStamping"] = true;
                 pl.counter["stamp_waiting"] = 5;
-                pl.vy = -160;
-                //pl.vy = -220;
+                if (pl.counter["stamp_level"] == 1) {
+                    pl.vy = -160;
+                }
+                else if (pl.counter["stamp_level"] == 2) {
+                    pl.vy = -220;
+                }
+                else {
+                    pl.vy = -160;
+                }
                 if (pl.counter["superjump_effect"] >= 0)
                     pl.counter["superjump_effect"] = 100;
                 sm.pop(); // update時ではなくenter直後にもとのstateに戻す
@@ -2295,6 +2438,7 @@ var Game;
     })(Game.Sprite);
     Game.PlayerSuperJumpEffect = PlayerSuperJumpEffect;
 })(Game || (Game = {}));
+/// <reference path="enemy.ts"/>
 var Game;
 (function (Game) {
     var UnStampableWalker = (function (_super) {
@@ -2812,6 +2956,7 @@ var Game;
             this.lookup["E"] = Game.ElectricShooter;
             this.lookup["F"] = Game.LeafShooter;
             this.lookup["G"] = Game.UnStampableWalker;
+            this.lookup["H"] = Game.FlierUpDown;
             this.lookup["O"] = Game.Jumper;
             this.lookup["a"] = Game.Block1;
             this.lookup["b"] = Game.Block2;

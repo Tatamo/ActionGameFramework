@@ -149,6 +149,7 @@
             this.lookup["E"] = ElectricShooter;
             this.lookup["F"] = LeafShooter;
             this.lookup["G"] = UnStampableWalker;
+            this.lookup["H"] = FlierUpDown;
             this.lookup["O"] = Jumper;
             this.lookup["a"] = Block1;
             this.lookup["b"] = Block2;
