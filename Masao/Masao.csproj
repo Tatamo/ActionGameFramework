@@ -36,6 +36,7 @@
     <TypeScriptCompile Include="src\entities\entity.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="src\entities\fireshooter.ts" />
     <TypeScriptCompile Include="src\entities\item.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>

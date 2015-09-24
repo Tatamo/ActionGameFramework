@@ -153,6 +153,7 @@
             this.lookup["I"] = Flier;
             this.lookup["J"] = ThreeFlierGenerator;
             this.lookup["O"] = Jumper;
+            this.lookup["P"] = FireShooter;
             this.lookup["a"] = Block1;
             this.lookup["b"] = Block2;
             this.lookup["c"] = Block3;

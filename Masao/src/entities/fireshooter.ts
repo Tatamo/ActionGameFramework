@@ -1,27 +1,27 @@
 ﻿/// <reference path="enemy.ts"/>
 module Game {
-    export class LeafShooter extends AbstractEnemy {
+    export class FireShooter extends AbstractEnemy {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
             super(x, y, imagemanager, label, 1, 1);
             this.moving = new EntityStateMachine(this);
-            this.moving.push(new States.LeafShooterWaiting());
+            this.moving.push(new States.FireShooterWaiting());
             this.addEventHandler("onstamped", this.onStamped);
         }
         private onStamped(e: SpriteCollisionEvent) {
-            if (this.flags["isAlive"]) this.moving.replace(new States.LeafShooterStamped());
+            if (this.flags["isAlive"]) this.moving.replace(new States.FireShooterStamped());
             this.vx = 0;
             this.vy = 0;
         }
     }
     export module States {
-        export class LeafShooterWaiting extends AbstractStampableAlive {
+        export class FireShooterWaiting extends AbstractStampableAlive {
             enter(sm: EntityStateMachine) {
             }
             update(sm: EntityStateMachine) {
                 var e = sm.e;
                 e.vx = 0;
                 e.vy = 0;
-                e.code = 150;
+                e.code = 158;
 
                 var players = <Array<Player>>sm.e.ss.Players.get_all();
 
@@ -43,24 +43,24 @@ module Game {
 
                 if (e.counter["ac"] > 0) { // カウンターが0より大きいときはカウントアップし続ける
                     e.counter["ac"] += 1;
-                    if (e.counter["ac"] == 2 || e.counter["ac"] == 10 || e.counter["ac"] == 18 || e.counter["ac"] == 26) {
+                    if (e.counter["ac"] == 2) {
                         if (e.reverse_horizontal) {
                             // 右向きに発射
-                            var attack = new LeafShotRight(e.x, e.y, e.imagemanager, e.label);
+                            var attack = new FireShotRight(e.x, e.y, e.imagemanager, e.label);
                         }
                         else {
                             // 左向きに発射
-                            var attack = new LeafShotLeft(e.x, e.y, e.imagemanager, e.label);
+                            var attack = new FireShotLeft(e.x, e.y, e.imagemanager, e.label);
                         }
                         e.ss.add(attack);
                     }
-                    if (e.counter["ac"] > 86) e.counter["ac"] = 0;
+                    if (e.counter["ac"] > 40) e.counter["ac"] = 0;
                 }
                 else {
                     var flg = false;
                     for (var i = 0; i < players.length; i++) {
                         var p = players[i];
-                        if (p.x >= e.x - 256 && p.x <= e.x + 256) { // x座標の差が256以下のプレイヤーを探す
+                        if (p.x >= e.x - 256 && p.x <= e.x + 192 && Math.abs(p.x - e.x) >= 96) { // x座標の差が一定の範囲内のプレイヤーを探す
                             flg = true;
                             break;
                         }
@@ -69,20 +69,19 @@ module Game {
                         e.counter["ac"] = 1;
                     }
                 }
-
                 this.checkCollisionWithPlayer(sm);
             }
         }
-        export class LeafShooterStamped extends AbstractState {
+        export class FireShooterStamped extends AbstractState {
             enter(sm: EntityStateMachine) {
                 sm.e.counter["ac"] = 0;
-                sm.e.code = 151;
+                sm.e.code = 159;
                 sm.e.flags["isAlive"] = false;
             }
             update(sm: EntityStateMachine) {
                 var e = sm.e;
                 e.counter["ac"] += 1;
-                e.code = 151;
+                e.code = 159;
                 e.vx = 0;
                 e.vy = 0;
                 if (e.counter["ac"] >= 10) {
@@ -91,42 +90,41 @@ module Game {
             }
         }
     }
-    export class LeafShotLeft extends AbstractEntity {
+    export class FireShotLeft extends AbstractEntity {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
             super(x, y, imagemanager, label, 1, 1);
             this.moving = new EntityStateMachine(this);
-            this.moving.push(new States.LeafShotMoving());
+            this.moving.push(new States.FireShotMoving());
 
-            this.vx = -40 - Math.floor(Math.random() * 6) * 10; // TODO: シード付き乱数を使うようにする
-            this.vy = -220;
+            this.vx = -120;
+            this.vy = 0;
             this.x += this.vx / 10;
             this.y += this.vy / 10;
-            this.vy += 20;
             this.x += this.vx / 10;
             this.y += this.vy / 10;
         }
     }
-    export class LeafShotRight extends AbstractEntity {
+    export class FireShotRight extends AbstractEntity {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
             super(x, y, imagemanager, label, 1, 1);
             this.moving = new EntityStateMachine(this);
-            this.moving.push(new States.LeafShotMoving());
+            this.moving.push(new States.FireShotMoving());
 
-            this.vx = 40 + Math.floor(Math.random() * 6) * 10; // TODO: シード付き乱数を使うようにする
-            this.vy = -220;
+            this.vx = 120;
+            this.vy = 0;
             this.x += this.vx / 10;
             this.y += this.vy / 10;
-            this.vy += 20;
             this.x += this.vx / 10;
             this.y += this.vy / 10;
+            this.reverse_horizontal = this.vx > 0;
         }
     }
     export module States {
-        export class LeafShotMoving extends AbstractState {
+        export class FireShotMoving extends AbstractState {
             enter(sm: EntityStateMachine) {
                 var e = sm.e;
                 e.counter["ac"] = 0;
-                e.code = 122;
+                e.code = 126;
 
             }
             update(sm: EntityStateMachine) {
@@ -135,19 +133,24 @@ module Game {
                     e.kill();
                     return;
                 }
-                e.x += Math.floor(e.vx / 10);
-                e.vy += 20;
-                if (e.vy > 120) e.vy = 120;
-                if (e.vy < -180) {
-                    e.y += -18;
-                }
-                else {
-                    e.y += Math.floor(e.vy / 10);
-                }
 
-                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
-                e.code = 122 + e.counter["ac"];
+                e.x += e.vx / 10;
+                e.y += e.vy / 10;
 
+                e.code = 126 + e.counter["ac"];
+                e.counter["ac"] = (e.counter["ac"] + 1) % 2;
+
+                var blocks = e.ss.getBlocks(e.x, e.y, e.width, e.height);
+
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
+
+                    if (new Point(e.centerx - e.width / 4, e.centery - 1).collision(bc) || new Point(e.centerx + e.width / 4 - 1, e.centery - 1).collision(bc)) {
+                        e.kill();
+                        return;
+                    }
+                }
                 this.checkOutOfScreen(sm);
                 if (e.flags["isAlive"]) this.checkCollisionWithPlayer(sm);
             }

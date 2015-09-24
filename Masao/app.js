@@ -67,9 +67,9 @@ window.onload = function () {
         "a...aa.aaa.....................99...........................",
         "aa.aaa.......................................aa.............",
         "a...6..a.a...................................a..............",
-        "a..5...............J........................................",
-        "a.aaaaa.aaa....H.I..12.....9.9...aaa.....aa.aaaaaaaa...12...",
-        "a....aa.a..A..............aaaaa..............9.aaaaa........",
+        "a..5...............J........................A...............",
+        "a.aaaaa.aaa....H.I..12.....9P9...aaa.....aa.aaaaaaaa...12...",
+        "a....aa.a.................aaaaa..............9.aaaaa........",
         "aaaa.a..aaaaaa......aa..................B...aaaaaaaa........",
         "8......aa...........a...............aaaaa...9.9aa999........",
         "..aaaaaa7...........................9.9.9...aaaaaaaa........",
@@ -104,7 +104,7 @@ window.onload = function () {
         "...................O........................................",
         ".................aaaa...................feef................",
         ".............aaaaaaaaaaa................e..e..............E.",
-        "..........O..aaaaaaaaaaa.O.....O........feefeef..feeeefeeeef",
+        ".....P....O..aaaaaaaaaaa.O.....O........feefeef..feeeefeeeef",
         "..bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.......e..e..e..e....e....e",
         "............................................................",
         "............................................................",
@@ -785,6 +785,226 @@ var Game;
 /// <reference path="enemy.ts"/>
 var Game;
 (function (Game) {
+    var FireShooter = (function (_super) {
+        __extends(FireShooter, _super);
+        function FireShooter(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.FireShooterWaiting());
+            this.addEventHandler("onstamped", this.onStamped);
+        }
+        FireShooter.prototype.onStamped = function (e) {
+            if (this.flags["isAlive"])
+                this.moving.replace(new States.FireShooterStamped());
+            this.vx = 0;
+            this.vy = 0;
+        };
+        return FireShooter;
+    })(Game.AbstractEnemy);
+    Game.FireShooter = FireShooter;
+    var States;
+    (function (States) {
+        var FireShooterWaiting = (function (_super) {
+            __extends(FireShooterWaiting, _super);
+            function FireShooterWaiting() {
+                _super.apply(this, arguments);
+            }
+            FireShooterWaiting.prototype.enter = function (sm) {
+            };
+            FireShooterWaiting.prototype.update = function (sm) {
+                var e = sm.e;
+                e.vx = 0;
+                e.vy = 0;
+                e.code = 158;
+                var players = sm.e.ss.Players.get_all();
+                var pt = null; // 最も近いプレイヤー
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (pt == null) {
+                        pt = p;
+                    }
+                    else if (Math.abs(p.x - e.x) < Math.abs(pt.x - e.x)) {
+                        pt = p;
+                    }
+                }
+                if (pt != null) {
+                    if (e.x + 8 >= pt.x)
+                        e.reverse_horizontal = false; // 最も近いプレイヤーに合わせて反転状態を決定
+                    else
+                        e.reverse_horizontal = true;
+                }
+                if (e.counter["ac"] > 0) {
+                    e.counter["ac"] += 1;
+                    if (e.counter["ac"] == 2) {
+                        if (e.reverse_horizontal) {
+                            // 右向きに発射
+                            var attack = new FireShotRight(e.x, e.y, e.imagemanager, e.label);
+                        }
+                        else {
+                            // 左向きに発射
+                            var attack = new FireShotLeft(e.x, e.y, e.imagemanager, e.label);
+                        }
+                        e.ss.add(attack);
+                    }
+                    if (e.counter["ac"] > 40)
+                        e.counter["ac"] = 0;
+                }
+                else {
+                    var flg = false;
+                    for (var i = 0; i < players.length; i++) {
+                        var p = players[i];
+                        if (p.x >= e.x - 256 && p.x <= e.x + 192 && Math.abs(p.x - e.x) >= 96) {
+                            flg = true;
+                            break;
+                        }
+                    }
+                    if (flg) {
+                        e.counter["ac"] = 1;
+                    }
+                }
+                this.checkCollisionWithPlayer(sm);
+            };
+            return FireShooterWaiting;
+        })(States.AbstractStampableAlive);
+        States.FireShooterWaiting = FireShooterWaiting;
+        var FireShooterStamped = (function (_super) {
+            __extends(FireShooterStamped, _super);
+            function FireShooterStamped() {
+                _super.apply(this, arguments);
+            }
+            FireShooterStamped.prototype.enter = function (sm) {
+                sm.e.counter["ac"] = 0;
+                sm.e.code = 159;
+                sm.e.flags["isAlive"] = false;
+            };
+            FireShooterStamped.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] += 1;
+                e.code = 159;
+                e.vx = 0;
+                e.vy = 0;
+                if (e.counter["ac"] >= 10) {
+                    e.kill();
+                }
+            };
+            return FireShooterStamped;
+        })(States.AbstractState);
+        States.FireShooterStamped = FireShooterStamped;
+    })(States = Game.States || (Game.States = {}));
+    var FireShotLeft = (function (_super) {
+        __extends(FireShotLeft, _super);
+        function FireShotLeft(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.FireShotMoving());
+            this.vx = -120;
+            this.vy = 0;
+            this.x += this.vx / 10;
+            this.y += this.vy / 10;
+            this.x += this.vx / 10;
+            this.y += this.vy / 10;
+        }
+        return FireShotLeft;
+    })(Game.AbstractEntity);
+    Game.FireShotLeft = FireShotLeft;
+    var FireShotRight = (function (_super) {
+        __extends(FireShotRight, _super);
+        function FireShotRight(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.FireShotMoving());
+            this.vx = 120;
+            this.vy = 0;
+            this.x += this.vx / 10;
+            this.y += this.vy / 10;
+            this.x += this.vx / 10;
+            this.y += this.vy / 10;
+            this.reverse_horizontal = this.vx > 0;
+        }
+        return FireShotRight;
+    })(Game.AbstractEntity);
+    Game.FireShotRight = FireShotRight;
+    var States;
+    (function (States) {
+        var FireShotMoving = (function (_super) {
+            __extends(FireShotMoving, _super);
+            function FireShotMoving() {
+                _super.apply(this, arguments);
+            }
+            FireShotMoving.prototype.enter = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = 0;
+                e.code = 126;
+            };
+            FireShotMoving.prototype.update = function (sm) {
+                var e = sm.e;
+                if (!e.flags["isAlive"]) {
+                    e.kill();
+                    return;
+                }
+                e.x += e.vx / 10;
+                e.y += e.vy / 10;
+                e.code = 126 + e.counter["ac"];
+                e.counter["ac"] = (e.counter["ac"] + 1) % 2;
+                var blocks = e.ss.getBlocks(e.x, e.y, e.width, e.height);
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
+                    if (new Game.Point(e.centerx - e.width / 4, e.centery - 1).collision(bc) || new Game.Point(e.centerx + e.width / 4 - 1, e.centery - 1).collision(bc)) {
+                        e.kill();
+                        return;
+                    }
+                }
+                this.checkOutOfScreen(sm);
+                if (e.flags["isAlive"])
+                    this.checkCollisionWithPlayer(sm);
+            };
+            FireShotMoving.prototype.checkOutOfScreen = function (sm) {
+                var e = sm.e;
+                // スクロール範囲外に出ていたら消失
+                var players = e.ss.Players.get_all();
+                var flg = false;
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (e.y < p.view_y + Game.SCREEN_HEIGHT + e.width) {
+                        flg = true;
+                        break;
+                    }
+                }
+                if (!flg) {
+                    e.kill();
+                    return;
+                }
+            };
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+            FireShotMoving.prototype.checkCollisionWithPlayer = function (sm) {
+                var e = sm.e;
+                var players = e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    (function (p) {
+                        p.addOnceEventHandler("update", function () {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
+                            if (p.flags["isAlive"] && dx <= 23 && dy <= 28) {
+                                // TODO:バリア判定はここに書く
+                                // プレイヤーにダメージ
+                                p.dispatchEvent(new Game.PlayerMissEvent("miss", 2));
+                            }
+                        });
+                    })(p);
+                }
+            };
+            return FireShotMoving;
+        })(States.AbstractState);
+        States.FireShotMoving = FireShotMoving;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+/// <reference path="enemy.ts"/>
+var Game;
+(function (Game) {
     var Flier = (function (_super) {
         __extends(Flier, _super);
         function Flier(x, y, imagemanager, label) {
@@ -1448,11 +1668,11 @@ var Game;
                     if (e.counter["ac"] == 2 || e.counter["ac"] == 10 || e.counter["ac"] == 18 || e.counter["ac"] == 26) {
                         if (e.reverse_horizontal) {
                             // 右向きに発射
-                            var attack = new LeafShotRight(e.x, e.y, e.imagemanager, e.label, 1, 1);
+                            var attack = new LeafShotRight(e.x, e.y, e.imagemanager, e.label);
                         }
                         else {
                             // 左向きに発射
-                            var attack = new LeafShotLeft(e.x, e.y, e.imagemanager, e.label, 1, 1);
+                            var attack = new LeafShotLeft(e.x, e.y, e.imagemanager, e.label);
                         }
                         e.ss.add(attack);
                     }
@@ -1503,14 +1723,15 @@ var Game;
     })(States = Game.States || (Game.States = {}));
     var LeafShotLeft = (function (_super) {
         __extends(LeafShotLeft, _super);
-        function LeafShotLeft(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
+        function LeafShotLeft(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.LeafShotMoving());
             this.vx = -40 - Math.floor(Math.random() * 6) * 10; // TODO: シード付き乱数を使うようにする
             this.vy = -220;
+            this.x += this.vx / 10;
+            this.y += this.vy / 10;
+            this.vy += 20;
             this.x += this.vx / 10;
             this.y += this.vy / 10;
         }
@@ -1519,14 +1740,15 @@ var Game;
     Game.LeafShotLeft = LeafShotLeft;
     var LeafShotRight = (function (_super) {
         __extends(LeafShotRight, _super);
-        function LeafShotRight(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
+        function LeafShotRight(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.LeafShotMoving());
             this.vx = 40 + Math.floor(Math.random() * 6) * 10; // TODO: シード付き乱数を使うようにする
             this.vy = -220;
+            this.x += this.vx / 10;
+            this.y += this.vy / 10;
+            this.vy += 20;
             this.x += this.vx / 10;
             this.y += this.vy / 10;
         }
@@ -1564,7 +1786,8 @@ var Game;
                 e.counter["ac"] = (e.counter["ac"] + 1) % 4;
                 e.code = 122 + e.counter["ac"];
                 this.checkOutOfScreen(sm);
-                this.checkCollisionWithPlayer(sm);
+                if (e.flags["isAlive"])
+                    this.checkCollisionWithPlayer(sm);
             };
             LeafShotMoving.prototype.checkOutOfScreen = function (sm) {
                 var e = sm.e;
@@ -3062,6 +3285,7 @@ var Game;
             this.lookup["I"] = Game.Flier;
             this.lookup["J"] = Game.ThreeFlierGenerator;
             this.lookup["O"] = Game.Jumper;
+            this.lookup["P"] = Game.FireShooter;
             this.lookup["a"] = Game.Block1;
             this.lookup["b"] = Game.Block2;
             this.lookup["c"] = Game.Block3;
