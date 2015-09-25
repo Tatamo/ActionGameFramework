@@ -209,7 +209,8 @@ module Game {
                     var b = blocks[i];
                     var bc = b.getCollision();
 
-                    if (new Point(e.centerx - 1,e.centery - 1).collision(bc)) {
+                    if (new Point(e.centerx - 1, e.centery - 1).collision(bc)) {
+                        e.y = Math.floor((e.centery - 1) / e.height) * e.height - Math.floor(e.height / 2);
                         sm.replace(new BombExploding());
                     }
                 }

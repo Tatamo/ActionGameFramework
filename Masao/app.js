@@ -643,6 +643,7 @@ var Game;
                     var b = blocks[i];
                     var bc = b.getCollision();
                     if (new Game.Point(e.centerx - 1, e.centery - 1).collision(bc)) {
+                        e.y = Math.floor((e.centery - 1) / e.height) * e.height - Math.floor(e.height / 2);
                         sm.replace(new BombExploding());
                     }
                 }
@@ -3430,7 +3431,7 @@ var Game;
                     }
                     if (!flg) {
                         // 足元にブロックがないなら止まる
-                        e.x = Math.floor((e.right - 1) / 32 - 1) * 32;
+                        e.x = Math.floor((e.right - 1) / e.width - 1) * e.width;
                         e.vx = 0;
                         e.counter["ac"] = 10;
                     }

@@ -113,7 +113,7 @@ module Game {
                     }
                     if (!flg) {
                         // 足元にブロックがないなら止まる
-                        e.x = Math.floor((e.right - 1) / 32 - 1) * 32;
+                        e.x = Math.floor((e.right - 1) / e.width - 1) * e.width;
                         e.vx = 0;
                         e.counter["ac"] = 10;
                     }
