@@ -3,7 +3,7 @@ module Game {
     export class UpwardNeedle extends AbstractEntity {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
             super(x, y, imagemanager, label, 1, 1);
-            this.z = 256;
+            this.z = 511;
             this.code = 5;
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.NeedleExisting());
@@ -12,7 +12,7 @@ module Game {
     export class DownwardNeedle extends AbstractEntity {
         constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
             super(x, y, imagemanager, label, 1, 1);
-            this.z = 256;
+            this.z = 511;
             this.code = 6;
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.NeedleExisting());
@@ -34,7 +34,7 @@ module Game {
                     ((p: Player) => {
                         p.addOnceEventHandler("update",() => {
                             var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
-                            if (p.flags["isAlive"] && new Point(p.x + p.width/2 - 1, p.y + p.height/2 - 1).collision(e.getCollision())) { // プレイヤーと接触した
+                            if (p.flags["isAlive"] && !p.flags["isStamping"] && new Point(p.x + p.width/2 - 1, p.y + p.height/2 - 1).collision(e.getCollision())) { // プレイヤーと接触した
                                 p.y = Math.floor((p.y + p.width / 2 - 1) / 32) * 32;
                                 p.dispatchEvent(new PlayerMissEvent("miss", 2));
                             }

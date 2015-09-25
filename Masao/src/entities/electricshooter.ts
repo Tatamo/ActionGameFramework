@@ -163,7 +163,7 @@ module Game {
                     return;
                 }
             }
-            this.z = 256; // 敵と同じだけど、どうせ敵より後に生成されるはず
+            this.z = 257;
             var dx = target.x - this.x;
             var dy = target.y - this.y;
             var r = Math.floor(Math.sqrt(dx * dx + dy * dy));

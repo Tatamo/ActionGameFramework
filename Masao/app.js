@@ -70,8 +70,8 @@ window.onload = function () {
         "a..5...............J........................................",
         "a.aaaaa.aaa....H.I..12.....9P9...aaa.....aa.aaaaaaaa...12...",
         "a....aa.a..A..............aaaaa..............9.aaaaa........",
-        "aaaa.a..aaaaaa......aa..................B...aaaaaaaa........",
-        "8......aa...............R...........aaaaa...9.9aa999........",
+        "aaaa..C.aaaaaa......aa..................B...aaaaaaaa........",
+        "8....a5aa...............R...........aaaaa...9.9aa999........",
         "..aaaaaa7...........................9.9.9...aaaaaaaa........",
         "...........aaaaaa..aaaaaa....................9.aaaaa........",
         "...333....aaaaaaa..aaaaaa...Q........D......aaaaaaaa........",
@@ -582,6 +582,7 @@ var Game;
             _super.call(this, x, y, imagemanager, label, 1, 1);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.BombMoving());
+            this.z = 257;
             this.vx = -40;
             this.vy = 0;
         }
@@ -594,6 +595,7 @@ var Game;
             _super.call(this, x, y, imagemanager, label, 1, 1);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.BombMoving());
+            this.z = 257;
             this.vx = 40;
             this.vy = 0;
             this.reverse_horizontal = true;
@@ -996,7 +998,7 @@ var Game;
                     return;
                 }
             }
-            this.z = 256; // 敵と同じだけど、どうせ敵より後に生成されるはず
+            this.z = 257;
             var dx = target.x - this.x;
             var dy = target.y - this.y;
             var r = Math.floor(Math.sqrt(dx * dx + dy * dy));
@@ -1210,6 +1212,7 @@ var Game;
             _super.call(this, x, y, imagemanager, label, 1, 1);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.FireShotMoving());
+            this.z = 257;
             this.vx = -120;
             this.vy = 0;
             this.x += this.vx / 10;
@@ -1226,6 +1229,7 @@ var Game;
             _super.call(this, x, y, imagemanager, label, 1, 1);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.FireShotMoving());
+            this.z = 257;
             this.vx = 120;
             this.vy = 0;
             this.x += this.vx / 10;
@@ -1559,7 +1563,7 @@ var Game;
         __extends(AbstractItem, _super);
         function AbstractItem(x, y, imagemanager, label) {
             _super.call(this, x, y, imagemanager, label, 1, 1);
-            this.z = 256;
+            this.z = 384;
             this.counter["ac"] = 0;
         }
         return AbstractItem;
@@ -1697,10 +1701,10 @@ var Game;
                     (function (p) {
                         p.addOnceEventHandler("update", function () {
                             var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
-                            if (p.flags["isAlive"] && dx <= 14 && e.y <= p.y + 26 && e.y + 15 >= p.y) {
+                            if (p.flags["isAlive"] && !p.flags["isStamping"] && dx <= 14 && e.y <= p.y + 26 && e.y + 15 >= p.y) {
                                 _this.onHitWithPlayer(sm, p);
                             }
-                            if (p.flags["isAlive"] && new Game.Point(p.x + p.width / 2 - 1, p.y + p.height / 2 - 1).collision(e.getCollision())) {
+                            if (p.flags["isAlive"] && !p.flags["isStamping"] && new Game.Point(p.x + p.width / 2 - 1, p.y + p.height / 2 - 1).collision(e.getCollision())) {
                                 _this.onHitWithPlayer(sm, p);
                             }
                         });
@@ -2062,6 +2066,7 @@ var Game;
             _super.call(this, x, y, imagemanager, label, 1, 1);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.LeafShotMoving());
+            this.z = 257;
             this.vx = 40 + Math.floor(Math.random() * 6) * 10; // TODO: シード付き乱数を使うようにする
             this.vy = -220;
             this.x += this.vx / 10;
@@ -2157,7 +2162,7 @@ var Game;
         __extends(UpwardNeedle, _super);
         function UpwardNeedle(x, y, imagemanager, label) {
             _super.call(this, x, y, imagemanager, label, 1, 1);
-            this.z = 256;
+            this.z = 511;
             this.code = 5;
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.NeedleExisting());
@@ -2169,7 +2174,7 @@ var Game;
         __extends(DownwardNeedle, _super);
         function DownwardNeedle(x, y, imagemanager, label) {
             _super.call(this, x, y, imagemanager, label, 1, 1);
-            this.z = 256;
+            this.z = 511;
             this.code = 6;
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.NeedleExisting());
@@ -2198,7 +2203,7 @@ var Game;
                     (function (p) {
                         p.addOnceEventHandler("update", function () {
                             var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
-                            if (p.flags["isAlive"] && new Game.Point(p.x + p.width / 2 - 1, p.y + p.height / 2 - 1).collision(e.getCollision())) {
+                            if (p.flags["isAlive"] && !p.flags["isStamping"] && new Game.Point(p.x + p.width / 2 - 1, p.y + p.height / 2 - 1).collision(e.getCollision())) {
                                 p.y = Math.floor((p.y + p.width / 2 - 1) / 32) * 32;
                                 p.dispatchEvent(new Game.PlayerMissEvent("miss", 2));
                             }
@@ -3538,7 +3543,7 @@ var Game;
             _super.call(this, x, y, imagemanager, label, 1, 1);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.WaterShotMoving());
-            this.z = 256; // 敵と同じだけど、どうせ敵より後に生成されるはず
+            this.z = 257;
             this.vx = -80;
             this.vy = -225;
             this.x += Math.floor(this.vx / 10);
@@ -3555,7 +3560,7 @@ var Game;
             _super.call(this, x, y, imagemanager, label, 1, 1);
             this.moving = new Game.EntityStateMachine(this);
             this.moving.push(new States.WaterShotMoving());
-            this.z = 256; // 敵と同じだけど、どうせ敵より後に生成されるはず
+            this.z = 257;
             this.vx = 80;
             this.vy = -225;
             this.x += Math.floor(this.vx / 10);
@@ -4236,6 +4241,7 @@ var Game;
                         sm.replace(new States.Ending());
                     }
                 }
+                console.log((this.player.y + 15) % 32);
             };
             Stage.prototype.fixViewXY = function () {
                 // TODO: マップサイズ決め打ちを改善

@@ -154,6 +154,7 @@ module Game {
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.BombMoving());
 
+            this.z = 257;
             this.vx = -40;
             this.vy = 0;
         }
@@ -164,6 +165,7 @@ module Game {
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.BombMoving());
 
+            this.z = 257;
             this.vx = 40;
             this.vy = 0;
             this.reverse_horizontal = true;

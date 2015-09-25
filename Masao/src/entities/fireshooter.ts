@@ -96,6 +96,7 @@ module Game {
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.FireShotMoving());
 
+            this.z = 257;
             this.vx = -120;
             this.vy = 0;
             this.x += this.vx / 10;
@@ -110,6 +111,7 @@ module Game {
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.FireShotMoving());
 
+            this.z = 257;
             this.vx = 120;
             this.vy = 0;
             this.x += this.vx / 10;

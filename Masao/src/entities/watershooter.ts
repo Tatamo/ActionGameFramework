@@ -215,7 +215,7 @@ module Game {
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.WaterShotMoving());
 
-            this.z = 256; // 敵と同じだけど、どうせ敵より後に生成されるはず
+            this.z = 257;
             this.vx = -80;
             this.vy = -225;
             this.x += Math.floor(this.vx / 10);
@@ -229,7 +229,7 @@ module Game {
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.WaterShotMoving());
 
-            this.z = 256; // 敵と同じだけど、どうせ敵より後に生成されるはず
+            this.z = 257;
             this.vx = 80;
             this.vy = -225;
             this.x += Math.floor(this.vx / 10);

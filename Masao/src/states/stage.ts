@@ -108,6 +108,7 @@
                         sm.replace(new Ending());
                     }
                 }
+                console.log((this.player.y+15) % 32);
             }
             protected fixViewXY() { // view_xおよびview_yが画面外へ行かないよう補正する
                 // TODO: マップサイズ決め打ちを改善

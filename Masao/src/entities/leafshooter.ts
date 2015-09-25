@@ -112,6 +112,7 @@ module Game {
             this.moving = new EntityStateMachine(this);
             this.moving.push(new States.LeafShotMoving());
 
+            this.z = 257;
             this.vx = 40 + Math.floor(Math.random() * 6) * 10; // TODO: シード付き乱数を使うようにする
             this.vy = -220;
             this.x += this.vx / 10;
