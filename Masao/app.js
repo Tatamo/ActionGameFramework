@@ -74,7 +74,7 @@ window.onload = function () {
         "8......aa...........a...............aaaaa...9.9aa999........",
         "..aaaaaa7...........................9.9.9...aaaaaaaa........",
         "...........aaaaaa..aaaaaa....................9.aaaaa........",
-        "...333....aaaaaaa..aaaaaa............D......aaaaaaaa........",
+        "...333....aaaaaaa..aaaaaa...Q........D......aaaaaaaa........",
         "bbbbbbbbbbbbbbbbb..bbbbbb.bbbbbbbbbbbbbbbbbbbbbbbbbb5bbbbbb.",
         "............................................................",
         "............................................................",
@@ -730,7 +730,7 @@ var Game;
                     var b = blocks[i];
                     var bc = b.getCollision();
                     // ブロックと衝突したら消失
-                    if (new Game.Point(e.centerx, e.centery - 3).collision(bc) || new Game.Point(e.centerx, e.centery + 3).collision(bc)) {
+                    if (new Game.Point(e.centerx - 1, e.centery - 3).collision(bc) || new Game.Point(e.centerx - 1, e.centery + 3).collision(bc)) {
                         e.flags["isAlive"] = false;
                         e.kill();
                         return;
@@ -1026,22 +1026,27 @@ var Game;
         };
         Flier.prototype.checkCollisionWithBlocksHorizontal = function () {
             // check
-            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
-            for (var i = 0; i < blocks.length; i++) {
-                var b = blocks[i];
-                var bc = b.getCollision();
-                if (this.vx > 0) {
-                    // right
+            if (this.vx > 0) {
+                // right
+                var blocks = this.ss.getBlocks(this.x + this.width, this.y, this.width, this.height); // 右寄りに取得
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
                     if (new Game.Point(this.centerx + this.width - 1, this.bottom - 1).collision(bc)) {
-                        this.right = b.x;
+                        this.right = b.x - 16;
                         this.vx = 0;
                         this.reverse_horizontal = !this.reverse_horizontal;
                     }
                 }
-                else if (this.vx < 0) {
-                    // left
+            }
+            else if (this.vx < 0) {
+                // left
+                var blocks = this.ss.getBlocks(this.x - this.width, this.y, this.width, this.height); // 左寄りに取得
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
                     if (new Game.Point(this.centerx - this.width, this.bottom - 1).collision(bc)) {
-                        this.x = b.right;
+                        this.x = b.right + 16;
                         this.vx = 0;
                         this.reverse_horizontal = !this.reverse_horizontal;
                     }
@@ -2986,6 +2991,347 @@ var Game;
         States.Generate3FallableWalkerState = Generate3FallableWalkerState;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
+/// <reference path="enemy.ts"/>
+var Game;
+(function (Game) {
+    var WaterShooter = (function (_super) {
+        __extends(WaterShooter, _super);
+        function WaterShooter(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.WaterShooterWaiting());
+            this.addEventHandler("onstamped", this.onStamped);
+            this.counter["x_first"] = this.x;
+            this.counter["g_ac"] = 0;
+        }
+        WaterShooter.prototype.move = function () {
+            // 接触判定を行わない
+            this.x += this.vx / 10;
+            this.y += this.vy / 10;
+        };
+        WaterShooter.prototype.onStamped = function (e) {
+            if (this.flags["isAlive"])
+                this.moving.replace(new States.WaterShooterStamped());
+            this.vx = 0;
+            this.vy = 0;
+        };
+        return WaterShooter;
+    })(Game.AbstractEnemy);
+    Game.WaterShooter = WaterShooter;
+    var States;
+    (function (States) {
+        var WaterShooterWaiting = (function (_super) {
+            __extends(WaterShooterWaiting, _super);
+            function WaterShooterWaiting() {
+                _super.apply(this, arguments);
+            }
+            WaterShooterWaiting.prototype.enter = function (sm) {
+            };
+            WaterShooterWaiting.prototype.update = function (sm) {
+                var e = sm.e;
+                e.vx = 0;
+                e.vy = 0;
+                e.code = 160;
+                var players = sm.e.ss.Players.get_all();
+                var pt = null; // 最も近いプレイヤー
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (pt == null) {
+                        pt = p;
+                    }
+                    else if (Math.abs(p.x - e.x) < Math.abs(pt.x - e.x)) {
+                        pt = p;
+                    }
+                }
+                if (pt != null) {
+                    if (e.x + 8 >= pt.x)
+                        e.reverse_horizontal = false; // 最も近いプレイヤーに合わせて反転状態を決定
+                    else
+                        e.reverse_horizontal = true;
+                }
+                if (e.counter["ac"] > 0) {
+                    e.counter["ac"] += 1;
+                    if (e.counter["ac"] == 2) {
+                        if (e.reverse_horizontal) {
+                            // 右向きに発射
+                            var attack = new WaterShotRight(e.x, e.y, e.imagemanager, e.label);
+                        }
+                        else {
+                            // 左向きに発射
+                            var attack = new WaterShotLeft(e.x, e.y, e.imagemanager, e.label);
+                        }
+                        e.ss.add(attack);
+                    }
+                    if (e.counter["ac"] > 20) {
+                        e.counter["ac"] = 0;
+                        sm.replace(new WaterShooterWalking());
+                    }
+                }
+                else {
+                    var flg = false;
+                    for (var i = 0; i < players.length; i++) {
+                        var p = players[i];
+                        if (p.x >= e.x - 240 && p.x <= e.x + 240) {
+                            flg = true;
+                            break;
+                        }
+                    }
+                    if (flg) {
+                        e.counter["ac"] = 1;
+                    }
+                }
+                this.checkCollisionWithPlayer(sm);
+            };
+            return WaterShooterWaiting;
+        })(States.AbstractStampableAlive);
+        States.WaterShooterWaiting = WaterShooterWaiting;
+        var WaterShooterWalking = (function (_super) {
+            __extends(WaterShooterWalking, _super);
+            function WaterShooterWalking() {
+                _super.apply(this, arguments);
+            }
+            WaterShooterWalking.prototype.enter = function (sm) {
+                sm.e.counter["ac"] = 0;
+            };
+            WaterShooterWalking.prototype.update = function (sm) {
+                var e = sm.e;
+                if (e.counter["ac"] <= 0) {
+                    e.counter["g_ac"] = (e.counter["g_ac"] + 1) % 4;
+                    e.code = 161 + Math.floor(e.counter["g_ac"] / 2);
+                    e.reverse_horizontal = true;
+                    e.vx = 30;
+                    if (e.x + e.vx / 10 >= e.counter["x_first"] + 96) {
+                        e.x = e.counter["x_first"] + 96;
+                        e.vx = 0;
+                        e.counter["ac"] = 10;
+                    }
+                    // ブロックとの当たり判定
+                    var blocks = e.ss.getBlocks(e.x + e.vx / 10, e.y, e.width, e.height + 1);
+                    var flg = false;
+                    for (var i = 0; i < blocks.length; i++) {
+                        var b = blocks[i];
+                        var bc = b.getCollision();
+                        if (new Game.Point(e.right - 1 + e.vx / 10, e.bottom).collision(bc)) {
+                            flg = true;
+                            break;
+                        }
+                    }
+                    if (!flg) {
+                        // 足元にブロックがないなら止まる
+                        e.x = Math.floor((e.right - 1) / 32 - 1) * 32;
+                        e.vx = 0;
+                        e.counter["ac"] = 10;
+                    }
+                }
+                else if (e.counter["ac"] <= 35) {
+                    e.counter["ac"] += 1;
+                    e.code = 160;
+                    var players = sm.e.ss.Players.get_all();
+                    var pt = null; // 最も近いプレイヤー
+                    for (var i = 0; i < players.length; i++) {
+                        var p = players[i];
+                        if (pt == null) {
+                            pt = p;
+                        }
+                        else if (Math.abs(p.x - e.x) < Math.abs(pt.x - e.x)) {
+                            pt = p;
+                        }
+                    }
+                    if (pt != null) {
+                        if (e.x + 8 >= pt.x)
+                            e.reverse_horizontal = false; // 最も近いプレイヤーに合わせて反転状態を決定
+                        else
+                            e.reverse_horizontal = true;
+                        if (e.counter["ac"] == 15 - 1) {
+                            // 水鉄砲
+                            if (e.reverse_horizontal) {
+                                // 右向きに発射
+                                var attack = new WaterShotRight(e.x, e.y, e.imagemanager, e.label);
+                            }
+                            else {
+                                // 左向きに発射
+                                var attack = new WaterShotLeft(e.x, e.y, e.imagemanager, e.label);
+                            }
+                            e.ss.add(attack);
+                        }
+                    }
+                }
+                else {
+                    e.counter["g_ac"] = (e.counter["g_ac"] + 1) % 4;
+                    e.code = 161 + Math.floor(e.counter["g_ac"] / 2);
+                    e.reverse_horizontal = false;
+                    e.vx = -30;
+                    if (e.x + e.vx / 10 <= e.counter["x_first"]) {
+                        e.x = e.counter["x_first"];
+                        e.vx = 0;
+                        e.counter["ac"] = -20;
+                        sm.replace(new WaterShooterWaiting());
+                    }
+                    // ブロックとの当たり判定
+                    var blocks = e.ss.getBlocks(e.x + e.vx / 10, e.y, e.width, e.height + 1);
+                    var flg = false;
+                    for (var i = 0; i < blocks.length; i++) {
+                        var b = blocks[i];
+                        var bc = b.getCollision();
+                        if (new Game.Point(e.x + e.vx / 10, e.bottom).collision(bc)) {
+                            flg = true;
+                            break;
+                        }
+                    }
+                    if (!flg) {
+                        // 足元にブロックがないなら止まる
+                        e.x = Math.floor((e.x) / 32 + 1) * 32;
+                        e.vx = 0;
+                        e.counter["ac"] = -20;
+                        sm.replace(new WaterShooterWaiting());
+                    }
+                }
+                this.checkCollisionWithPlayer(sm);
+            };
+            return WaterShooterWalking;
+        })(States.AbstractStampableAlive);
+        States.WaterShooterWalking = WaterShooterWalking;
+        var WaterShooterStamped = (function (_super) {
+            __extends(WaterShooterStamped, _super);
+            function WaterShooterStamped() {
+                _super.apply(this, arguments);
+            }
+            WaterShooterStamped.prototype.enter = function (sm) {
+                sm.e.counter["ac"] = 0;
+                sm.e.code = 163;
+                sm.e.flags["isAlive"] = false;
+            };
+            WaterShooterStamped.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] += 1;
+                e.code = 163;
+                e.vx = 0;
+                e.vy = 0;
+                if (e.counter["ac"] >= 10) {
+                    e.kill();
+                }
+            };
+            return WaterShooterStamped;
+        })(States.AbstractState);
+        States.WaterShooterStamped = WaterShooterStamped;
+    })(States = Game.States || (Game.States = {}));
+    var WaterShotLeft = (function (_super) {
+        __extends(WaterShotLeft, _super);
+        function WaterShotLeft(x, y, imagemanager, label, target) {
+            if (target === void 0) { target = null; }
+            _super.call(this, x, y, imagemanager, label, 1, 1);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.WaterShotMoving());
+            this.z = 256; // 敵と同じだけど、どうせ敵より後に生成されるはず
+            this.vx = -80;
+            this.vy = -225;
+            this.x += Math.floor(this.vx / 10);
+            this.y += Math.floor(this.vy / 10) > 180 ? 180 : Math.floor(this.vy / 10);
+            this.code = 128;
+        }
+        return WaterShotLeft;
+    })(Game.AbstractEntity);
+    Game.WaterShotLeft = WaterShotLeft;
+    var WaterShotRight = (function (_super) {
+        __extends(WaterShotRight, _super);
+        function WaterShotRight(x, y, imagemanager, label, target) {
+            if (target === void 0) { target = null; }
+            _super.call(this, x, y, imagemanager, label, 1, 1);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.WaterShotMoving());
+            this.z = 256; // 敵と同じだけど、どうせ敵より後に生成されるはず
+            this.vx = 80;
+            this.vy = -225;
+            this.x += Math.floor(this.vx / 10);
+            this.y += Math.floor(this.vy / 10) > 180 ? 180 : Math.floor(this.vy / 10);
+            this.code = 128;
+        }
+        return WaterShotRight;
+    })(Game.AbstractEntity);
+    Game.WaterShotRight = WaterShotRight;
+    var States;
+    (function (States) {
+        var WaterShotMoving = (function (_super) {
+            __extends(WaterShotMoving, _super);
+            function WaterShotMoving() {
+                _super.apply(this, arguments);
+            }
+            WaterShotMoving.prototype.enter = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = 0;
+                e.code = 128;
+            };
+            WaterShotMoving.prototype.update = function (sm) {
+                var e = sm.e;
+                if (!e.flags["isAlive"]) {
+                    e.kill();
+                    return;
+                }
+                e.vy += 25;
+                if (e.vy > 180)
+                    e.vy = 180;
+                e.x += Math.floor(e.vx / 10);
+                e.y += Math.floor(e.vy / 10);
+                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
+                e.code = 128 + Math.floor(e.counter["ac"] / 2);
+                e.reverse_horizontal = e.vx > 0;
+                var blocks = e.ss.getBlocks(e.x, e.y, e.width, e.height);
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
+                    // ブロックと衝突したら消失
+                    if (new Game.Point(e.centerx - 1, e.centery - 1).collision(bc) || new Game.Point(e.centerx - 1, e.centery - 1).collision(bc)) {
+                        e.flags["isAlive"] = false;
+                        e.kill();
+                        return;
+                    }
+                }
+                this.checkOutOfScreen(sm);
+                this.checkCollisionWithPlayer(sm);
+            };
+            WaterShotMoving.prototype.checkOutOfScreen = function (sm) {
+                var e = sm.e;
+                // スクロール範囲外に出ていたら消失
+                var players = e.ss.Players.get_all();
+                var flg = false;
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (e.x >= p.view_x - e.width && e.x <= p.view_x + Game.SCREEN_WIDTH + e.width * 4 && e.y >= p.view_y - e.width - Game.SCREEN_HEIGHT / 2 && e.y <= p.view_y + Game.SCREEN_HEIGHT) {
+                        flg = true;
+                        break;
+                    }
+                }
+                if (!flg) {
+                    e.kill();
+                    return;
+                }
+            };
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+            WaterShotMoving.prototype.checkCollisionWithPlayer = function (sm) {
+                var e = sm.e;
+                var players = e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    (function (p) {
+                        p.addOnceEventHandler("update", function () {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
+                            if (p.flags["isAlive"] && dx <= 23 && dy <= 28) {
+                                // TODO:バリア判定はここに書く
+                                // プレイヤーにダメージ
+                                p.dispatchEvent(new Game.PlayerMissEvent("miss", 2));
+                            }
+                        });
+                    })(p);
+                }
+            };
+            return WaterShotMoving;
+        })(States.AbstractState);
+        States.WaterShotMoving = WaterShotMoving;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
 var Game;
 (function (Game) {
     var SpriteCollisionEvent = (function (_super) {
@@ -3286,6 +3632,7 @@ var Game;
             this.lookup["J"] = Game.ThreeFlierGenerator;
             this.lookup["O"] = Game.Jumper;
             this.lookup["P"] = Game.FireShooter;
+            this.lookup["Q"] = Game.WaterShooter;
             this.lookup["a"] = Game.Block1;
             this.lookup["b"] = Game.Block2;
             this.lookup["c"] = Game.Block3;

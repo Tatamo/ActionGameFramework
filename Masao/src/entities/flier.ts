@@ -1,8 +1,6 @@
 ﻿/// <reference path="enemy.ts"/>
 module Game {
     export class Flier extends AbstractEnemy {
-        public y_upper;
-        public y_lower;
         constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
             super(x, y, imagemanager, label, 1, 1);
             this.moving = new EntityStateMachine(this);
@@ -21,24 +19,31 @@ module Game {
         }
         checkCollisionWithBlocksHorizontal() {
             // check
-            var blocks = this.ss.getBlocks(this.x, this.y, this.width, this.height);
+            if (this.vx > 0) {
+                // right
+                var blocks = this.ss.getBlocks(this.x + this.width, this.y, this.width, this.height); // 右寄りに取得
 
-            for (var i = 0; i < blocks.length; i++) {
-                var b = blocks[i];
-                var bc = b.getCollision();
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
 
-                if (this.vx > 0) {
-                    // right
                     if (new Point(this.centerx + this.width - 1, this.bottom - 1).collision(bc)) {
-                        this.right = b.x;
+                        this.right = b.x - 16;
                         this.vx = 0;
                         this.reverse_horizontal = !this.reverse_horizontal;
                     }
                 }
-                else if (this.vx < 0) {
-                    // left
+            }
+            else if (this.vx < 0) {
+                // left
+                var blocks = this.ss.getBlocks(this.x - this.width, this.y, this.width, this.height); // 左寄りに取得
+
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
+
                     if (new Point(this.centerx - this.width, this.bottom - 1).collision(bc)) {
-                        this.x = b.right;
+                        this.x = b.right + 16;
                         this.vx = 0;
                         this.reverse_horizontal = !this.reverse_horizontal;
                     }
@@ -47,8 +52,6 @@ module Game {
         }
     }
     export class FlierUpDown extends Flier {
-        public y_upper;
-        public y_lower;
         constructor(x: number, y: number, imagemanager: ImageManager, label: string) {
             super(x, y, imagemanager, label);
             this.moving = new EntityStateMachine(this);

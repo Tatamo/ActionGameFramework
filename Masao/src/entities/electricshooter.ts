@@ -204,7 +204,7 @@ module Game {
                     var bc = b.getCollision();
 
                     // ブロックと衝突したら消失
-                    if (new Point(e.centerx, e.centery - 3).collision(bc) || new Point(e.centerx, e.centery + 3).collision(bc)) { // 中心よりやや上下の点で判定
+                    if (new Point(e.centerx - 1, e.centery - 3).collision(bc) || new Point(e.centerx - 1, e.centery + 3).collision(bc)) { // 中心よりやや上下の点で判定
                         e.flags["isAlive"] = false;
                         e.kill();
                         return;
