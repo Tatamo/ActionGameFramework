@@ -568,7 +568,7 @@ var Game;
                 e.code = 165;
                 e.vx = 0;
                 e.vy = 0;
-                if (e.counter["ac"] >= 10) {
+                if (e.counter["ac"] > 14) {
                     e.kill();
                 }
             };
@@ -963,7 +963,7 @@ var Game;
                 e.code = 146;
                 e.vx = 0;
                 e.vy = 0;
-                if (e.counter["ac"] >= 10) {
+                if (e.counter["ac"] > 14) {
                     e.kill();
                 }
             };
@@ -1196,7 +1196,7 @@ var Game;
                 e.code = 159;
                 e.vx = 0;
                 e.vy = 0;
-                if (e.counter["ac"] >= 10) {
+                if (e.counter["ac"] > 14) {
                     e.kill();
                 }
             };
@@ -1513,7 +1513,7 @@ var Game;
                 e.code = 149;
                 e.vx = 0;
                 e.vy = 0;
-                if (e.counter["ac"] >= 10) {
+                if (e.counter["ac"] > 14) {
                     e.kill();
                 }
             };
@@ -1921,7 +1921,7 @@ var Game;
                 e.code = 157;
                 e.vx = 0;
                 e.vy = 0;
-                if (e.counter["ac"] >= 10) {
+                if (e.counter["ac"] > 14) {
                     e.kill();
                 }
             };
@@ -2031,7 +2031,7 @@ var Game;
                 e.code = 151;
                 e.vx = 0;
                 e.vy = 0;
-                if (e.counter["ac"] >= 10) {
+                if (e.counter["ac"] > 14) {
                     e.kill();
                 }
             };
@@ -3275,7 +3275,7 @@ var Game;
                 e.code = 142;
                 e.vx = 0;
                 e.vy = 0;
-                if (e.counter["ac"] >= 10) {
+                if (e.counter["ac"] > 14) {
                     e.kill();
                 }
             };
@@ -3523,7 +3523,7 @@ var Game;
                 e.code = 163;
                 e.vx = 0;
                 e.vy = 0;
-                if (e.counter["ac"] >= 10) {
+                if (e.counter["ac"] > 14) {
                     e.kill();
                 }
             };

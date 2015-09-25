@@ -133,7 +133,7 @@ module Game {
                 e.code = 146;
                 e.vx = 0;
                 e.vy = 0;
-                if (e.counter["ac"] >= 10) {
+                if (e.counter["ac"] > 14) {
                     e.kill();
                 }
             }
