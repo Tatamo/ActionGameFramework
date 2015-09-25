@@ -3380,6 +3380,9 @@ var Game;
                         sm.replace(new WaterShooterWalking());
                     }
                 }
+                else if (e.counter["ac"] < 0) {
+                    e.counter["ac"] += 1;
+                }
                 else {
                     var flg = false;
                     for (var i = 0; i < players.length; i++) {
