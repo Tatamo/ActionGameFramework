@@ -71,7 +71,7 @@ window.onload = function () {
         "a.aaaaa.aaa....H.I..12.....9P9...aaa.....aa.aaaaaaaa...12...",
         "a....aa.a..A..............aaaaa..............9.aaaaa........",
         "aaaa.a..aaaaaa......aa..................B...aaaaaaaa........",
-        "8......aa...........a...............aaaaa...9.9aa999........",
+        "8......aa...............R...........aaaaa...9.9aa999........",
         "..aaaaaa7...........................9.9.9...aaaaaaaa........",
         "...........aaaaaa..aaaaaa....................9.aaaaa........",
         "...333....aaaaaaa..aaaaaa...Q........D......aaaaaaaa........",
@@ -268,98 +268,6 @@ var Game;
 /// <reference path="entity.ts"/>
 var Game;
 (function (Game) {
-    var Decoration = (function (_super) {
-        __extends(Decoration, _super);
-        function Decoration(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
-            this.z = 512;
-            this.initPatternCode();
-            //this.addEventHandler("onhit", this.onHit);
-        }
-        // to be overridden
-        Decoration.prototype.initPatternCode = function () {
-            this.code = 20;
-        };
-        return Decoration;
-    })(Game.AbstractEntity);
-    Game.Decoration = Decoration;
-    var CloudLeft = (function (_super) {
-        __extends(CloudLeft, _super);
-        function CloudLeft() {
-            _super.apply(this, arguments);
-        }
-        CloudLeft.prototype.initPatternCode = function () {
-            this.code = 1;
-        };
-        return CloudLeft;
-    })(Decoration);
-    Game.CloudLeft = CloudLeft;
-    var CloudRight = (function (_super) {
-        __extends(CloudRight, _super);
-        function CloudRight() {
-            _super.apply(this, arguments);
-        }
-        CloudRight.prototype.initPatternCode = function () {
-            this.code = 2;
-        };
-        return CloudRight;
-    })(Decoration);
-    Game.CloudRight = CloudRight;
-    var Grass = (function (_super) {
-        __extends(Grass, _super);
-        function Grass() {
-            _super.apply(this, arguments);
-        }
-        Grass.prototype.initPatternCode = function () {
-            this.code = 3;
-        };
-        return Grass;
-    })(Decoration);
-    Game.Grass = Grass;
-    var Torch = (function (_super) {
-        __extends(Torch, _super);
-        function Torch(x, y, imagemanager, label, dx, dy) {
-            if (dx === void 0) { dx = 1; }
-            if (dy === void 0) { dy = 1; }
-            _super.call(this, x, y, imagemanager, label, dx, dy);
-            this.moving = new Game.EntityStateMachine(this);
-            this.moving.push(new States.TorchMoving());
-        }
-        Torch.prototype.initPatternCode = function () {
-            this.code = 96;
-        };
-        return Torch;
-    })(Decoration);
-    Game.Torch = Torch;
-    var States;
-    (function (States) {
-        var TorchMoving = (function (_super) {
-            __extends(TorchMoving, _super);
-            function TorchMoving() {
-                _super.apply(this, arguments);
-            }
-            TorchMoving.prototype.enter = function (sm) {
-                var e = sm.e;
-                e.counter["ac"] = 0;
-            };
-            TorchMoving.prototype.update = function (sm) {
-                var e = sm.e;
-                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
-                if (e.counter["ac"] < 2)
-                    e.code = 96;
-                else
-                    e.code = 97;
-            };
-            return TorchMoving;
-        })(States.AbstractState);
-        States.TorchMoving = TorchMoving;
-    })(States = Game.States || (Game.States = {}));
-})(Game || (Game = {}));
-/// <reference path="entity.ts"/>
-var Game;
-(function (Game) {
     var AbstractEnemy = (function (_super) {
         __extends(AbstractEnemy, _super);
         function AbstractEnemy(x, y, imagemanager, label, dx, dy) {
@@ -505,6 +413,410 @@ var Game;
             return AbstractStampableAlive;
         })(States.AbstractState);
         States.AbstractStampableAlive = AbstractStampableAlive;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+/// <reference path="enemy.ts"/>
+var Game;
+(function (Game) {
+    var Bomber = (function (_super) {
+        __extends(Bomber, _super);
+        function Bomber(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.FlierFlyingHorizontal());
+            this.addEventHandler("onstamped", this.onStamped);
+        }
+        Bomber.prototype.onStamped = function (e) {
+            if (this.flags["isAlive"])
+                this.moving.replace(new States.BomberStamped());
+            this.vx = 0;
+            this.vy = 0;
+        };
+        Bomber.prototype.move = function () {
+            this.x += this.vx / 10;
+            this.checkCollisionWithBlocksHorizontal(); // 接触判定
+            this.y += this.vy / 10;
+        };
+        Bomber.prototype.checkCollisionWithBlocksHorizontal = function () {
+            // check
+            if (this.vx > 0) {
+                // right
+                var blocks = this.ss.getBlocks(this.x + this.width, this.y, this.width, this.height); // 右寄りに取得
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
+                    if (new Game.Point(this.centerx + this.width - 1, this.bottom - 1).collision(bc)) {
+                        this.right = b.x - 16;
+                        this.vx = 0;
+                        this.reverse_horizontal = !this.reverse_horizontal;
+                    }
+                }
+            }
+            else if (this.vx < 0) {
+                // left
+                var blocks = this.ss.getBlocks(this.x - this.width, this.y, this.width, this.height); // 左寄りに取得
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
+                    if (new Game.Point(this.centerx - this.width, this.bottom - 1).collision(bc)) {
+                        this.x = b.right + 16;
+                        this.vx = 0;
+                        this.reverse_horizontal = !this.reverse_horizontal;
+                    }
+                }
+            }
+        };
+        return Bomber;
+    })(Game.AbstractEnemy);
+    Game.Bomber = Bomber;
+    var BomberWithoutReturn = (function (_super) {
+        __extends(BomberWithoutReturn, _super);
+        function BomberWithoutReturn(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.BomberFlyingWithoutReturn());
+        }
+        BomberWithoutReturn.prototype.move = function () {
+            // 接触判定を行わない
+            this.x += this.vx / 10;
+            this.y += this.vy / 10;
+        };
+        return BomberWithoutReturn;
+    })(Bomber);
+    Game.BomberWithoutReturn = BomberWithoutReturn;
+    var States;
+    (function (States) {
+        var BomberFlyingWithoutReturn = (function (_super) {
+            __extends(BomberFlyingWithoutReturn, _super);
+            function BomberFlyingWithoutReturn() {
+                _super.apply(this, arguments);
+            }
+            BomberFlyingWithoutReturn.prototype.enter = function (sm) {
+            };
+            BomberFlyingWithoutReturn.prototype.update = function (sm) {
+                var e = sm.e;
+                e.code = 164;
+                if (e.counter["ac"] >= 0) {
+                    e.vx = -40;
+                    e.counter["ac"] += 1;
+                    if (e.counter["ac"] == 1) {
+                        // 爆撃
+                        var attack = new BombLeft(e.x, e.y + 19, e.imagemanager, e.label);
+                        e.ss.add(attack);
+                    }
+                    else if (e.counter["ac"] > 26) {
+                        e.counter["ac"] = 0;
+                    }
+                }
+                var blocks = e.ss.getBlocks(e.x + e.vx / 10, e.y, e.width, e.height);
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
+                    if (new Game.Point(e.x + e.vx / 10, e.bottom - 1).collision(bc)) {
+                        e.x = b.right;
+                        e.vx = 0;
+                        e.counter["ac"] = -1; // 停止
+                    }
+                }
+                this.checkCollisionWithPlayer(sm);
+            };
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+            BomberFlyingWithoutReturn.prototype.checkCollisionWithPlayer = function (sm) {
+                var e = sm.e;
+                var players = sm.e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    (function (p) {
+                        p.addOnceEventHandler("update", function () {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
+                            if (p.flags["isAlive"] && dx < 30 && dy < 23) {
+                                if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) {
+                                    e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
+                                    p.y = e.y - 12;
+                                    p.dispatchEvent(new Game.NumberEvent("onstamp", 2));
+                                    e.addOnceEventHandler("killed", function () {
+                                        p.dispatchEvent(new Game.ScoreEvent("addscore", 10));
+                                    });
+                                }
+                                else {
+                                    p.dispatchEvent(new Game.PlayerMissEvent("miss", 1));
+                                }
+                            }
+                        });
+                    })(p);
+                }
+            };
+            return BomberFlyingWithoutReturn;
+        })(States.AbstractState);
+        States.BomberFlyingWithoutReturn = BomberFlyingWithoutReturn;
+        var BomberStamped = (function (_super) {
+            __extends(BomberStamped, _super);
+            function BomberStamped() {
+                _super.apply(this, arguments);
+            }
+            BomberStamped.prototype.enter = function (sm) {
+                sm.e.counter["ac"] = 0;
+                sm.e.code = 165;
+                sm.e.flags["isAlive"] = false;
+            };
+            BomberStamped.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] += 1;
+                e.code = 165;
+                e.vx = 0;
+                e.vy = 0;
+                if (e.counter["ac"] >= 10) {
+                    e.kill();
+                }
+            };
+            return BomberStamped;
+        })(States.AbstractState);
+        States.BomberStamped = BomberStamped;
+    })(States = Game.States || (Game.States = {}));
+    var BombLeft = (function (_super) {
+        __extends(BombLeft, _super);
+        function BombLeft(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.BombMoving());
+            this.vx = -40;
+            this.vy = 0;
+        }
+        return BombLeft;
+    })(Game.AbstractEntity);
+    Game.BombLeft = BombLeft;
+    var BombRight = (function (_super) {
+        __extends(BombRight, _super);
+        function BombRight(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.BombMoving());
+            this.vx = 40;
+            this.vy = 0;
+            this.reverse_horizontal = true;
+        }
+        return BombRight;
+    })(Game.AbstractEntity);
+    Game.BombRight = BombRight;
+    var States;
+    (function (States) {
+        var BombMoving = (function (_super) {
+            __extends(BombMoving, _super);
+            function BombMoving() {
+                _super.apply(this, arguments);
+            }
+            BombMoving.prototype.enter = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = 0;
+                e.code = 171;
+            };
+            BombMoving.prototype.update = function (sm) {
+                var e = sm.e;
+                if (!e.flags["isAlive"]) {
+                    e.kill();
+                    return;
+                }
+                if (e.vx > 0) {
+                    e.vx -= 2;
+                }
+                else if (e.vx < 0) {
+                    e.vx += 2;
+                }
+                e.vy += 8;
+                if (e.vy > 200) {
+                    e.vy = 200;
+                }
+                e.x += Math.floor(e.vx / 10);
+                e.y += Math.floor(e.vy / 10);
+                if (Math.abs(e.vx) > 28) {
+                    e.code = 171;
+                }
+                else {
+                    e.code = 170;
+                    e.reverse_horizontal = false;
+                }
+                var blocks = e.ss.getBlocks(e.x, e.y, e.width, e.height);
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
+                    if (new Game.Point(e.centerx - 1, e.centery - 1).collision(bc)) {
+                        sm.replace(new BombExploding());
+                    }
+                }
+                this.checkOutOfScreen(sm);
+                if (e.flags["isAlive"])
+                    this.checkCollisionWithPlayer(sm);
+            };
+            BombMoving.prototype.checkOutOfScreen = function (sm) {
+                var e = sm.e;
+                // スクロール範囲外に出ていたら消失
+                var players = e.ss.Players.get_all();
+                var flg = false;
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (e.y < p.view_y + Game.SCREEN_HEIGHT + e.width) {
+                        flg = true;
+                        break;
+                    }
+                }
+                if (!flg) {
+                    e.kill();
+                    return;
+                }
+            };
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+            BombMoving.prototype.checkCollisionWithPlayer = function (sm) {
+                var e = sm.e;
+                var players = e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    (function (p) {
+                        p.addOnceEventHandler("update", function () {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
+                            if (p.flags["isAlive"] && dx <= 23 && dy <= 28) {
+                                // TODO:バリア判定はここに書く
+                                // プレイヤーにダメージ
+                                p.dispatchEvent(new Game.PlayerMissEvent("miss", 2));
+                            }
+                        });
+                    })(p);
+                }
+            };
+            return BombMoving;
+        })(States.AbstractState);
+        States.BombMoving = BombMoving;
+        var BombExploding = (function (_super) {
+            __extends(BombExploding, _super);
+            function BombExploding() {
+                _super.apply(this, arguments);
+            }
+            BombExploding.prototype.enter = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = 0;
+                e.code = 172;
+                e.vx = 0;
+                e.vy = 0;
+            };
+            BombExploding.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] += 1;
+                if (e.counter["ac"] <= 3) {
+                    e.code = 172;
+                }
+                else if (e.counter["ac"] <= 6) {
+                    e.code = 173;
+                }
+                else if (e.counter["ac"] <= 9) {
+                    e.code = 174;
+                }
+                else {
+                    e.kill();
+                    return;
+                }
+                if (e.flags["isAlive"])
+                    this.checkCollisionWithPlayer(sm);
+            };
+            return BombExploding;
+        })(BombMoving);
+        States.BombExploding = BombExploding;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+/// <reference path="entity.ts"/>
+var Game;
+(function (Game) {
+    var Decoration = (function (_super) {
+        __extends(Decoration, _super);
+        function Decoration(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.z = 512;
+            this.initPatternCode();
+            //this.addEventHandler("onhit", this.onHit);
+        }
+        // to be overridden
+        Decoration.prototype.initPatternCode = function () {
+            this.code = 20;
+        };
+        return Decoration;
+    })(Game.AbstractEntity);
+    Game.Decoration = Decoration;
+    var CloudLeft = (function (_super) {
+        __extends(CloudLeft, _super);
+        function CloudLeft() {
+            _super.apply(this, arguments);
+        }
+        CloudLeft.prototype.initPatternCode = function () {
+            this.code = 1;
+        };
+        return CloudLeft;
+    })(Decoration);
+    Game.CloudLeft = CloudLeft;
+    var CloudRight = (function (_super) {
+        __extends(CloudRight, _super);
+        function CloudRight() {
+            _super.apply(this, arguments);
+        }
+        CloudRight.prototype.initPatternCode = function () {
+            this.code = 2;
+        };
+        return CloudRight;
+    })(Decoration);
+    Game.CloudRight = CloudRight;
+    var Grass = (function (_super) {
+        __extends(Grass, _super);
+        function Grass() {
+            _super.apply(this, arguments);
+        }
+        Grass.prototype.initPatternCode = function () {
+            this.code = 3;
+        };
+        return Grass;
+    })(Decoration);
+    Game.Grass = Grass;
+    var Torch = (function (_super) {
+        __extends(Torch, _super);
+        function Torch(x, y, imagemanager, label, dx, dy) {
+            if (dx === void 0) { dx = 1; }
+            if (dy === void 0) { dy = 1; }
+            _super.call(this, x, y, imagemanager, label, dx, dy);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.TorchMoving());
+        }
+        Torch.prototype.initPatternCode = function () {
+            this.code = 96;
+        };
+        return Torch;
+    })(Decoration);
+    Game.Torch = Torch;
+    var States;
+    (function (States) {
+        var TorchMoving = (function (_super) {
+            __extends(TorchMoving, _super);
+            function TorchMoving() {
+                _super.apply(this, arguments);
+            }
+            TorchMoving.prototype.enter = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = 0;
+            };
+            TorchMoving.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
+                if (e.counter["ac"] < 2)
+                    e.code = 96;
+                else
+                    e.code = 97;
+            };
+            return TorchMoving;
+        })(States.AbstractState);
+        States.TorchMoving = TorchMoving;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
 /// <reference path="enemy.ts"/>
@@ -3633,6 +3945,7 @@ var Game;
             this.lookup["O"] = Game.Jumper;
             this.lookup["P"] = Game.FireShooter;
             this.lookup["Q"] = Game.WaterShooter;
+            this.lookup["R"] = Game.BomberWithoutReturn;
             this.lookup["a"] = Game.Block1;
             this.lookup["b"] = Game.Block2;
             this.lookup["c"] = Game.Block3;

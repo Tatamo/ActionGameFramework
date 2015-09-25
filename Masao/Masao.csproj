@@ -30,6 +30,7 @@
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
     <TypeScriptCompile Include="src\entities\block.ts" />
+    <TypeScriptCompile Include="src\entities\bomber.ts" />
     <TypeScriptCompile Include="src\entities\decoration.ts" />
     <TypeScriptCompile Include="src\entities\electricshooter.ts" />
     <TypeScriptCompile Include="src\entities\enemy.ts" />

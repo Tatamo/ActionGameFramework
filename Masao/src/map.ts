@@ -155,6 +155,7 @@
             this.lookup["O"] = Jumper;
             this.lookup["P"] = FireShooter;
             this.lookup["Q"] = WaterShooter;
+            this.lookup["R"] = BomberWithoutReturn;
             this.lookup["a"] = Block1;
             this.lookup["b"] = Block2;
             this.lookup["c"] = Block3;
