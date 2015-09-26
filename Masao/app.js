@@ -1648,7 +1648,7 @@ var Game;
                             if (p.flags["isAlive"] && dx <= 14 && e.y <= p.y + 26 && e.y + 15 >= p.y) {
                                 _this.onHitWithPlayer(sm, p);
                             }
-                            if (p.flags["isAlive"] && new Game.Point(p.x + p.width / 2 - 1, p.y + p.height / 2 - 1).collision(e.getCollision())) {
+                            if (p.flags["isAlive"] && !p.flags["isStamping"] && new Game.Point(p.x + p.width / 2 - 1, p.y + p.height / 2 - 1).collision(e.getCollision())) {
                                 _this.onHitWithPlayer(sm, p);
                             }
                         });
@@ -1701,7 +1701,7 @@ var Game;
                     (function (p) {
                         p.addOnceEventHandler("update", function () {
                             var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
-                            if (p.flags["isAlive"] && !p.flags["isStamping"] && dx <= 14 && e.y <= p.y + 26 && e.y + 15 >= p.y) {
+                            if (p.flags["isAlive"] && dx <= 14 && e.y <= p.y + 26 && e.y + 15 >= p.y) {
                                 _this.onHitWithPlayer(sm, p);
                             }
                             if (p.flags["isAlive"] && !p.flags["isStamping"] && new Game.Point(p.x + p.width / 2 - 1, p.y + p.height / 2 - 1).collision(e.getCollision())) {
@@ -4241,7 +4241,6 @@ var Game;
                         sm.replace(new States.Ending());
                     }
                 }
-                console.log((this.player.y + 15) % 32);
             };
             Stage.prototype.fixViewXY = function () {
                 // TODO: マップサイズ決め打ちを改善
