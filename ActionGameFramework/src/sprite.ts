@@ -1,4 +1,4 @@
-﻿/// <reference path="surface.ts"/>
+﻿/// <reference path="graphics/surface.ts"/>
 module Game {
     export interface ISprite extends IEventDispatcher {
         x: number;

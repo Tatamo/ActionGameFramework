@@ -1,9 +1,8 @@
-﻿/// <reference path="surface.ts"/>
+﻿/// <reference path="graphics/surface.ts"/>
 /// <reference path="sprite.ts"/>
 /// <reference path="input.ts"/>
 /// <reference path="assets.ts"/>
 /// <reference path="statemachine.ts"/>
-/// <reference path="state.ts"/>
 module Game {
     export var SCREEN_WIDTH = 512;
     export var SCREEN_HEIGHT = 320;

@@ -1,4 +1,5 @@
-﻿module Game {
+﻿/// <reference path="graphics.ts"/>
+module Game {
     export interface ISurface {
     }
     // TODO:
@@ -7,8 +8,16 @@
     // 今はSurface#containerを対象にとっているが、display#containerをGameKeyのイベントハンドラ登録対象に限定してもよいと思われる
     export class Surface {
         container: HTMLDivElement;
-        canvas: HTMLCanvasElement;
-        context: CanvasRenderingContext2D;
+        private _graphics: Graphics.Graphics;
+        get graphics(): Graphics.Graphics {
+            return this._graphics;
+        }
+        get canvas(): HTMLCanvasElement {
+            return this.graphics.canvas;
+        }
+        get context(): CanvasRenderingContext2D {
+            return this.graphics.context;
+        }
         //is_use_buffer: boolean;
         width: number;
         height: number;
@@ -16,18 +25,25 @@
         // getおよびsetを利用してcenterx/yなどを実装
         // TODO:
         // ラベルを渡すことでロードした画像を持つSurfaceを生成
-        constructor(width: number, height: number) {
-            this.width = width; this.height = height;
+        constructor(graphics: Graphics.Graphics);
+        constructor(Image: HTMLElement);
+        constructor(width: number, height: number)
+        constructor(a: any, height?: number) {
+            this.width = a; this.height = height;
             //this.is_use_buffer = is_use_buffer;
             // 要素作成
             this.container = document.createElement("div");
-            this.canvas = document.createElement("canvas");
-            this.context = this.canvas.getContext("2d");
+            //this.canvas = document.createElement("canvas");
+            //this.context = this.canvas.getContext("2d");
+            if (typeof a == "number") {
+                this._graphics = new Graphics.Graphics(a, height);
+            }
+            else {
+                this._graphics = new Graphics.Graphics(a);
+            }
             //this.canvas_buffer = document.createElement("canvas");
-            this.container.appendChild(this.canvas);
             // this.container.appendChild(this.canvas_buffer);
-            this.setWidth(width);
-            this.setHeight(height);
+            this.container.appendChild(this.canvas);
 
             this.canvas.style.position = "absolute";
             this.canvas.style.left = "0";
@@ -35,14 +51,6 @@
 			/*this.canvas_buffer.style.position = "absolute";
 			this.canvas_buffer.style.left = "0";
 			this.canvas_buffer.style.top = "0";*/
-        }
-        setWidth(width: number) {
-            this.canvas.width = width;
-            //this.canvas_buffer.width = width;
-        }
-        setHeight(height: number) {
-            this.canvas.height = height;
-            //this.canvas_buffer.height = height;
         }
         drawSurface(source: Surface, dest_x: number, dest_y: number) {
             this.context.drawImage(source.canvas, dest_x, dest_y);

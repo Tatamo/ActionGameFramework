@@ -1,6 +1,6 @@
 ﻿/// <reference path="collision.ts"/>
 module Game {
-    export interface IShape {
+    export interface IShape extends Collision {
         left: number;
         right: number;
         top: number;

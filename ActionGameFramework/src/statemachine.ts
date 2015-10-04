@@ -1,5 +1,4 @@
-﻿/// <reference path="state.ts"/>
-module Game {
+﻿module Game {
     export interface IStateMachine {
         parent: any;
         update();
@@ -13,7 +12,7 @@ module Game {
         root_state: IState;
         global_state: IState;
     }
-    export class StateMachine implements IStateMachine{
+    export class StateMachine implements IStateMachine {
         private _current_state: IState;
         private _global_state: IState;
         private _root_state: IState;
@@ -76,5 +75,27 @@ module Game {
         get current_state(): IState { return this._current_state; }
         get root_state(): IState { return this._root_state; }
         get global_state(): IState { return this._global_state; }
+    }
+    export interface IState extends IEventDispatcher {
+        parent: IState;
+        //name: string;
+        enter(sm: StateMachine);
+        update(sm: StateMachine);
+        exit(sm: StateMachine);
+    }
+
+    export module States {
+        export class AbstractState extends EventDispatcher implements IState {
+            parent: IState;
+            //name: string;
+            //constructor(name: string, sm: GameStateMachine) {
+            constructor() {
+                super();
+                //this.name = name;
+            }
+            enter(sm: StateMachine) { }
+            update(sm: StateMachine) { }
+            exit(sm: StateMachine) { }
+        }
     }
 }

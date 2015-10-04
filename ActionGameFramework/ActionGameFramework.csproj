@@ -26,21 +26,21 @@
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
     <TypeScriptCompile Include="src\cofig.ts" />
-    <TypeScriptCompile Include="src\collision\circle.ts" />
-    <TypeScriptCompile Include="src\collision\collision.ts" />
-    <TypeScriptCompile Include="src\collision\point.ts" />
-    <TypeScriptCompile Include="src\collision\rect.ts" />
-    <TypeScriptCompile Include="src\collision\shape.ts" />
+    <TypeScriptCompile Include="src\shape\circle.ts" />
+    <TypeScriptCompile Include="src\shape\collision.ts" />
+    <TypeScriptCompile Include="src\shape\point.ts" />
+    <TypeScriptCompile Include="src\shape\rect.ts" />
+    <TypeScriptCompile Include="src\shape\shape.ts" />
     <TypeScriptCompile Include="src\datadictionary.ts" />
     <TypeScriptCompile Include="src\eventdispatcher.ts" />
+    <TypeScriptCompile Include="src\graphics\graphics.ts" />
     <TypeScriptCompile Include="src\input.ts" />
     <TypeScriptCompile Include="src\assets.ts" />
     <TypeScriptCompile Include="src\main.ts" />
     <TypeScriptCompile Include="src\sprite.ts" />
     <TypeScriptCompile Include="src\spritesystem.ts" />
-    <TypeScriptCompile Include="src\state.ts" />
     <TypeScriptCompile Include="src\statemachine.ts" />
-    <TypeScriptCompile Include="src\surface.ts" />
+    <TypeScriptCompile Include="src\graphics\surface.ts" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ClassDiagram1.cd" />
@@ -51,9 +51,7 @@
       <DependentUpon>web.config</DependentUpon>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="src\graphics\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>
   </PropertyGroup>

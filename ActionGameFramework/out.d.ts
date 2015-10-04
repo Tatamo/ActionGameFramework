@@ -1,110 +1,4 @@
 declare module Game {
-    class Config {
-        rawmap: Array<string>;
-        map: Array<string>;
-        image: {
-            [key: string]: any;
-        };
-        config: {
-            [key: string]: any;
-        };
-        constructor(map: Array<string>, image: {
-            [key: string]: any;
-        }, config?: {
-            [key: string]: any;
-        });
-        initconfig(): void;
-        initmap(map: Array<string>): void;
-    }
-}
-declare module Game {
-    class Collision {
-        constructor();
-        collision(target: IShape, exclude_bounds?: boolean): boolean;
-        protected colPointWithPoint(p1: Point, p2: Point, exclude_bounds?: boolean): boolean;
-        protected colPointWithRect(p: Point, r: Rect, exclude_bounds?: boolean): boolean;
-        protected colPointWithCircle(p: Point, c: Circle, exclude_bounds?: boolean): boolean;
-        protected colRectWithRect(r1: Rect, r2: Rect, exclude_bounds?: boolean): boolean;
-        protected colRectWithCircle(r: Rect, c: Circle, exclude_bounds?: boolean): boolean;
-        protected colCircleWithCircle(c1: Circle, c2: Circle, exclude_bounds?: boolean): boolean;
-    }
-}
-declare module Game {
-    interface IShape {
-        left: number;
-        right: number;
-        top: number;
-        bottom: number;
-        centerx: number;
-        centery: number;
-        width: number;
-        height: number;
-        getParams(): any;
-        collision(target: IShape, exclude_bounds?: boolean): any;
-    }
-    class AbstractShape extends Collision implements IShape {
-        left: number;
-        right: number;
-        top: number;
-        bottom: number;
-        centerx: number;
-        centery: number;
-        width: number;
-        height: number;
-        constructor();
-        getParams(): void;
-    }
-}
-declare module Game {
-    class Circle extends AbstractShape {
-        x: number;
-        y: number;
-        r: number;
-        width: number;
-        height: number;
-        left: number;
-        right: number;
-        top: number;
-        bottom: number;
-        centerx: number;
-        centery: number;
-        constructor(x: number, y: number, r: number, base?: Circle);
-        getParams(): Array<number>;
-    }
-}
-declare module Game {
-    class Point extends AbstractShape {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-        left: number;
-        right: number;
-        top: number;
-        bottom: number;
-        centerx: number;
-        centery: number;
-        constructor(x: number, y: number, base?: Point);
-        getParams(): Array<number>;
-    }
-}
-declare module Game {
-    class Rect extends AbstractShape {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-        left: number;
-        right: number;
-        top: number;
-        bottom: number;
-        centerx: number;
-        centery: number;
-        constructor(x: number, y: number, w: number, h: number, base?: Rect);
-        getParams(): Array<number>;
-    }
-}
-declare module Game {
     class Dictionary<T> implements WeakMap<any, T> {
         private datalist;
         constructor();
@@ -134,54 +28,6 @@ declare module Game {
         add(value: T): void;
         sort(): void;
         del(value: T): void;
-    }
-}
-declare module Game {
-    interface IEventDispatcher {
-        addEventHandler(type: string, handler: (e: Event) => void): any;
-        addOnceEventHandler(type: string, handler: (e: Event) => void): any;
-        removeEventHandler(type: string, handler: (e: Event) => void): any;
-        clearEventHandler(type: string): any;
-        dispatchEvent(e: Event): any;
-    }
-    class EventDispatcher implements IEventDispatcher {
-        private _handlers;
-        private _oncehandlers;
-        constructor();
-        addEventHandler(type: string, handler: (e: Event) => void): void;
-        addOnceEventHandler(type: string, handler: (e: Event) => void): void;
-        removeEventHandler(type: string, handler: (e: Event) => void): void;
-        clearEventHandler(type: string): void;
-        dispatchEvent(e: Event): void;
-    }
-    class Event {
-        type: string;
-        constructor(type: string);
-    }
-    class NumberEvent extends Event {
-        type: string;
-        value: number;
-        constructor(type: string, value?: number);
-    }
-}
-declare module Game {
-    class GameKey {
-        keys: {
-            [key: number]: number;
-        };
-        releasedkeys: {
-            [key: number]: number;
-        };
-        private keepreleasedtime;
-        constructor();
-        setEvent(el: HTMLElement): void;
-        init(): void;
-        update(): void;
-        KeyDown(key: number): void;
-        KeyUp(key: number): void;
-        isDown(key: number): boolean;
-        isOnDown(key: number): boolean;
-        getCount(key: number): number;
     }
 }
 declare module Game {
@@ -247,17 +93,88 @@ declare module Game {
     }
 }
 declare module Game {
+    class Config {
+        rawmap: Array<string>;
+        map: Array<string>;
+        image: {
+            [key: string]: any;
+        };
+        config: {
+            [key: string]: any;
+        };
+        constructor(map: Array<string>, image: {
+            [key: string]: any;
+        }, config?: {
+            [key: string]: any;
+        });
+        initconfig(): void;
+        initmap(map: Array<string>): void;
+    }
+}
+declare module Game {
+    interface IEventDispatcher {
+        addEventHandler(type: string, handler: (e: Event) => void): any;
+        addOnceEventHandler(type: string, handler: (e: Event) => void): any;
+        removeEventHandler(type: string, handler: (e: Event) => void): any;
+        clearEventHandler(type: string): any;
+        dispatchEvent(e: Event): any;
+    }
+    class EventDispatcher implements IEventDispatcher {
+        private _handlers;
+        private _oncehandlers;
+        constructor();
+        addEventHandler(type: string, handler: (e: Event) => void): void;
+        addOnceEventHandler(type: string, handler: (e: Event) => void): void;
+        removeEventHandler(type: string, handler: (e: Event) => void): void;
+        clearEventHandler(type: string): void;
+        dispatchEvent(e: Event): void;
+    }
+    class Event {
+        type: string;
+        constructor(type: string);
+    }
+    class NumberEvent extends Event {
+        type: string;
+        value: number;
+        constructor(type: string, value?: number);
+    }
+}
+declare module Game {
+    module Graphics {
+        class Graphics {
+            private _canvas;
+            private _context;
+            canvas: HTMLCanvasElement;
+            context: CanvasRenderingContext2D;
+            constructor();
+            constructor(a: number, b: number);
+            constructor(a: Graphics);
+            constructor(a: HTMLElement);
+            drawRect(color: string, x: number, y: number, w: number, h: number): Graphics;
+            drawCircle(color: string, x: number, y: number, r: number, width?: number): Graphics;
+            drawEllipse(color: string, x: number, y: number, w: number, h: number, width?: number): Graphics;
+            drawArc(color: string, x: number, y: number, r: number, startangle: number, endangle: number, width?: number): Graphics;
+            drawPolygon(color: string, p: Array<number>): Graphics;
+            drawLine(color: string, x1: number, y1: number, x2: number, y2: number, width?: number): Graphics;
+            drawLines(color: string, p: Array<number>, width?: number): Graphics;
+            drawImage(image: HTMLElement, x: number, y: number): Graphics;
+        }
+    }
+}
+declare module Game {
     interface ISurface {
     }
     class Surface {
         container: HTMLDivElement;
+        private _graphics;
+        graphics: Graphics.Graphics;
         canvas: HTMLCanvasElement;
         context: CanvasRenderingContext2D;
         width: number;
         height: number;
+        constructor(graphics: Graphics.Graphics);
+        constructor(Image: HTMLElement);
         constructor(width: number, height: number);
-        setWidth(width: number): void;
-        setHeight(height: number): void;
         drawSurface(source: Surface, dest_x: number, dest_y: number): void;
     }
     class PatternSurface extends Surface {
@@ -275,6 +192,26 @@ declare module Game {
         constructor(imagemanager: ImageManager, label: string, code?: number, dx?: number, dy?: number);
         private reverseVertical();
         private reverseHorizontal();
+    }
+}
+declare module Game {
+    class GameKey {
+        keys: {
+            [key: number]: number;
+        };
+        releasedkeys: {
+            [key: number]: number;
+        };
+        private keepreleasedtime;
+        constructor();
+        setEvent(el: HTMLElement): void;
+        init(): void;
+        update(): void;
+        KeyDown(key: number): void;
+        KeyUp(key: number): void;
+        isDown(key: number): boolean;
+        isOnDown(key: number): boolean;
+        getCount(key: number): number;
     }
 }
 declare module Game {
@@ -364,23 +301,6 @@ declare module Game {
     }
 }
 declare module Game {
-    interface IState extends IEventDispatcher {
-        parent: IState;
-        enter(sm: StateMachine): any;
-        update(sm: StateMachine): any;
-        exit(sm: StateMachine): any;
-    }
-    module States {
-        class AbstractState extends EventDispatcher implements IState {
-            parent: IState;
-            constructor();
-            enter(sm: StateMachine): void;
-            update(sm: StateMachine): void;
-            exit(sm: StateMachine): void;
-        }
-    }
-}
-declare module Game {
     interface IStateMachine {
         parent: any;
         update(): any;
@@ -408,6 +328,21 @@ declare module Game {
         root_state: IState;
         global_state: IState;
     }
+    interface IState extends IEventDispatcher {
+        parent: IState;
+        enter(sm: StateMachine): any;
+        update(sm: StateMachine): any;
+        exit(sm: StateMachine): any;
+    }
+    module States {
+        class AbstractState extends EventDispatcher implements IState {
+            parent: IState;
+            constructor();
+            enter(sm: StateMachine): void;
+            update(sm: StateMachine): void;
+            exit(sm: StateMachine): void;
+        }
+    }
 }
 declare module Game {
     var SCREEN_WIDTH: number;
@@ -425,6 +360,93 @@ declare module Game {
         start(state?: IState): void;
         stop(): void;
         loop(): void;
+    }
+}
+declare module Game {
+    class Collision {
+        constructor();
+        collision(target: IShape, exclude_bounds?: boolean): boolean;
+        protected colPointWithPoint(p1: Point, p2: Point, exclude_bounds?: boolean): boolean;
+        protected colPointWithRect(p: Point, r: Rect, exclude_bounds?: boolean): boolean;
+        protected colPointWithCircle(p: Point, c: Circle, exclude_bounds?: boolean): boolean;
+        protected colRectWithRect(r1: Rect, r2: Rect, exclude_bounds?: boolean): boolean;
+        protected colRectWithCircle(r: Rect, c: Circle, exclude_bounds?: boolean): boolean;
+        protected colCircleWithCircle(c1: Circle, c2: Circle, exclude_bounds?: boolean): boolean;
+    }
+}
+declare module Game {
+    interface IShape extends Collision {
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+        centerx: number;
+        centery: number;
+        width: number;
+        height: number;
+        getParams(): any;
+        collision(target: IShape, exclude_bounds?: boolean): any;
+    }
+    class AbstractShape extends Collision implements IShape {
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+        centerx: number;
+        centery: number;
+        width: number;
+        height: number;
+        constructor();
+        getParams(): void;
+    }
+}
+declare module Game {
+    class Circle extends AbstractShape {
+        x: number;
+        y: number;
+        r: number;
+        width: number;
+        height: number;
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+        centerx: number;
+        centery: number;
+        constructor(x: number, y: number, r: number, base?: Circle);
+        getParams(): Array<number>;
+    }
+}
+declare module Game {
+    class Point extends AbstractShape {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+        centerx: number;
+        centery: number;
+        constructor(x: number, y: number, base?: Point);
+        getParams(): Array<number>;
+    }
+}
+declare module Game {
+    class Rect extends AbstractShape {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+        centerx: number;
+        centery: number;
+        constructor(x: number, y: number, w: number, h: number, base?: Rect);
+        getParams(): Array<number>;
     }
 }
 declare module Game {
