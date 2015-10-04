@@ -33,7 +33,6 @@
     <TypeScriptCompile Include="src\shape\shape.ts" />
     <TypeScriptCompile Include="src\datadictionary.ts" />
     <TypeScriptCompile Include="src\eventdispatcher.ts" />
-    <TypeScriptCompile Include="src\graphics\graphics.ts" />
     <TypeScriptCompile Include="src\input.ts" />
     <TypeScriptCompile Include="src\assets.ts" />
     <TypeScriptCompile Include="src\main.ts" />

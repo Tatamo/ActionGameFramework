@@ -34,7 +34,8 @@
                     }
                 }
             }
-            drawRect(color: string, x: number, y: number, w: number, h: number) {
+            drawRect(color: string, x: number, y: number, w: number, h: number, width: number = 0) {
+                if (width != 0) return this.drawLines(color, [x, y, x + w, y, x + w, y + h, x, y + h, x, y], width);
                 var ctx = this.context;
                 ctx.save();
                 ctx.beginPath();

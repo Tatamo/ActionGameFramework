@@ -1,5 +1,4 @@
-﻿/// <reference path="graphics.ts"/>
-module Game {
+﻿module Game {
     export interface ISurface {
     }
     // TODO:
@@ -8,38 +7,48 @@ module Game {
     // 今はSurface#containerを対象にとっているが、display#containerをGameKeyのイベントハンドラ登録対象に限定してもよいと思われる
     export class Surface {
         container: HTMLDivElement;
-        private _graphics: Graphics.Graphics;
-        get graphics(): Graphics.Graphics {
-            return this._graphics;
-        }
+        private _canvas: HTMLCanvasElement;
+        private _context: CanvasRenderingContext2D;
         get canvas(): HTMLCanvasElement {
-            return this.graphics.canvas;
+            return this._canvas;
         }
         get context(): CanvasRenderingContext2D {
-            return this.graphics.context;
+            return this._context;
+        }
+        get width(): number {
+            return this.canvas.width;
+        }
+        get height(): number {
+            return this.canvas.height;
         }
         //is_use_buffer: boolean;
-        width: number;
-        height: number;
         // TODO:
         // getおよびsetを利用してcenterx/yなどを実装
         // TODO:
         // ラベルを渡すことでロードした画像を持つSurfaceを生成
-        constructor(graphics: Graphics.Graphics);
-        constructor(Image: HTMLElement);
-        constructor(width: number, height: number)
-        constructor(a: any, height?: number) {
-            this.width = a; this.height = height;
-            //this.is_use_buffer = is_use_buffer;
+        constructor(width: number, height: number);
+        constructor(surface: Surface);
+        constructor(image: HTMLElement)
+        constructor(a: any, b?: number) {
             // 要素作成
             this.container = document.createElement("div");
-            //this.canvas = document.createElement("canvas");
-            //this.context = this.canvas.getContext("2d");
+            this._canvas = document.createElement("canvas");
+            this._context = this.canvas.getContext("2d");
+            if (a == null || a == undefined) { }
+            //this.is_use_buffer = is_use_buffer;
             if (typeof a == "number") {
-                this._graphics = new Graphics.Graphics(a, height);
+                this.canvas.width = a;
+                this.canvas.height = b;
             }
             else {
-                this._graphics = new Graphics.Graphics(a);
+                this.canvas.width = a.width;
+                this.canvas.height = a.height;
+                if (a instanceof Surface) {
+                    this.canvas.getContext("2d").drawImage(a.canvas, 0, 0);
+                }
+                else {
+                    this.canvas.getContext("2d").drawImage(a, 0, 0);
+                }
             }
             //this.canvas_buffer = document.createElement("canvas");
             // this.container.appendChild(this.canvas_buffer);
@@ -52,8 +61,59 @@ module Game {
 			this.canvas_buffer.style.left = "0";
 			this.canvas_buffer.style.top = "0";*/
         }
+        protected copy(share_canvas: boolean = false) {
+            // TODO: share_canvas=trueのときの処理を実装
+            if (share_canvas) { // 未実装
+                //return new Surface(this);
+            }
+            else {
+                return (new Surface(this.width, this.height)).drawImage(this.canvas, 0, 0);
+            }
+        }
+
+        rotate(angle: number, rotate_center_x: number = 0, rotate_center_y: number = 0, resize: boolean = false) {
+            var tmp = new Surface(this); // 処理前の現在の画像を退避させておく
+            var ctx = this.context;
+            ctx.clearRect(0, 0, this.width, this.height);
+            if (resize) { // TODO: 変換後のサイズを計算してcanvasのサイズを変更
+                // 未実装
+            }
+            ctx.save();
+            ctx.translate(rotate_center_x, rotate_center_y);
+            ctx.rotate(angle);
+            ctx.drawImage(tmp.canvas, 0, 0);
+            ctx.restore();
+            return this;
+        }
+        scale(x: number, y: number, resize: boolean = false) {
+            var tmp = new Surface(this); // 処理前の現在の画像を退避させておく
+            var ctx = this.context;
+            ctx.clearRect(0, 0, this.width, this.height);
+            if (resize) { // 変換後のサイズを計算してcanvasのサイズを変更
+                this.canvas.width *= x;
+                this.canvas.height *= y;
+            }
+            ctx.save();
+            ctx.scale(x, y);
+            ctx.drawImage(tmp.canvas, 0, 0);
+            ctx.restore();
+            return this;
+        }
+        // 上下左右を反転する
+        flip(xbool: boolean, ybool: boolean) {
+            var tmp = new Surface(this); // 処理前の現在の画像を退避させておく
+            var ctx = this.context;
+            ctx.save();
+            ctx.clearRect(0, 0, this.width, this.height);
+            ctx.translate(this.width, 0);
+            ctx.scale(xbool ? -1 : 1, ybool ? -1 : 1);
+            ctx.drawImage(tmp.canvas, 0, 0, this.width, this.height, 0, 0, this.width, this.height);
+            ctx.restore();
+            return this;
+        }
         drawSurface(source: Surface, dest_x: number, dest_y: number) {
             this.context.drawImage(source.canvas, dest_x, dest_y);
+            return this;
         }
 		/*// 対象のSurfaceに自身を描画する
 		Draw2Sufrace(target: Surface, x: number, y: number) {
@@ -70,6 +130,123 @@ module Game {
 				this.canvas_buffer.style.visibility = "hidden";
 			}
 		}*/
+
+
+        drawRect(color: string, x: number, y: number, w: number, h: number, width: number = 0) {
+            if (width != 0) return this.drawLines(color, [x, y, x + w, y, x + w, y + h, x, y + h, x, y], width);
+            var ctx = this.context;
+            ctx.save();
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, w, h);
+            ctx.restore();
+            return this;
+        }
+        drawCircle(color: string, x: number, y: number, r: number, width: number = 0) {
+            var ctx = this.context;
+            ctx.save();
+            ctx.beginPath();
+            if (width == 0) {
+                ctx.fillStyle = color;
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            else {
+                ctx.strokeStyle = color;
+                ctx.lineWidth = width;
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.restore();
+            return this;
+        }
+        drawEllipse(color: string, x: number, y: number, w: number, h: number, width: number = 0) {
+            var ctx = this.context;
+            ctx.save();
+            ctx.beginPath();
+            if (width == 0) {
+                ctx.fillStyle = color;
+                (<any>ctx).ellipse(x, y, w / 2, h / 2, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            else {
+                ctx.strokeStyle = color;
+                ctx.lineWidth = width;
+                (<any>ctx).ellipse(x, y, w / 2, h / 2, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.restore();
+            return this;
+        }
+        drawArc(color: string, x: number, y: number, r: number, startangle: number, endangle: number, width: number = 0) {
+            var ctx = this.context;
+            ctx.save();
+            ctx.beginPath();
+            if (width == 0) {
+                ctx.fillStyle = color;
+                ctx.arc(x, y, r, startangle, endangle);
+                ctx.fill();
+            }
+            else {
+                ctx.strokeStyle = color;
+                ctx.lineWidth = width;
+                ctx.arc(x, y, r, startangle, endangle);
+                ctx.stroke();
+            }
+            ctx.restore();
+            return this;
+        }
+        drawPolygon(color: string, p: Array<number>) {
+            var ctx = this.context;
+            ctx.save();
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            var i = 0;
+            while (i < p.length) {
+                if (i + 1 >= p.length) break;
+                if (i == 0) ctx.moveTo(p[i], p[i + 1]);
+                else ctx.lineTo(p[i], p[i + 1]);
+                i += 2;
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+            return this;
+        }
+        drawLine(color: string, x1: number, y1: number, x2: number, y2: number, width: number = 1) {
+            var ctx = this.context;
+            ctx.save();
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            ctx.restore();
+            return this;
+        }
+        drawLines(color: string, p: Array<number>, width: number = 1) {
+            var ctx = this.context;
+            ctx.save();
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            var i = 0;
+            while (i < p.length) {
+                if (i + 1 >= p.length) break;
+                if (i == 0) ctx.moveTo(p[i], p[i + 1]);
+                else ctx.lineTo(p[i], p[i + 1]);
+                i += 2;
+            }
+            ctx.stroke();
+            ctx.restore();
+            return this;
+        }
+        drawImage(image: HTMLElement, x: number, y: number) {
+            var ctx = this.context;
+            ctx.drawImage(image, x, y);
+            return this;
+        }
     }
     export class PatternSurface extends Surface {
         private _im: ImageManager;

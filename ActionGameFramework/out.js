@@ -1,16 +1,18 @@
 window.onload = function () {
     var el = document.getElementById('content');
-    var g = new Game.Graphics.Graphics(512, 320);
-    el.appendChild(g.canvas);
-    g.drawArc("black", 32, 32, 16, 0, Math.PI * 1.5, 1);
-    g.drawCircle("red", 256, 128, 32);
-    g.drawEllipse("purple", 64, 128, 96, 64);
-    g.drawEllipse("black", 64 + 16, 128 + 16, 96, 64, 1);
-    g.drawLine("green", 384, 64, 480, 96);
-    g.drawLines("green", [32, 32, 64, 32, 64, 64, 48, 96, 32, 64], 3);
-    g.drawRect("blue", 128, 128, 64, 32);
-    g.drawPolygon("rgba(0,255,0,0.5)", [128, 64, 256, 64, 128, 160]);
-    g.drawCircle("yellow", 256 + 32, 128, 32 - 8, 16);
+    var s = new Game.Surface(512, 320);
+    el.appendChild(s.container);
+    s.drawArc("black", 32, 32, 16, 0, Math.PI * 1.5, 1);
+    s.drawCircle("red", 256, 128, 32);
+    s.drawEllipse("purple", 64, 128, 96, 64);
+    s.drawEllipse("black", 64 + 16, 128 + 16, 96, 64, 1);
+    s.drawLine("green", 384, 64, 480, 96);
+    s.drawLines("green", [32, 32, 64, 32, 64, 64, 48, 96, 32, 64], 3);
+    s.drawRect("blue", 128, 128, 64, 32);
+    s.drawPolygon("rgba(0,255,0,0.5)", [128, 64, 256, 64, 128, 160]);
+    s.drawCircle("yellow", 256 + 32, 128, 32 - 8, 16);
+    s.rotate(30 * Math.PI / 360).flip(true, false).scale(0.8, 1.2);
+    s.drawRect("black", 32, 32, 320, 256, 2);
 };
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -622,196 +624,32 @@ var Game;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
-    var Graphics;
-    (function (_Graphics) {
-        var Graphics = (function () {
-            function Graphics(a, b) {
-                this._canvas = document.createElement("canvas");
-                this._context = this.canvas.getContext("2d");
-                if (a == null || a == undefined) {
-                }
-                else if (typeof a == "number") {
-                    this.canvas.width = a;
-                    this.canvas.height = b;
-                }
-                else {
-                    if (a instanceof Graphics) {
-                        this.canvas.width = a.canvas.width;
-                        this.canvas.height = a.canvas.height;
-                        this.canvas.getContext("2d").drawImage(a.canvas, 0, 0);
-                    }
-                    else {
-                        this.canvas.width = a.width;
-                        this.canvas.height = a.height;
-                        this.canvas.getContext("2d").drawImage(a, 0, 0);
-                    }
-                }
-            }
-            Object.defineProperty(Graphics.prototype, "canvas", {
-                get: function () {
-                    return this._canvas;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            Object.defineProperty(Graphics.prototype, "context", {
-                get: function () {
-                    return this._context;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            Graphics.prototype.drawRect = function (color, x, y, w, h) {
-                var ctx = this.context;
-                ctx.save();
-                ctx.beginPath();
-                ctx.fillStyle = color;
-                ctx.fillRect(x, y, w, h);
-                ctx.restore();
-                return this;
-            };
-            Graphics.prototype.drawCircle = function (color, x, y, r, width) {
-                if (width === void 0) { width = 0; }
-                var ctx = this.context;
-                ctx.save();
-                ctx.beginPath();
-                if (width == 0) {
-                    ctx.fillStyle = color;
-                    ctx.arc(x, y, r, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                else {
-                    ctx.strokeStyle = color;
-                    ctx.lineWidth = width;
-                    ctx.arc(x, y, r, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
-                ctx.restore();
-                return this;
-            };
-            Graphics.prototype.drawEllipse = function (color, x, y, w, h, width) {
-                if (width === void 0) { width = 0; }
-                var ctx = this.context;
-                ctx.save();
-                ctx.beginPath();
-                if (width == 0) {
-                    ctx.fillStyle = color;
-                    ctx.ellipse(x, y, w / 2, h / 2, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                else {
-                    ctx.strokeStyle = color;
-                    ctx.lineWidth = width;
-                    ctx.ellipse(x, y, w / 2, h / 2, 0, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
-                ctx.restore();
-                return this;
-            };
-            Graphics.prototype.drawArc = function (color, x, y, r, startangle, endangle, width) {
-                if (width === void 0) { width = 0; }
-                var ctx = this.context;
-                ctx.save();
-                ctx.beginPath();
-                if (width == 0) {
-                    ctx.fillStyle = color;
-                    ctx.arc(x, y, r, startangle, endangle);
-                    ctx.fill();
-                }
-                else {
-                    ctx.strokeStyle = color;
-                    ctx.lineWidth = width;
-                    ctx.arc(x, y, r, startangle, endangle);
-                    ctx.stroke();
-                }
-                ctx.restore();
-                return this;
-            };
-            Graphics.prototype.drawPolygon = function (color, p) {
-                var ctx = this.context;
-                ctx.save();
-                ctx.beginPath();
-                ctx.fillStyle = color;
-                var i = 0;
-                while (i < p.length) {
-                    if (i + 1 >= p.length)
-                        break;
-                    if (i == 0)
-                        ctx.moveTo(p[i], p[i + 1]);
-                    else
-                        ctx.lineTo(p[i], p[i + 1]);
-                    i += 2;
-                }
-                ctx.closePath();
-                ctx.fill();
-                ctx.restore();
-                return this;
-            };
-            Graphics.prototype.drawLine = function (color, x1, y1, x2, y2, width) {
-                if (width === void 0) { width = 1; }
-                var ctx = this.context;
-                ctx.save();
-                ctx.beginPath();
-                ctx.strokeStyle = color;
-                ctx.lineWidth = width;
-                ctx.moveTo(x1, y1);
-                ctx.lineTo(x2, y2);
-                ctx.stroke();
-                ctx.restore();
-                return this;
-            };
-            Graphics.prototype.drawLines = function (color, p, width) {
-                if (width === void 0) { width = 1; }
-                var ctx = this.context;
-                ctx.save();
-                ctx.beginPath();
-                ctx.strokeStyle = color;
-                ctx.lineWidth = width;
-                var i = 0;
-                while (i < p.length) {
-                    if (i + 1 >= p.length)
-                        break;
-                    if (i == 0)
-                        ctx.moveTo(p[i], p[i + 1]);
-                    else
-                        ctx.lineTo(p[i], p[i + 1]);
-                    i += 2;
-                }
-                ctx.stroke();
-                ctx.restore();
-                return this;
-            };
-            Graphics.prototype.drawImage = function (image, x, y) {
-                var ctx = this.context;
-                ctx.drawImage(image, x, y);
-                return this;
-            };
-            return Graphics;
-        })();
-        _Graphics.Graphics = Graphics;
-    })(Graphics = Game.Graphics || (Game.Graphics = {}));
-})(Game || (Game = {}));
-/// <reference path="graphics.ts"/>
-var Game;
-(function (Game) {
     // TODO:
     // Surfaceのサブクラスとして、メインスクリーン専用のDisplayクラスの追加を検討
     // ダブルバッファリング等々の機能追加
     // 今はSurface#containerを対象にとっているが、display#containerをGameKeyのイベントハンドラ登録対象に限定してもよいと思われる
     var Surface = (function () {
-        function Surface(a, height) {
-            this.width = a;
-            this.height = height;
-            //this.is_use_buffer = is_use_buffer;
+        function Surface(a, b) {
             // 要素作成
             this.container = document.createElement("div");
-            //this.canvas = document.createElement("canvas");
-            //this.context = this.canvas.getContext("2d");
+            this._canvas = document.createElement("canvas");
+            this._context = this.canvas.getContext("2d");
+            if (a == null || a == undefined) {
+            }
+            //this.is_use_buffer = is_use_buffer;
             if (typeof a == "number") {
-                this._graphics = new Game.Graphics.Graphics(a, height);
+                this.canvas.width = a;
+                this.canvas.height = b;
             }
             else {
-                this._graphics = new Game.Graphics.Graphics(a);
+                this.canvas.width = a.width;
+                this.canvas.height = a.height;
+                if (a instanceof Surface) {
+                    this.canvas.getContext("2d").drawImage(a.canvas, 0, 0);
+                }
+                else {
+                    this.canvas.getContext("2d").drawImage(a, 0, 0);
+                }
             }
             //this.canvas_buffer = document.createElement("canvas");
             // this.container.appendChild(this.canvas_buffer);
@@ -823,29 +661,231 @@ var Game;
             this.canvas_buffer.style.left = "0";
             this.canvas_buffer.style.top = "0";*/
         }
-        Object.defineProperty(Surface.prototype, "graphics", {
-            get: function () {
-                return this._graphics;
-            },
-            enumerable: true,
-            configurable: true
-        });
         Object.defineProperty(Surface.prototype, "canvas", {
             get: function () {
-                return this.graphics.canvas;
+                return this._canvas;
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(Surface.prototype, "context", {
             get: function () {
-                return this.graphics.context;
+                return this._context;
             },
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Surface.prototype, "width", {
+            get: function () {
+                return this.canvas.width;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Surface.prototype, "height", {
+            get: function () {
+                return this.canvas.height;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Surface.prototype.copy = function (share_canvas) {
+            if (share_canvas === void 0) { share_canvas = false; }
+            // TODO: share_canvas=trueのときの処理を実装
+            if (share_canvas) {
+            }
+            else {
+                return (new Surface(this.width, this.height)).drawImage(this.canvas, 0, 0);
+            }
+        };
+        Surface.prototype.rotate = function (angle, rotate_center_x, rotate_center_y, resize) {
+            if (rotate_center_x === void 0) { rotate_center_x = 0; }
+            if (rotate_center_y === void 0) { rotate_center_y = 0; }
+            if (resize === void 0) { resize = false; }
+            var tmp = new Surface(this); // 処理前の現在の画像を退避させておく
+            var ctx = this.context;
+            ctx.clearRect(0, 0, this.width, this.height);
+            if (resize) {
+            }
+            ctx.save();
+            ctx.translate(rotate_center_x, rotate_center_y);
+            ctx.rotate(angle);
+            ctx.drawImage(tmp.canvas, 0, 0);
+            ctx.restore();
+            return this;
+        };
+        Surface.prototype.scale = function (x, y, resize) {
+            if (resize === void 0) { resize = false; }
+            var tmp = new Surface(this); // 処理前の現在の画像を退避させておく
+            var ctx = this.context;
+            ctx.clearRect(0, 0, this.width, this.height);
+            if (resize) {
+                this.canvas.width *= x;
+                this.canvas.height *= y;
+            }
+            ctx.save();
+            ctx.scale(x, y);
+            ctx.drawImage(tmp.canvas, 0, 0);
+            ctx.restore();
+            return this;
+        };
+        // 上下左右を反転する
+        Surface.prototype.flip = function (xbool, ybool) {
+            var tmp = new Surface(this); // 処理前の現在の画像を退避させておく
+            var ctx = this.context;
+            ctx.save();
+            ctx.clearRect(0, 0, this.width, this.height);
+            ctx.translate(this.width, 0);
+            ctx.scale(xbool ? -1 : 1, ybool ? -1 : 1);
+            ctx.drawImage(tmp.canvas, 0, 0, this.width, this.height, 0, 0, this.width, this.height);
+            ctx.restore();
+            return this;
+        };
         Surface.prototype.drawSurface = function (source, dest_x, dest_y) {
             this.context.drawImage(source.canvas, dest_x, dest_y);
+            return this;
+        };
+        /*// 対象のSurfaceに自身を描画する
+        Draw2Sufrace(target: Surface, x: number, y: number) {
+            target.context.drawImage(this.canvas, x, y);
+        }*/
+        // 表面canvasと裏面canvasを入れ替える
+        /*flipBuffer() {
+            if (this.is_use_buffer) {
+                var temp = this.canvas;
+                this.canvas = this.canvas_buffer;
+                this.canvas.style.visibility = "visible";
+                this.canvas_buffer = temp;
+                this.canvas_buffer.style.visibility = "hidden";
+            }
+        }*/
+        Surface.prototype.drawRect = function (color, x, y, w, h, width) {
+            if (width === void 0) { width = 0; }
+            if (width != 0)
+                return this.drawLines(color, [x, y, x + w, y, x + w, y + h, x, y + h, x, y], width);
+            var ctx = this.context;
+            ctx.save();
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, w, h);
+            ctx.restore();
+            return this;
+        };
+        Surface.prototype.drawCircle = function (color, x, y, r, width) {
+            if (width === void 0) { width = 0; }
+            var ctx = this.context;
+            ctx.save();
+            ctx.beginPath();
+            if (width == 0) {
+                ctx.fillStyle = color;
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            else {
+                ctx.strokeStyle = color;
+                ctx.lineWidth = width;
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.restore();
+            return this;
+        };
+        Surface.prototype.drawEllipse = function (color, x, y, w, h, width) {
+            if (width === void 0) { width = 0; }
+            var ctx = this.context;
+            ctx.save();
+            ctx.beginPath();
+            if (width == 0) {
+                ctx.fillStyle = color;
+                ctx.ellipse(x, y, w / 2, h / 2, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            else {
+                ctx.strokeStyle = color;
+                ctx.lineWidth = width;
+                ctx.ellipse(x, y, w / 2, h / 2, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.restore();
+            return this;
+        };
+        Surface.prototype.drawArc = function (color, x, y, r, startangle, endangle, width) {
+            if (width === void 0) { width = 0; }
+            var ctx = this.context;
+            ctx.save();
+            ctx.beginPath();
+            if (width == 0) {
+                ctx.fillStyle = color;
+                ctx.arc(x, y, r, startangle, endangle);
+                ctx.fill();
+            }
+            else {
+                ctx.strokeStyle = color;
+                ctx.lineWidth = width;
+                ctx.arc(x, y, r, startangle, endangle);
+                ctx.stroke();
+            }
+            ctx.restore();
+            return this;
+        };
+        Surface.prototype.drawPolygon = function (color, p) {
+            var ctx = this.context;
+            ctx.save();
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            var i = 0;
+            while (i < p.length) {
+                if (i + 1 >= p.length)
+                    break;
+                if (i == 0)
+                    ctx.moveTo(p[i], p[i + 1]);
+                else
+                    ctx.lineTo(p[i], p[i + 1]);
+                i += 2;
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+            return this;
+        };
+        Surface.prototype.drawLine = function (color, x1, y1, x2, y2, width) {
+            if (width === void 0) { width = 1; }
+            var ctx = this.context;
+            ctx.save();
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            ctx.restore();
+            return this;
+        };
+        Surface.prototype.drawLines = function (color, p, width) {
+            if (width === void 0) { width = 1; }
+            var ctx = this.context;
+            ctx.save();
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            var i = 0;
+            while (i < p.length) {
+                if (i + 1 >= p.length)
+                    break;
+                if (i == 0)
+                    ctx.moveTo(p[i], p[i + 1]);
+                else
+                    ctx.lineTo(p[i], p[i + 1]);
+                i += 2;
+            }
+            ctx.stroke();
+            ctx.restore();
+            return this;
+        };
+        Surface.prototype.drawImage = function (image, x, y) {
+            var ctx = this.context;
+            ctx.drawImage(image, x, y);
+            return this;
         };
         return Surface;
     })();
