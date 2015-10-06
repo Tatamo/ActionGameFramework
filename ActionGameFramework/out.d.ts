@@ -154,10 +154,16 @@ declare module Game {
         constructor(surface: Surface);
         constructor(image: HTMLElement);
         protected copy(share_canvas?: boolean): Surface;
+        clear(): Surface;
+        crop(x: number, y: number, width: number, height: number): Surface;
+        setGlobalCompositeOperation(blend?: string): Surface;
+        setGlobalAlpha(a?: number): Surface;
         rotate(angle: number, rotate_center_x?: number, rotate_center_y?: number, resize?: boolean): Surface;
         scale(x: number, y: number, resize?: boolean): Surface;
         flip(xbool: boolean, ybool: boolean): Surface;
-        drawSurface(source: Surface, dest_x: number, dest_y: number): Surface;
+        invertColor(): Surface;
+        changeRGBBrightness(r?: number, g?: number, b?: number, destructive?: boolean): Surface;
+        drawSurface(source: Surface, dest_x?: number, dest_y?: number): Surface;
         drawRect(color: string, x: number, y: number, w: number, h: number, width?: number): Surface;
         drawCircle(color: string, x: number, y: number, r: number, width?: number): Surface;
         drawEllipse(color: string, x: number, y: number, w: number, h: number, width?: number): Surface;

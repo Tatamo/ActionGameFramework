@@ -70,7 +70,28 @@
                 return (new Surface(this.width, this.height)).drawImage(this.canvas, 0, 0);
             }
         }
-
+        clear() {
+            var ctx = this.context;
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            ctx.restore();
+            return this;
+        }
+        crop(x: number, y: number, width: number, height: number) {
+            var ctx = this.context;
+            var result = new Surface(this.width, this.height);
+            result.context.drawImage(this.canvas, x, y, width, height, 0, 0, width, height);
+            return result;
+        }
+        setGlobalCompositeOperation(blend: string = "source-over") {
+            this.context.globalCompositeOperation = blend;
+            return this;
+        }
+        setGlobalAlpha(a: number = 1) {
+            this.context.globalAlpha = a;
+            return this;
+        }
         rotate(angle: number, rotate_center_x: number = 0, rotate_center_y: number = 0, resize: boolean = false) {
             var tmp = new Surface(this); // 処理前の現在の画像を退避させておく
             var ctx = this.context;
@@ -111,7 +132,40 @@
             ctx.restore();
             return this;
         }
-        drawSurface(source: Surface, dest_x: number, dest_y: number) {
+        // 色を反転する
+        invertColor() {
+            var ctx = this.context;
+            var tmp = ctx.getImageData(0, 0, this.width, this.height);
+            var data = tmp.data;
+            for (var i = 0; i < data.length; i += 4) {
+                data[i] = 255 - data[i];
+                data[i + 1] = 255 - data[i + 1];
+                data[i + 2] = 255 - data[i + 2];
+            }
+            ctx.putImageData(tmp, 0, 0);
+            return this;
+        }
+        // RGBそれぞれの色の描画輝度を変更した新しいSurfaceを得る (r,g,b∈[0,255])
+        changeRGBBrightness(r: number = 255, g: number = 255, b: number = 255, destructive: boolean = true) {
+            if (destructive) var result = this;
+            else var result = new Surface(this);
+            r = Math.min(255, Math.max(0, r));
+            g = Math.min(255, Math.max(0, g));
+            b = Math.min(255, Math.max(0, b));
+
+            var ctx = result.context;
+            var tmp = ctx.getImageData(0, 0, result.width, result.height);
+            var data = tmp.data;
+            for (var i = 0; i < data.length; i += 4) {
+                data[i] = Math.floor(data[i] * r / 255);
+                data[i + 1] = Math.floor(data[i + 1] * g / 255);
+                data[i + 2] = Math.floor(data[i + 2] * b / 255);
+            }
+            ctx.putImageData(tmp, 0, 0);
+
+            return result;
+        }
+        drawSurface(source: Surface, dest_x: number = 0, dest_y: number = 0) {
             this.context.drawImage(source.canvas, dest_x, dest_y);
             return this;
         }

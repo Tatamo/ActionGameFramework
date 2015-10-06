@@ -42,7 +42,6 @@
     <TypeScriptCompile Include="src\graphics\surface.ts" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ClassDiagram1.cd" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>

@@ -9,10 +9,15 @@ window.onload = function () {
     s.drawLine("green", 384, 64, 480, 96);
     s.drawLines("green", [32, 32, 64, 32, 64, 64, 48, 96, 32, 64], 3);
     s.drawRect("blue", 128, 128, 64, 32);
-    s.drawPolygon("rgba(0,255,0,0.5)", [128, 64, 256, 64, 128, 160]);
+    //s.drawPolygon("rgba(0,255,0,0.5)", [128, 64, 256, 64, 128, 160]);
     s.drawCircle("yellow", 256 + 32, 128, 32 - 8, 16);
-    s.rotate(30 * Math.PI / 360).flip(true, false).scale(0.8, 1.2);
+    s.flip(true, false).scale(0.8, 1.2).rotate(30 * Math.PI / 360);
     s.drawRect("black", 32, 32, 320, 256, 2);
+    s.drawSurface(s.crop(256, 128, 128, 128), 128, 64);
+    var tmp = new Game.Surface(s);
+    //s.invertColor();
+    //s.invertColor().setGlobalCompositeOperation("lighter").drawSurface(tmp).setGlobalCompositeOperation();
+    s.drawSurface(s.changeRGBBrightness(127, 255, 255), 128, 64);
 };
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -698,6 +703,30 @@ var Game;
                 return (new Surface(this.width, this.height)).drawImage(this.canvas, 0, 0);
             }
         };
+        Surface.prototype.clear = function () {
+            var ctx = this.context;
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            ctx.restore();
+            return this;
+        };
+        Surface.prototype.crop = function (x, y, width, height) {
+            var ctx = this.context;
+            var result = new Surface(this.width, this.height);
+            result.context.drawImage(this.canvas, x, y, width, height, 0, 0, width, height);
+            return result;
+        };
+        Surface.prototype.setGlobalCompositeOperation = function (blend) {
+            if (blend === void 0) { blend = "source-over"; }
+            this.context.globalCompositeOperation = blend;
+            return this;
+        };
+        Surface.prototype.setGlobalAlpha = function (a) {
+            if (a === void 0) { a = 1; }
+            this.context.globalAlpha = a;
+            return this;
+        };
         Surface.prototype.rotate = function (angle, rotate_center_x, rotate_center_y, resize) {
             if (rotate_center_x === void 0) { rotate_center_x = 0; }
             if (rotate_center_y === void 0) { rotate_center_y = 0; }
@@ -741,7 +770,46 @@ var Game;
             ctx.restore();
             return this;
         };
+        // 色を反転する
+        Surface.prototype.invertColor = function () {
+            var ctx = this.context;
+            var tmp = ctx.getImageData(0, 0, this.width, this.height);
+            var data = tmp.data;
+            for (var i = 0; i < data.length; i += 4) {
+                data[i] = 255 - data[i];
+                data[i + 1] = 255 - data[i + 1];
+                data[i + 2] = 255 - data[i + 2];
+            }
+            ctx.putImageData(tmp, 0, 0);
+            return this;
+        };
+        // RGBそれぞれの色の描画輝度を変更した新しいSurfaceを得る (r,g,b∈[0,255])
+        Surface.prototype.changeRGBBrightness = function (r, g, b, destructive) {
+            if (r === void 0) { r = 255; }
+            if (g === void 0) { g = 255; }
+            if (b === void 0) { b = 255; }
+            if (destructive === void 0) { destructive = true; }
+            if (destructive)
+                var result = this;
+            else
+                var result = new Surface(this);
+            r = Math.min(255, Math.max(0, r));
+            g = Math.min(255, Math.max(0, g));
+            b = Math.min(255, Math.max(0, b));
+            var ctx = result.context;
+            var tmp = ctx.getImageData(0, 0, result.width, result.height);
+            var data = tmp.data;
+            for (var i = 0; i < data.length; i += 4) {
+                data[i] = Math.floor(data[i] * r / 255);
+                data[i + 1] = Math.floor(data[i + 1] * g / 255);
+                data[i + 2] = Math.floor(data[i + 2] * b / 255);
+            }
+            ctx.putImageData(tmp, 0, 0);
+            return result;
+        };
         Surface.prototype.drawSurface = function (source, dest_x, dest_y) {
+            if (dest_x === void 0) { dest_x = 0; }
+            if (dest_y === void 0) { dest_y = 0; }
             this.context.drawImage(source.canvas, dest_x, dest_y);
             return this;
         };
