@@ -968,7 +968,7 @@ var Game;
         };
         // r,g,b:[0,255]
         Color.RGB2Number = function (r, g, b) {
-            return (r << 16 + r << 8 + b);
+            return ((r << 16) + (g << 8) + b);
         };
         // #000000 .. #ffffff または #000 .. #fff
         Color.Hex2RGB = function (color) {

@@ -328,7 +328,7 @@
         }
         // r,g,b:[0,255]
         static RGB2Number(r: number, g: number, b: number): number {
-            return (r << 16 + r << 8 + b);
+            return ((r << 16) + (g << 8) + b);
         }
         // #000000 .. #ffffff または #000 .. #fff
         static Hex2RGB(color: string): Array<number> {
