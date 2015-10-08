@@ -140,6 +140,46 @@ declare module Game {
     }
 }
 declare module Game {
+    class Color {
+        r: any;
+        g: any;
+        b: any;
+        a: any;
+        constructor(scheme: string, list: number[]);
+        constructor(scheme: string, x: number, y: number, z: number, w: number);
+        constructor(scheme: string, x: number, y: number, z: number);
+        constructor(color: string);
+        constructor(color: number);
+        setKeyword(color: string): void;
+        setNumber(value: number): void;
+        setHex(color: string): void;
+        setRGBA(r: number, g: number, b: number, a: number): void;
+        setRGB(r: number, g: number, b: number): void;
+        setHSLA(h: number, s: number, l: number, a: number): void;
+        setHSL(h: number, s: number, l: number): void;
+        setColorByString(color: string): void;
+        getRGB(): any[];
+        getRGBA(): any[];
+        getHSL(): number[];
+        getHSLA(): number[];
+        getNumber(): number;
+        getHex(): string;
+        static HSL2RGB(h: number, s: number, l: number): Array<number>;
+        static RGB2HSL(r: number, g: number, b: number): Array<number>;
+        static Number2RGB(color: number): Array<number>;
+        static RGB2Number(r: number, g: number, b: number): number;
+        static Hex2RGB(color: string): Array<number>;
+        static RGB2Hex(r: number, g: number, b: number): string;
+        static getNotationMode(color: string): string;
+        static getFunctionalNotationMode(color: string): string;
+        static getRGBColorByFunctionalNotation(color: string): Array<number>;
+        static getRGBAColorByFunctionalNotation(color: string): Array<number>;
+        static getHSLColorByFunctionalNotation(color: string): Array<number>;
+        static getHSLAColorByFunctionalNotation(color: string): Array<number>;
+        static limit(x: number, min: number, max: number): number;
+    }
+}
+declare module Game {
     interface ISurface {
     }
     class Surface {
@@ -163,6 +203,8 @@ declare module Game {
         flip(xbool: boolean, ybool: boolean): Surface;
         invertColor(): Surface;
         changeRGBBrightness(r?: number, g?: number, b?: number, destructive?: boolean): Surface;
+        changeHue(h: number, destructive?: boolean): void;
+        changeHSL(h: number, s: number, l: number, destructive?: boolean): void;
         drawSurface(source: Surface, dest_x?: number, dest_y?: number): Surface;
         drawRect(color: string, x: number, y: number, w: number, h: number, width?: number): Surface;
         drawCircle(color: string, x: number, y: number, r: number, width?: number): Surface;

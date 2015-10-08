@@ -165,6 +165,14 @@
 
             return result;
         }
+        changeHue(h: number, destructive: boolean = true) {
+
+        }
+        changeHSL(h: number, s: number, l: number, destructive: boolean = true) {
+            if (destructive) var result = this;
+            else var result = new Surface(this);
+
+        }
         drawSurface(source: Surface, dest_x: number = 0, dest_y: number = 0) {
             this.context.drawImage(source.canvas, dest_x, dest_y);
             return this;

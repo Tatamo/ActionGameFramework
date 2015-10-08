@@ -26,6 +26,7 @@
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
     <TypeScriptCompile Include="src\cofig.ts" />
+    <TypeScriptCompile Include="src\graphics\color.ts" />
     <TypeScriptCompile Include="src\shape\circle.ts" />
     <TypeScriptCompile Include="src\shape\collision.ts" />
     <TypeScriptCompile Include="src\shape\point.ts" />
