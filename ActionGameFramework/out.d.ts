@@ -203,8 +203,8 @@ declare module Game {
         flip(xbool: boolean, ybool: boolean): Surface;
         invertColor(): Surface;
         changeRGBBrightness(r?: number, g?: number, b?: number, destructive?: boolean): Surface;
-        changeHue(h: number, destructive?: boolean): void;
-        changeHSL(h: number, s: number, l: number, destructive?: boolean): void;
+        changeHSL(h: number, s: number, l: number, destructive?: boolean): Surface;
+        shiftHSL(h: number, s: number, l: number, destructive?: boolean): Surface;
         drawSurface(source: Surface, dest_x?: number, dest_y?: number): Surface;
         drawRect(color: string, x: number, y: number, w: number, h: number, width?: number): Surface;
         drawCircle(color: string, x: number, y: number, r: number, width?: number): Surface;

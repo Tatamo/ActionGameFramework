@@ -1,4 +1,5 @@
-﻿module Game {
+﻿/// <reference path="color.ts"/>
+module Game {
     export interface ISurface {
     }
     // TODO:
@@ -145,10 +146,11 @@
             ctx.putImageData(tmp, 0, 0);
             return this;
         }
-        // RGBそれぞれの色の描画輝度を変更した新しいSurfaceを得る (r,g,b∈[0,255])
+        // RGBそれぞれの色の描画輝度を変更する (r,g,b∈[0,255])
         changeRGBBrightness(r: number = 255, g: number = 255, b: number = 255, destructive: boolean = true) {
             if (destructive) var result = this;
             else var result = new Surface(this);
+
             r = Math.min(255, Math.max(0, r));
             g = Math.min(255, Math.max(0, g));
             b = Math.min(255, Math.max(0, b));
@@ -162,16 +164,52 @@
                 data[i + 2] = Math.floor(data[i + 2] * b / 255);
             }
             ctx.putImageData(tmp, 0, 0);
-
             return result;
         }
-        changeHue(h: number, destructive: boolean = true) {
-
-        }
+        // h:[0,360) s,l:[0,1]
+        // 値を変更しないときは必ずnullを明示的に渡します
         changeHSL(h: number, s: number, l: number, destructive: boolean = true) {
             if (destructive) var result = this;
             else var result = new Surface(this);
 
+            var ctx = result.context;
+            var tmp = ctx.getImageData(0, 0, result.width, result.height);
+            var data = tmp.data;
+            for (var i = 0; i < data.length; i += 4) {
+                var hsl = Color.RGB2HSL(data[i], data[i + 1], data[i + 2]);       
+                if (h !== null) hsl[0] = h;
+                if (s !== null) hsl[1] = s;
+                if (l !== null) hsl[2] = l;
+                var new_rgb = Color.HSL2RGB(hsl[0], hsl[1], hsl[2]);
+                data[i] = new_rgb[0];
+                data[i + 1] = new_rgb[1];
+                data[i + 2] = new_rgb[2];
+            }
+            ctx.putImageData(tmp, 0, 0);
+            return result;
+        }
+        // h:[0,360) s,l:[0,1]
+        // H値を与えられた値だけずらします
+        // 値を変更しないときは必ずnullを明示的に渡します
+        shiftHSL(h: number, s: number, l: number, destructive: boolean = true) {
+            if (destructive) var result = this;
+            else var result = new Surface(this);
+
+            var ctx = result.context;
+            var tmp = ctx.getImageData(0, 0, result.width, result.height);
+            var data = tmp.data;
+            for (var i = 0; i < data.length; i += 4) {
+                var hsl = Color.RGB2HSL(data[i], data[i + 1], data[i + 2]);
+                if (h !== null) hsl[0] = hsl[0] + h;
+                if (s !== null) hsl[1] = s;
+                if (l !== null) hsl[2] = l;
+                var new_rgb = Color.HSL2RGB(hsl[0], hsl[1], hsl[2]);
+                data[i] = new_rgb[0];
+                data[i + 1] = new_rgb[1];
+                data[i + 2] = new_rgb[2];
+            }
+            ctx.putImageData(tmp, 0, 0);
+            return result;
         }
         drawSurface(source: Surface, dest_x: number = 0, dest_y: number = 0) {
             this.context.drawImage(source.canvas, dest_x, dest_y);

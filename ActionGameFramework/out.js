@@ -1182,6 +1182,7 @@ var Game;
     })();
     Game.Color = Color;
 })(Game || (Game = {}));
+/// <reference path="color.ts"/>
 var Game;
 (function (Game) {
     // TODO:
@@ -1338,7 +1339,7 @@ var Game;
             ctx.putImageData(tmp, 0, 0);
             return this;
         };
-        // RGBそれぞれの色の描画輝度を変更した新しいSurfaceを得る (r,g,b∈[0,255])
+        // RGBそれぞれの色の描画輝度を変更する (r,g,b∈[0,255])
         Surface.prototype.changeRGBBrightness = function (r, g, b, destructive) {
             if (r === void 0) { r = 255; }
             if (g === void 0) { g = 255; }
@@ -1362,15 +1363,60 @@ var Game;
             ctx.putImageData(tmp, 0, 0);
             return result;
         };
-        Surface.prototype.changeHue = function (h, destructive) {
-            if (destructive === void 0) { destructive = true; }
-        };
+        // h:[0,360) s,l:[0,1]
+        // 値を変更しないときは必ずnullを明示的に渡します
         Surface.prototype.changeHSL = function (h, s, l, destructive) {
             if (destructive === void 0) { destructive = true; }
             if (destructive)
                 var result = this;
             else
                 var result = new Surface(this);
+            var ctx = result.context;
+            var tmp = ctx.getImageData(0, 0, result.width, result.height);
+            var data = tmp.data;
+            for (var i = 0; i < data.length; i += 4) {
+                var hsl = Game.Color.RGB2HSL(data[i], data[i + 1], data[i + 2]);
+                if (h !== null)
+                    hsl[0] = h;
+                if (s !== null)
+                    hsl[1] = s;
+                if (l !== null)
+                    hsl[2] = l;
+                var new_rgb = Game.Color.HSL2RGB(hsl[0], hsl[1], hsl[2]);
+                data[i] = new_rgb[0];
+                data[i + 1] = new_rgb[1];
+                data[i + 2] = new_rgb[2];
+            }
+            ctx.putImageData(tmp, 0, 0);
+            return result;
+        };
+        // h:[0,360) s,l:[0,1]
+        // H値を与えられた値だけずらします
+        // 値を変更しないときは必ずnullを明示的に渡します
+        Surface.prototype.shiftHSL = function (h, s, l, destructive) {
+            if (destructive === void 0) { destructive = true; }
+            if (destructive)
+                var result = this;
+            else
+                var result = new Surface(this);
+            var ctx = result.context;
+            var tmp = ctx.getImageData(0, 0, result.width, result.height);
+            var data = tmp.data;
+            for (var i = 0; i < data.length; i += 4) {
+                var hsl = Game.Color.RGB2HSL(data[i], data[i + 1], data[i + 2]);
+                if (h !== null)
+                    hsl[0] = hsl[0] + h;
+                if (s !== null)
+                    hsl[1] = s;
+                if (l !== null)
+                    hsl[2] = l;
+                var new_rgb = Game.Color.HSL2RGB(hsl[0], hsl[1], hsl[2]);
+                data[i] = new_rgb[0];
+                data[i + 1] = new_rgb[1];
+                data[i + 2] = new_rgb[2];
+            }
+            ctx.putImageData(tmp, 0, 0);
+            return result;
         };
         Surface.prototype.drawSurface = function (source, dest_x, dest_y) {
             if (dest_x === void 0) { dest_x = 0; }
