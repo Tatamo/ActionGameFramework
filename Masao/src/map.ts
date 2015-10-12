@@ -124,7 +124,7 @@
         draw() {
             for (var i = 0; i < this._height; i++) {
                 for (var ii = 0; ii < this._width; ii++) {
-                    if (this._map[i][ii]) this.screen.drawSurface(this._map[i][ii].surface, Math.round(this._map[i][ii].x), Math.round(this._map[i][ii].y));
+                    if (this._map[i][ii]) this.screen.drawImage(this._map[i][ii].surface, Math.round(this._map[i][ii].x), Math.round(this._map[i][ii].y));
                 }
             }
         }
