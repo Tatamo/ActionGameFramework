@@ -134,6 +134,7 @@ module Game {
             return this;
         }
         // 色を反転する
+        // ローカルファイルに対してこの操作を行うとエラーが発生する可能性があります
         invertColor() {
             var ctx = this.context;
             var tmp = ctx.getImageData(0, 0, this.width, this.height);
@@ -147,6 +148,7 @@ module Game {
             return this;
         }
         // RGBそれぞれの色の描画輝度を変更する (r,g,b∈[0,255])
+        // ローカルファイルに対してこの操作を行うとエラーが発生する可能性があります
         changeRGBBrightness(r: number = 255, g: number = 255, b: number = 255, destructive: boolean = true) {
             if (destructive) var result = this;
             else var result = new Surface(this);
@@ -168,6 +170,7 @@ module Game {
         }
         // h:[0,360) s,l:[0,1]
         // 値を変更しないときは必ずnullを明示的に渡します
+        // ローカルファイルに対してこの操作を行うとエラーが発生する可能性があります
         changeHSL(h: number, s: number, l: number, destructive: boolean = true) {
             if (destructive) var result = this;
             else var result = new Surface(this);
@@ -191,6 +194,7 @@ module Game {
         // h:[0,360) s,l:[0,1]
         // H値を与えられた値だけずらします
         // 値を変更しないときは必ずnullを明示的に渡します
+        // ローカルファイルに対してこの操作を行うとエラーが発生する可能性があります
         shiftHSL(h: number, s: number, l: number, destructive: boolean = true) {
             if (destructive) var result = this;
             else var result = new Surface(this);
@@ -228,19 +232,21 @@ module Game {
 		}*/
 
 
-        drawRect(color: string, x: number, y: number, w: number, h: number, width: number = 0) {
-            if (width != 0) return this.drawLines(color, [x, y, x + w, y, x + w, y + h, x, y + h, x, y], width);
+        drawRect(color: string, x: number, y: number, w: number, h: number, width: number = 0, blend: string = null) {
+            if (width) return this.drawLines(color, [x, y, x + w, y, x + w, y + h, x, y + h, x, y], width, blend);
             var ctx = this.context;
             ctx.save();
+            if (blend != null) ctx.globalCompositeOperation = blend;
             ctx.beginPath();
             ctx.fillStyle = color;
             ctx.fillRect(x, y, w, h);
             ctx.restore();
             return this;
         }
-        drawCircle(color: string, x: number, y: number, r: number, width: number = 0) {
+        drawCircle(color: string, x: number, y: number, r: number, width: number = 0, blend: string = null) {
             var ctx = this.context;
             ctx.save();
+            if (blend != null) ctx.globalCompositeOperation = blend;
             ctx.beginPath();
             if (width == 0) {
                 ctx.fillStyle = color;
@@ -256,9 +262,10 @@ module Game {
             ctx.restore();
             return this;
         }
-        drawEllipse(color: string, x: number, y: number, w: number, h: number, width: number = 0) {
+        drawEllipse(color: string, x: number, y: number, w: number, h: number, width: number = 0, blend: string = null) {
             var ctx = this.context;
             ctx.save();
+            if (blend != null) ctx.globalCompositeOperation = blend;
             ctx.beginPath();
             if (width == 0) {
                 ctx.fillStyle = color;
@@ -274,9 +281,10 @@ module Game {
             ctx.restore();
             return this;
         }
-        drawArc(color: string, x: number, y: number, r: number, startangle: number, endangle: number, width: number = 0) {
+        drawArc(color: string, x: number, y: number, r: number, startangle: number, endangle: number, width: number = 0, blend: string = null) {
             var ctx = this.context;
             ctx.save();
+            if (blend != null) ctx.globalCompositeOperation = blend;
             ctx.beginPath();
             if (width == 0) {
                 ctx.fillStyle = color;
@@ -292,9 +300,10 @@ module Game {
             ctx.restore();
             return this;
         }
-        drawPolygon(color: string, p: Array<number>) {
+        drawPolygon(color: string, p: Array<number>, blend: string = null) {
             var ctx = this.context;
             ctx.save();
+            if (blend != null) ctx.globalCompositeOperation = blend;
             ctx.beginPath();
             ctx.fillStyle = color;
             var i = 0;
@@ -309,9 +318,10 @@ module Game {
             ctx.restore();
             return this;
         }
-        drawLine(color: string, x1: number, y1: number, x2: number, y2: number, width: number = 1) {
+        drawLine(color: string, x1: number, y1: number, x2: number, y2: number, width: number = 1, blend: string = null) {
             var ctx = this.context;
             ctx.save();
+            if (blend != null) ctx.globalCompositeOperation = blend;
             ctx.beginPath();
             ctx.strokeStyle = color;
             ctx.lineWidth = width;
@@ -321,9 +331,10 @@ module Game {
             ctx.restore();
             return this;
         }
-        drawLines(color: string, p: Array<number>, width: number = 1) {
+        drawLines(color: string, p: Array<number>, width: number = 1, blend: string = null) {
             var ctx = this.context;
             ctx.save();
+            if (blend != null) ctx.globalCompositeOperation = blend;
             ctx.beginPath();
             ctx.strokeStyle = color;
             ctx.lineWidth = width;
@@ -338,9 +349,10 @@ module Game {
             ctx.restore();
             return this;
         }
-        drawImage(image: HTMLElement|Surface, dest_x: number, dest_y: number) {
+        drawImage(image: HTMLElement|Surface, dest_x: number, dest_y: number, blend: string = null) {
             if (image instanceof Surface) image = (<Surface>image).canvas;
             var ctx = this.context;
+            if (blend != null) ctx.globalCompositeOperation = blend;
             ctx.drawImage(<HTMLElement>image, dest_x, dest_y);
             return this;
         }

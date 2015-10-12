@@ -1327,6 +1327,7 @@ var Game;
             return this;
         };
         // 色を反転する
+        // ローカルファイルに対してこの操作を行うとエラーが発生する可能性があります
         Surface.prototype.invertColor = function () {
             var ctx = this.context;
             var tmp = ctx.getImageData(0, 0, this.width, this.height);
@@ -1340,6 +1341,7 @@ var Game;
             return this;
         };
         // RGBそれぞれの色の描画輝度を変更する (r,g,b∈[0,255])
+        // ローカルファイルに対してこの操作を行うとエラーが発生する可能性があります
         Surface.prototype.changeRGBBrightness = function (r, g, b, destructive) {
             if (r === void 0) { r = 255; }
             if (g === void 0) { g = 255; }
@@ -1365,6 +1367,7 @@ var Game;
         };
         // h:[0,360) s,l:[0,1]
         // 値を変更しないときは必ずnullを明示的に渡します
+        // ローカルファイルに対してこの操作を行うとエラーが発生する可能性があります
         Surface.prototype.changeHSL = function (h, s, l, destructive) {
             if (destructive === void 0) { destructive = true; }
             if (destructive)
@@ -1393,6 +1396,7 @@ var Game;
         // h:[0,360) s,l:[0,1]
         // H値を与えられた値だけずらします
         // 値を変更しないときは必ずnullを明示的に渡します
+        // ローカルファイルに対してこの操作を行うとエラーが発生する可能性があります
         Surface.prototype.shiftHSL = function (h, s, l, destructive) {
             if (destructive === void 0) { destructive = true; }
             if (destructive)
@@ -1432,22 +1436,28 @@ var Game;
                 this.canvas_buffer.style.visibility = "hidden";
             }
         }*/
-        Surface.prototype.drawRect = function (color, x, y, w, h, width) {
+        Surface.prototype.drawRect = function (color, x, y, w, h, width, blend) {
             if (width === void 0) { width = 0; }
-            if (width != 0)
-                return this.drawLines(color, [x, y, x + w, y, x + w, y + h, x, y + h, x, y], width);
+            if (blend === void 0) { blend = null; }
+            if (width)
+                return this.drawLines(color, [x, y, x + w, y, x + w, y + h, x, y + h, x, y], width, blend);
             var ctx = this.context;
             ctx.save();
+            if (blend != null)
+                ctx.globalCompositeOperation = blend;
             ctx.beginPath();
             ctx.fillStyle = color;
             ctx.fillRect(x, y, w, h);
             ctx.restore();
             return this;
         };
-        Surface.prototype.drawCircle = function (color, x, y, r, width) {
+        Surface.prototype.drawCircle = function (color, x, y, r, width, blend) {
             if (width === void 0) { width = 0; }
+            if (blend === void 0) { blend = null; }
             var ctx = this.context;
             ctx.save();
+            if (blend != null)
+                ctx.globalCompositeOperation = blend;
             ctx.beginPath();
             if (width == 0) {
                 ctx.fillStyle = color;
@@ -1463,10 +1473,13 @@ var Game;
             ctx.restore();
             return this;
         };
-        Surface.prototype.drawEllipse = function (color, x, y, w, h, width) {
+        Surface.prototype.drawEllipse = function (color, x, y, w, h, width, blend) {
             if (width === void 0) { width = 0; }
+            if (blend === void 0) { blend = null; }
             var ctx = this.context;
             ctx.save();
+            if (blend != null)
+                ctx.globalCompositeOperation = blend;
             ctx.beginPath();
             if (width == 0) {
                 ctx.fillStyle = color;
@@ -1482,10 +1495,13 @@ var Game;
             ctx.restore();
             return this;
         };
-        Surface.prototype.drawArc = function (color, x, y, r, startangle, endangle, width) {
+        Surface.prototype.drawArc = function (color, x, y, r, startangle, endangle, width, blend) {
             if (width === void 0) { width = 0; }
+            if (blend === void 0) { blend = null; }
             var ctx = this.context;
             ctx.save();
+            if (blend != null)
+                ctx.globalCompositeOperation = blend;
             ctx.beginPath();
             if (width == 0) {
                 ctx.fillStyle = color;
@@ -1501,9 +1517,12 @@ var Game;
             ctx.restore();
             return this;
         };
-        Surface.prototype.drawPolygon = function (color, p) {
+        Surface.prototype.drawPolygon = function (color, p, blend) {
+            if (blend === void 0) { blend = null; }
             var ctx = this.context;
             ctx.save();
+            if (blend != null)
+                ctx.globalCompositeOperation = blend;
             ctx.beginPath();
             ctx.fillStyle = color;
             var i = 0;
@@ -1521,10 +1540,13 @@ var Game;
             ctx.restore();
             return this;
         };
-        Surface.prototype.drawLine = function (color, x1, y1, x2, y2, width) {
+        Surface.prototype.drawLine = function (color, x1, y1, x2, y2, width, blend) {
             if (width === void 0) { width = 1; }
+            if (blend === void 0) { blend = null; }
             var ctx = this.context;
             ctx.save();
+            if (blend != null)
+                ctx.globalCompositeOperation = blend;
             ctx.beginPath();
             ctx.strokeStyle = color;
             ctx.lineWidth = width;
@@ -1534,10 +1556,13 @@ var Game;
             ctx.restore();
             return this;
         };
-        Surface.prototype.drawLines = function (color, p, width) {
+        Surface.prototype.drawLines = function (color, p, width, blend) {
             if (width === void 0) { width = 1; }
+            if (blend === void 0) { blend = null; }
             var ctx = this.context;
             ctx.save();
+            if (blend != null)
+                ctx.globalCompositeOperation = blend;
             ctx.beginPath();
             ctx.strokeStyle = color;
             ctx.lineWidth = width;
@@ -1555,10 +1580,13 @@ var Game;
             ctx.restore();
             return this;
         };
-        Surface.prototype.drawImage = function (image, dest_x, dest_y) {
+        Surface.prototype.drawImage = function (image, dest_x, dest_y, blend) {
+            if (blend === void 0) { blend = null; }
             if (image instanceof Surface)
                 image = image.canvas;
             var ctx = this.context;
+            if (blend != null)
+                ctx.globalCompositeOperation = blend;
             ctx.drawImage(image, dest_x, dest_y);
             return this;
         };
