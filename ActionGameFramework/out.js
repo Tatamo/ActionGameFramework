@@ -13,11 +13,11 @@ window.onload = function () {
     s.drawCircle("yellow", 256 + 32, 128, 32 - 8, 16);
     s.flip(true, false).scale(0.8, 1.2).rotate(30 * Math.PI / 360);
     s.drawRect("black", 32, 32, 320, 256, 2);
-    s.drawSurface(s.crop(256, 128, 128, 128), 128, 64);
+    s.drawImage(s.crop(256, 128, 128, 128), 128, 64);
     var tmp = new Game.Surface(s);
     //s.invertColor();
     //s.invertColor().setGlobalCompositeOperation("lighter").drawSurface(tmp).setGlobalCompositeOperation();
-    s.drawSurface(s.changeRGBBrightness(127, 255, 255), 128, 64);
+    s.drawImage(s.changeRGBBrightness(127, 255, 255), 128, 64);
 };
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -1418,12 +1418,6 @@ var Game;
             ctx.putImageData(tmp, 0, 0);
             return result;
         };
-        Surface.prototype.drawSurface = function (source, dest_x, dest_y) {
-            if (dest_x === void 0) { dest_x = 0; }
-            if (dest_y === void 0) { dest_y = 0; }
-            this.context.drawImage(source.canvas, dest_x, dest_y);
-            return this;
-        };
         /*// 対象のSurfaceに自身を描画する
         Draw2Sufrace(target: Surface, x: number, y: number) {
             target.context.drawImage(this.canvas, x, y);
@@ -1561,9 +1555,11 @@ var Game;
             ctx.restore();
             return this;
         };
-        Surface.prototype.drawImage = function (image, x, y) {
+        Surface.prototype.drawImage = function (image, dest_x, dest_y) {
+            if (image instanceof Surface)
+                image = image.canvas;
             var ctx = this.context;
-            ctx.drawImage(image, x, y);
+            ctx.drawImage(image, dest_x, dest_y);
             return this;
         };
         return Surface;
@@ -1987,7 +1983,7 @@ var Game;
             if (view_x === void 0) { view_x = 0; }
             if (view_y === void 0) { view_y = 0; }
             for (var i = 0; i < this._sprites.length; i++) {
-                this.screen.drawSurface(this._sprites[i].surface, Math.round(this._sprites[i].x) - view_x, Math.round(this._sprites[i].y - view_y));
+                this.screen.drawImage(this._sprites[i].surface, Math.round(this._sprites[i].x) - view_x, Math.round(this._sprites[i].y - view_y));
             }
         };
         return Group;

@@ -211,10 +211,6 @@ module Game {
             ctx.putImageData(tmp, 0, 0);
             return result;
         }
-        drawSurface(source: Surface, dest_x: number = 0, dest_y: number = 0) {
-            this.context.drawImage(source.canvas, dest_x, dest_y);
-            return this;
-        }
 		/*// 対象のSurfaceに自身を描画する
 		Draw2Sufrace(target: Surface, x: number, y: number) {
 			target.context.drawImage(this.canvas, x, y);
@@ -342,9 +338,10 @@ module Game {
             ctx.restore();
             return this;
         }
-        drawImage(image: HTMLElement, x: number, y: number) {
+        drawImage(image: HTMLElement|Surface, dest_x: number, dest_y: number) {
+            if (image instanceof Surface) image = (<Surface>image).canvas;
             var ctx = this.context;
-            ctx.drawImage(image, x, y);
+            ctx.drawImage(<HTMLElement>image, dest_x, dest_y);
             return this;
         }
     }

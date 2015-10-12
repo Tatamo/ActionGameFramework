@@ -205,7 +205,6 @@ declare module Game {
         changeRGBBrightness(r?: number, g?: number, b?: number, destructive?: boolean): Surface;
         changeHSL(h: number, s: number, l: number, destructive?: boolean): Surface;
         shiftHSL(h: number, s: number, l: number, destructive?: boolean): Surface;
-        drawSurface(source: Surface, dest_x?: number, dest_y?: number): Surface;
         drawRect(color: string, x: number, y: number, w: number, h: number, width?: number): Surface;
         drawCircle(color: string, x: number, y: number, r: number, width?: number): Surface;
         drawEllipse(color: string, x: number, y: number, w: number, h: number, width?: number): Surface;
@@ -213,7 +212,7 @@ declare module Game {
         drawPolygon(color: string, p: Array<number>): Surface;
         drawLine(color: string, x1: number, y1: number, x2: number, y2: number, width?: number): Surface;
         drawLines(color: string, p: Array<number>, width?: number): Surface;
-        drawImage(image: HTMLElement, x: number, y: number): Surface;
+        drawImage(image: HTMLElement | Surface, dest_x: number, dest_y: number): Surface;
     }
     class PatternSurface extends Surface {
         private _im;

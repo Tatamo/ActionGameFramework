@@ -17,9 +17,9 @@ window.onload = () => {
         .scale(0.8, 1.2)
         .rotate(30 * Math.PI / 360);
     s.drawRect("black", 32, 32, 320, 256, 2);
-    s.drawSurface(s.crop(256, 128, 128, 128), 128, 64);
+    s.drawImage(s.crop(256, 128, 128, 128), 128, 64);
     var tmp = new Game.Surface(s);
     //s.invertColor();
     //s.invertColor().setGlobalCompositeOperation("lighter").drawSurface(tmp).setGlobalCompositeOperation();
-    s.drawSurface(s.changeRGBBrightness(127, 255, 255), 128, 64);
+    s.drawImage(s.changeRGBBrightness(127, 255, 255), 128, 64);
 };
