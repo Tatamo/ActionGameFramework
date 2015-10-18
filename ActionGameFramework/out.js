@@ -146,9 +146,10 @@ var Game;
 (function (Game) {
     // アセットの取り扱いと重い依存性を一手に引き受けるクラス
     var AssetsManagerManager = (function () {
+        //public image: ImageManager;
         function AssetsManagerManager() {
-            this.image = new ImageManager();
-            this.loader = new Loader([this.image.loader]);
+            //this.image = new ImageManager();
+            this.loader = new Loader();
         }
         /*// ロードする画像の登録
         public regist_image(label: string, path: string) {
@@ -166,129 +167,73 @@ var Game;
         return AssetsManagerManager;
     })();
     Game.AssetsManagerManager = AssetsManagerManager;
-    (function (PreloadStates) {
-        PreloadStates[PreloadStates["UNLOAD"] = 0] = "UNLOAD";
-        PreloadStates[PreloadStates["LOADING"] = 1] = "LOADING";
-        PreloadStates[PreloadStates["NOTHING2LOAD"] = 2] = "NOTHING2LOAD";
-    })(Game.PreloadStates || (Game.PreloadStates = {}));
-    var PreloadStates = Game.PreloadStates;
-    // 複数のLoaderを束ねたかのように振舞うローダー ただしアセットの登録は行えない
-    // Loaderインターフェースに定義されたメソッドのみを持つ
-    var Loader = (function () {
-        function Loader(list) {
-            this.loaders = list;
+    var LoadingCompleteEvent = (function (_super) {
+        __extends(LoadingCompleteEvent, _super);
+        function LoadingCompleteEvent(type, item) {
+            _super.call(this, type);
         }
-        Object.defineProperty(Loader.prototype, "state", {
+        return LoadingCompleteEvent;
+    })(Game.Event);
+    Game.LoadingCompleteEvent = LoadingCompleteEvent;
+    // UNDONE:画像以外のロード
+    // TODO:新しいEventを定義して読み込んだファイルの情報を渡せるように
+    var Loader = (function (_super) {
+        __extends(Loader, _super);
+        function Loader() {
+            _super.call(this);
+            this._unloadeds = [];
+            this._is_load_started = false;
+            this._is_load_completed = false;
+            this._count = 0;
+        }
+        Object.defineProperty(Loader.prototype, "is_load_started", {
             get: function () {
-                var f = false;
-                for (var i = 0; i < this.loaders.length; i++) {
-                    if (this.loaders[i].state == 1 /* LOADING */)
-                        return 1 /* LOADING */;
-                    if (this.loaders[i].state == 0 /* UNLOAD */)
-                        f = true;
-                }
-                if (f)
-                    return 0 /* UNLOAD */;
-                else
-                    return 2 /* NOTHING2LOAD */;
+                return this._is_load_started;
             },
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(Loader.prototype, "count", {
+        Object.defineProperty(Loader.prototype, "is_load_completed", {
             get: function () {
-                var c = 0;
-                for (var i = 0; i < this.loaders.length; i++) {
-                    c += this.loaders[i].count;
-                }
-                return c;
+                return this._is_load_completed;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Loader.prototype, "is_loading", {
+            get: function () {
+                return (this._is_load_started && !this._is_load_completed);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Loader.prototype, "count_all", {
+            // ロードするべき総数
+            get: function () {
+                if (!this.is_load_started)
+                    return this._unloadeds.length; // ロード開始前
+                else
+                    return this._count; // ロード開始後
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(Loader.prototype, "count_loadeds", {
-            get: function () {
-                var c = 0;
-                for (var i = 0; i < this.loaders.length; i++) {
-                    c += this.loaders[i].count_loadeds;
-                }
-                return c;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Loader.prototype.load = function (cb) {
-            var _this = this;
-            if (this.state == 2 /* NOTHING2LOAD */) {
-                cb();
-                return;
-            }
-            if (this.state == 1 /* LOADING */)
-                throw new Error("loading is now processing");
-            var i = 0;
-            var callback = function () {
-                if (++i < _this.loaders.length) {
-                    _this.loaders[i].load(callback);
-                }
-                else {
-                    cb();
-                }
-            };
-            if (i < this.loaders.length) {
-                this.loaders[i].load(callback);
-            }
-            else
-                cb();
-        };
-        return Loader;
-    })();
-    Game.Loader = Loader;
-    // UNDONE:画像以外のロード
-    var AbstractLoader = (function () {
-        function AbstractLoader() {
-            this._unloadeds = [];
-            this._isloading = false;
-            this._count = 0;
-        }
-        Object.defineProperty(AbstractLoader.prototype, "state", {
-            get: function () {
-                if (this._unloadeds.length == 0) {
-                    return 2 /* NOTHING2LOAD */;
-                }
-                if (this._isloading)
-                    return 1 /* LOADING */;
-                return 0 /* UNLOAD */;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(AbstractLoader.prototype, "count", {
-            // ロードするべき総数
-            get: function () {
-                if (this.state == 0 /* UNLOAD */)
-                    return this._unloadeds.length;
-                else
-                    return this._count;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(AbstractLoader.prototype, "count_loadeds", {
             // いくつロード完了しているか
             get: function () {
-                if (this.state == 0 /* UNLOAD */)
-                    return 0;
-                else if (this.state == 1 /* LOADING */)
-                    return this.count - this._unloadeds.length;
+                if (!this._is_load_started)
+                    return 0; // ロード前
+                else if (!this.is_load_completed)
+                    return this.count_all - this._unloadeds.length; // ロード中
                 else
-                    return this.count;
+                    return this.count_all; // ロード後
             },
             enumerable: true,
             configurable: true
         });
         // 画像の名前とパスをキューに追加します
         // push(label,path,callback?)
-        AbstractLoader.prototype.push = function (l, p, cb) {
+        Loader.prototype.push = function (l, p, cb) {
             //push(l: string, p: string) {
             // UNDONE:重複keyの検出
             //if(this.has(key)) throw new Error("\"" + key + "\"is already defined.");
@@ -296,53 +241,33 @@ var Game;
         };
         // TODO: 1-(unloadeds.length/count)の取得
         // キューに追加された画像をすべて読み込みます
-        AbstractLoader.prototype.load = function (cb) {
+        Loader.prototype.load = function () {
             //if (this.state == PreloadStates.NOTHING2LOAD) throw new Error("there is nothing to load");
-            if (this.state == 2 /* NOTHING2LOAD */) {
-                cb();
+            if (this._unloadeds.length == 0) {
+                console.log("there is nothing to load. loading cancelled.");
                 return;
             }
-            if (this.state == 1 /* LOADING */)
+            if (this.is_load_started)
                 throw new Error("loading is now processing");
             this._count = this._unloadeds.length;
-            this._isloading = true;
-            this.__load(cb);
+            this._is_load_started = true;
+            this.dispatchEvent(new Game.Event("load_start"));
+            this._load();
         };
         // 再帰的 そとからよぶな ぶちころがすぞ
-        AbstractLoader.prototype.__load = function (cb) {
+        Loader.prototype._load = function () {
             if (this._unloadeds.length > 0) {
-                this._load();
+                // TODO: Image以外の場合分け
+                this._loadImage();
             }
             else {
                 // 読み込み完了
-                this._isloading = false;
-                if (cb)
-                    cb();
+                this._is_load_completed = false;
+                this.dispatchEvent(new Game.Event("load_complete"));
             }
         };
-        // 再帰的 そとからよぶな ぶちころがすぞ
-        // to be overridden
-        // 処理終了時にthis.__load(cb)を呼ぶこと
-        AbstractLoader.prototype._load = function (cb) {
-            /*var tmp = this._unloadeds.shift();
-
-            var img = new Image();
-            img.onload = () => {
-                console.log(img);
-                //this._asset.add(tmp.label, img, ResourceType.IMAGE); 下のコールバックで追加させる
-                this.__load(cb);
-            }
-            img.src = tmp.path;*/
-        };
-        return AbstractLoader;
-    })();
-    Game.AbstractLoader = AbstractLoader;
-    var ImageLoader = (function (_super) {
-        __extends(ImageLoader, _super);
-        function ImageLoader() {
-            _super.apply(this, arguments);
-        }
-        ImageLoader.prototype._load = function (cb) {
+        // 処理終了時にthis._load()を呼ぶこと
+        Loader.prototype._loadImage = function (cb) {
             var _this = this;
             var tmp = this._unloadeds.shift();
             var img = new Image();
@@ -351,156 +276,23 @@ var Game;
                 //this._asset.add(tmp.label, img, ResourceType.IMAGE); 下のコールバックで追加させる
                 if (tmp.callback)
                     tmp.callback(img, tmp.label);
-                _this.__load(cb);
+                _this.dispatchEvent(new Game.Event("load_progress"));
+                _this._load();
             };
             img.src = tmp.path;
         };
-        return ImageLoader;
-    })(AbstractLoader);
-    Game.ImageLoader = ImageLoader;
-    // ロードした画像の取得
-    // TODO:良い名前に変える
-    // TODO:切り出した画像のキャッシュ
+        return Loader;
+    })(Game.EventDispatcher);
+    Game.Loader = Loader;
     var ImageManager = (function () {
         function ImageManager() {
-            this.images = new Game.Registrar();
-            this._loader = new ImageLoader();
-            this.loader = this._loader;
         }
-        ImageManager.prototype.get = function (name, a, b) {
-            var generator = this.images.get(name);
-            if (generator == undefined)
-                throw new Error("no image with such a name");
-            if (a == undefined)
-                a = 0; // 引数1つ
-            if (b == undefined) {
-                return generator.get(a);
-            }
-            else {
-                // (x,y)を取得する
-                return generator.get(a, b);
-            }
-        };
-        ImageManager.prototype.getwide = function (name, a, b, c, d) {
-            var generator = this.images.get(name);
-            if (d == undefined) {
-                // code
-                return generator.getwide(a, b, c);
-            }
-            else {
-                // (x,y)
-                return generator.getwide(a, b, c, d);
-            }
-        };
-        ImageManager.prototype.set = function (name, img, chipwidth, chipheight) {
-            if (chipwidth === void 0) { chipwidth = 0; }
-            if (chipheight === void 0) { chipheight = 0; }
-            var generator = new PatternImageGenerator(img, chipwidth, chipheight);
-            this.images.set(name, generator);
-        };
-        // ロードする画像の登録
-        ImageManager.prototype.regist_image = function (label, path) {
-            var _this = this;
-            var cb = function (file, label) {
-                _this.set(label, file, file.width, file.height);
-            };
-            this._loader.push(label, path, cb);
-        };
-        // ロードするパターン画像の登録
-        ImageManager.prototype.regist_pattern = function (label, path, c_width, c_height) {
-            var _this = this;
-            var cb = function (file, label) {
-                _this.set(label, file, c_width, c_height);
-            };
-            this._loader.push(label, path, cb);
-        };
-        ImageManager.prototype.load = function () {
-            this._loader.load();
+        ImageManager.prototype.getwide = function (a, b, c, d) {
+            return document.createElement("canvas");
         };
         return ImageManager;
     })();
     Game.ImageManager = ImageManager;
-    // 一つの元画像を持ち、そこから画像を切り出して取得できる
-    var PatternImageGenerator = (function () {
-        function PatternImageGenerator(img, _chipwidth, _chipheight) {
-            if (_chipwidth === void 0) { _chipwidth = 0; }
-            if (_chipheight === void 0) { _chipheight = 0; }
-            this._chipwidth = _chipwidth;
-            this._chipheight = _chipheight;
-            this.baseimg = img;
-            if (_chipwidth > 0 && _chipheight > 0) {
-                // 分割画像
-                this._countx = Math.ceil(img.width / _chipwidth); // 端数切り上げ
-                this._county = Math.ceil(img.height / _chipheight); // 端数切り上げ
-            }
-            else {
-                // 第二または第三引数が0以下ならば一枚画像である
-                // 一枚画像
-                this._countx = 1;
-                this._county = 1;
-                this._chipwidth = img.width;
-                this._chipheight = img.height;
-            }
-        }
-        Object.defineProperty(PatternImageGenerator.prototype, "chipwidth", {
-            get: function () {
-                return this._chipwidth;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(PatternImageGenerator.prototype, "chipheight", {
-            get: function () {
-                return this._chipheight;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(PatternImageGenerator.prototype, "countx", {
-            get: function () {
-                return this._countx;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(PatternImageGenerator.prototype, "county", {
-            get: function () {
-                return this._county;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        // (x,y)→code
-        PatternImageGenerator.prototype.xy2code = function (x, y) {
-            return this._countx * y + x;
-        };
-        PatternImageGenerator.prototype.get = function (a, b) {
-            if (a == undefined)
-                return this.get(0); // 引数なし→0
-            else if (b != undefined)
-                return this.get(this.xy2code(a, b)); // 引数2つ (x,y)→code
-            else {
-                return this.getwide(a, 1, 1);
-            }
-        };
-        PatternImageGenerator.prototype.getwide = function (a, b, c, d) {
-            if (d != undefined)
-                return this.getwide(this.xy2code(a, b), c, d); // 引数4つ (x,y)→code
-            else {
-                // 新しいcanvasを作ってそこに切り出された画像を描画
-                // TODO:canvasではなくimageに
-                // TODO:一度生成したものを保持して使いまわし可能に
-                var canvas = document.createElement("canvas");
-                canvas.width = this.chipwidth * b;
-                canvas.height = this.chipheight * c;
-                var sx = (a % this.countx) * this.chipwidth;
-                var sy = Math.floor(a / this.countx) * this.chipheight;
-                canvas.getContext("2d").drawImage(this.baseimg, sx, sy, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-                return canvas;
-            }
-        };
-        return PatternImageGenerator;
-    })();
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
@@ -618,7 +410,6 @@ var Game;
     var NumberEvent = (function (_super) {
         __extends(NumberEvent, _super);
         function NumberEvent(type, value) {
-            if (value === void 0) { value = 0; }
             _super.call(this, type);
             this.type = type;
             this.value = value;
@@ -626,6 +417,16 @@ var Game;
         return NumberEvent;
     })(Event);
     Game.NumberEvent = NumberEvent;
+    var StringEvent = (function (_super) {
+        __extends(StringEvent, _super);
+        function StringEvent(type, value) {
+            _super.call(this, type);
+            this.type = type;
+            this.value = value;
+        }
+        return StringEvent;
+    })(Event);
+    Game.StringEvent = StringEvent;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {

@@ -15,7 +15,7 @@
             }
             update(sm: GameStateMachine) {
                 var loader = sm.game.assets.loader;
-                if (loader.state == PreloadStates.NOTHING2LOAD) {
+                if (loader.is_load_completed) {
                     sm.replace(new Title());
                 }
             }

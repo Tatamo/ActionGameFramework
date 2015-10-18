@@ -33,63 +33,40 @@ declare module Game {
 declare module Game {
     class AssetsManagerManager {
         loader: Loader;
-        image: ImageManager;
         constructor();
         load(): void;
     }
-    enum PreloadStates {
-        UNLOAD = 0,
-        LOADING = 1,
-        NOTHING2LOAD = 2,
+    class LoadingCompleteEvent extends Event {
+        constructor(type: string, item: any);
     }
     interface ILoader {
-        state: PreloadStates;
-        count: number;
+        count_all: number;
         count_loadeds: number;
-        load(cb?: () => void): any;
+        push(l: string, p: string, cb?: (file: any, label: string) => void): any;
+        load(): any;
     }
-    class Loader implements ILoader {
-        private loaders;
-        constructor(list: Array<ILoader>);
-        state: PreloadStates;
-        count: number;
-        count_loadeds: number;
-        load(cb?: () => void): void;
-    }
-    class AbstractLoader implements ILoader {
+    class Loader extends EventDispatcher implements ILoader {
         protected _unloadeds: Array<{
             label: string;
             path: string;
             callback?: (file: any, label: string) => void;
         }>;
-        protected _isloading: boolean;
-        state: PreloadStates;
+        private _is_load_started;
+        private _is_load_completed;
         private _count;
-        count: number;
+        is_load_started: boolean;
+        is_load_completed: boolean;
+        is_loading: boolean;
+        count_all: number;
         count_loadeds: number;
         constructor();
         push(l: string, p: string, cb?: (file: any, label: string) => void): void;
-        load(cb?: () => void): void;
-        protected __load(cb: () => void): void;
-        protected _load(cb?: () => void): void;
-    }
-    class ImageLoader extends AbstractLoader {
-        _load(cb?: any): void;
+        load(): void;
+        protected _load(): void;
+        protected _loadImage(cb?: () => void): void;
     }
     class ImageManager {
-        private images;
-        loader: ILoader;
-        private _loader;
-        constructor();
-        get(name: string): any;
-        get(name: string, x: number, y: number): any;
-        get(name: string, code: number): any;
-        getwide(name: string, x: number, y: number, wx: number, wy: number): any;
-        getwide(name: string, code: number, wx: number, wy: number): any;
-        private set(name, img, chipwidth?, chipheight?);
-        regist_image(label: string, path: string): void;
-        regist_pattern(label: string, path: string, c_width: number, c_height: number): void;
-        load(): void;
+        getwide(a: any, b: any, c: any, d: any): HTMLCanvasElement;
     }
 }
 declare module Game {
@@ -136,7 +113,12 @@ declare module Game {
     class NumberEvent extends Event {
         type: string;
         value: number;
-        constructor(type: string, value?: number);
+        constructor(type: string, value: number);
+    }
+    class StringEvent extends Event {
+        type: string;
+        value: string;
+        constructor(type: string, value: string);
     }
 }
 declare module Game {

@@ -31,7 +31,7 @@ var Game;
             };
             Preload.prototype.update = function (sm) {
                 var loader = sm.game.assets.loader;
-                if (loader.state == 2 /* NOTHING2LOAD */) {
+                if (loader.is_load_completed) {
                     sm.replace(new States.Title());
                 }
             };
@@ -1319,243 +1319,6 @@ var Game;
         States.FireShotMoving = FireShotMoving;
     })(States = Game.States || (Game.States = {}));
 })(Game || (Game = {}));
-/// <reference path="enemy.ts"/>
-var Game;
-(function (Game) {
-    var Flier = (function (_super) {
-        __extends(Flier, _super);
-        function Flier(x, y, imagemanager, label) {
-            _super.call(this, x, y, imagemanager, label, 1, 1);
-            this.moving = new Game.EntityStateMachine(this);
-            this.moving.push(new States.FlierFlyingHorizontal());
-            this.addEventHandler("onstamped", this.onStamped);
-        }
-        Flier.prototype.onStamped = function (e) {
-            if (this.flags["isAlive"])
-                this.moving.replace(new States.FlierStamped());
-            this.vx = 0;
-            this.vy = 0;
-        };
-        Flier.prototype.move = function () {
-            this.x += this.vx / 10;
-            this.checkCollisionWithBlocksHorizontal(); // 接触判定
-            this.y += this.vy / 10;
-        };
-        Flier.prototype.checkCollisionWithBlocksHorizontal = function () {
-            // check
-            if (this.vx > 0) {
-                // right
-                var blocks = this.ss.getBlocks(this.x + this.width, this.y, this.width, this.height); // 右寄りに取得
-                for (var i = 0; i < blocks.length; i++) {
-                    var b = blocks[i];
-                    var bc = b.getCollision();
-                    if (new Game.Point(this.centerx + this.width - 1, this.bottom - 1).collision(bc)) {
-                        this.right = b.x - 16;
-                        this.vx = 0;
-                        this.reverse_horizontal = !this.reverse_horizontal;
-                    }
-                }
-            }
-            else if (this.vx < 0) {
-                // left
-                var blocks = this.ss.getBlocks(this.x - this.width, this.y, this.width, this.height); // 左寄りに取得
-                for (var i = 0; i < blocks.length; i++) {
-                    var b = blocks[i];
-                    var bc = b.getCollision();
-                    if (new Game.Point(this.centerx - this.width, this.bottom - 1).collision(bc)) {
-                        this.x = b.right + 16;
-                        this.vx = 0;
-                        this.reverse_horizontal = !this.reverse_horizontal;
-                    }
-                }
-            }
-        };
-        return Flier;
-    })(Game.AbstractEnemy);
-    Game.Flier = Flier;
-    var FlierUpDown = (function (_super) {
-        __extends(FlierUpDown, _super);
-        function FlierUpDown(x, y, imagemanager, label) {
-            _super.call(this, x, y, imagemanager, label);
-            this.moving = new Game.EntityStateMachine(this);
-            this.moving.push(new States.FlierFlyingVertical());
-            this.counter["y_lower"] = this.y - 52;
-            this.counter["y_upper"] = this.y - 12;
-        }
-        FlierUpDown.prototype.move = function () {
-            // 接触判定は行わない
-            this.x += this.vx / 10;
-            this.y += this.vy / 10;
-        };
-        return FlierUpDown;
-    })(Flier);
-    Game.FlierUpDown = FlierUpDown;
-    var ThreeFlierGenerator = (function (_super) {
-        __extends(ThreeFlierGenerator, _super);
-        function ThreeFlierGenerator(x, y, imagemanager, label) {
-            _super.call(this, x, y, imagemanager, label, 1, 1);
-            this.moving = new Game.EntityStateMachine(this);
-            this.moving.push(new States.Generate3FlierState());
-        }
-        return ThreeFlierGenerator;
-    })(Game.AbstractEntity);
-    Game.ThreeFlierGenerator = ThreeFlierGenerator;
-    var States;
-    (function (States) {
-        var FlierFlyingHorizontal = (function (_super) {
-            __extends(FlierFlyingHorizontal, _super);
-            function FlierFlyingHorizontal() {
-                _super.apply(this, arguments);
-            }
-            FlierFlyingHorizontal.prototype.enter = function (sm) {
-            };
-            FlierFlyingHorizontal.prototype.update = function (sm) {
-                var e = sm.e;
-                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
-                if (e.counter["ac"] < 2)
-                    e.code = 147;
-                else
-                    e.code = 148;
-                e.vx = e.reverse_horizontal ? 30 : -30;
-                var players = sm.e.ss.Players.get_all();
-                this.checkCollisionWithPlayer(sm);
-            };
-            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
-            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
-            FlierFlyingHorizontal.prototype.checkCollisionWithPlayer = function (sm) {
-                var e = sm.e;
-                var players = sm.e.ss.Players.get_all();
-                for (var i = 0; i < players.length; i++) {
-                    var p = players[i];
-                    // 現在のpをスコープに束縛
-                    (function (p) {
-                        p.addOnceEventHandler("update", function () {
-                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
-                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
-                            if (p.flags["isAlive"] && dx < 30 && dy < 23) {
-                                if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) {
-                                    e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
-                                    p.y = e.y - 12;
-                                    p.dispatchEvent(new Game.NumberEvent("onstamp", 2));
-                                    e.addOnceEventHandler("killed", function () {
-                                        p.dispatchEvent(new Game.ScoreEvent("addscore", 10));
-                                    });
-                                }
-                                else {
-                                    p.dispatchEvent(new Game.PlayerMissEvent("miss", 1));
-                                }
-                            }
-                        });
-                    })(p);
-                }
-            };
-            return FlierFlyingHorizontal;
-        })(States.AbstractState);
-        States.FlierFlyingHorizontal = FlierFlyingHorizontal;
-        var FlierFlyingVertical = (function (_super) {
-            __extends(FlierFlyingVertical, _super);
-            function FlierFlyingVertical() {
-                _super.apply(this, arguments);
-            }
-            FlierFlyingVertical.prototype.enter = function (sm) {
-                var e = sm.e;
-                e.vx = 0;
-                e.vy = -40;
-            };
-            FlierFlyingVertical.prototype.update = function (sm) {
-                var e = sm.e;
-                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
-                if (e.counter["ac"] < 2)
-                    e.code = 147;
-                else
-                    e.code = 148;
-                if (e.y <= e.counter["y_lower"]) {
-                    e.vy += 10;
-                    if (e.vy > 40)
-                        e.vy = 40;
-                }
-                else if (e.y >= e.counter["y_upper"]) {
-                    e.vy -= 10;
-                    if (e.vy < -40)
-                        e.vy = -40;
-                }
-                var players = sm.e.ss.Players.get_all();
-                var pt = null; // 最も近いプレイヤー
-                for (var i = 0; i < players.length; i++) {
-                    var p = players[i];
-                    if (pt == null) {
-                        pt = p;
-                    }
-                    else if (Math.abs(p.x - e.x) < Math.abs(pt.x - e.x)) {
-                        pt = p;
-                    }
-                }
-                if (pt != null) {
-                    if (e.x + 8 >= pt.x)
-                        e.reverse_horizontal = false; // 最も近いプレイヤーに合わせて反転状態を決定
-                    else
-                        e.reverse_horizontal = true;
-                }
-                this.checkCollisionWithPlayer(sm);
-            };
-            return FlierFlyingVertical;
-        })(FlierFlyingHorizontal);
-        States.FlierFlyingVertical = FlierFlyingVertical;
-        var FlierStamped = (function (_super) {
-            __extends(FlierStamped, _super);
-            function FlierStamped() {
-                _super.apply(this, arguments);
-            }
-            FlierStamped.prototype.enter = function (sm) {
-                sm.e.counter["ac"] = 0;
-                sm.e.code = 149;
-                sm.e.flags["isAlive"] = false;
-            };
-            FlierStamped.prototype.update = function (sm) {
-                var e = sm.e;
-                e.counter["ac"] += 1;
-                e.code = 149;
-                e.vx = 0;
-                e.vy = 0;
-                if (e.counter["ac"] > 14) {
-                    e.kill();
-                }
-            };
-            return FlierStamped;
-        })(States.AbstractState);
-        States.FlierStamped = FlierStamped;
-        var Generate3FlierState = (function (_super) {
-            __extends(Generate3FlierState, _super);
-            function Generate3FlierState() {
-                _super.apply(this, arguments);
-            }
-            Generate3FlierState.prototype.enter = function (sm) {
-            };
-            Generate3FlierState.prototype.update = function (sm) {
-                var e = sm.e;
-                for (var i = 0; i < 3; i++) {
-                    var dx = 0;
-                    var dy = 0;
-                    if (i == 1) {
-                        dx = 80;
-                        dy = -40;
-                    }
-                    else if (i == 2) {
-                        dx = 140;
-                        dy = 38;
-                    }
-                    var entity = new Flier(e.x + dx, e.y + dy, e.imagemanager, e.label);
-                    entity.counter["viewx_activate"] -= 32 * (i + 1);
-                    e.ss.add(entity);
-                    entity.update();
-                }
-                e.kill();
-            };
-            return Generate3FlierState;
-        })(States.AbstractState);
-        States.Generate3FlierState = Generate3FlierState;
-    })(States = Game.States || (Game.States = {}));
-})(Game || (Game = {}));
 /// <reference path="entity.ts"/>
 var Game;
 (function (Game) {
@@ -1937,6 +1700,243 @@ var Game;
 /// <reference path="enemy.ts"/>
 var Game;
 (function (Game) {
+    var Flier = (function (_super) {
+        __extends(Flier, _super);
+        function Flier(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.FlierFlyingHorizontal());
+            this.addEventHandler("onstamped", this.onStamped);
+        }
+        Flier.prototype.onStamped = function (e) {
+            if (this.flags["isAlive"])
+                this.moving.replace(new States.FlierStamped());
+            this.vx = 0;
+            this.vy = 0;
+        };
+        Flier.prototype.move = function () {
+            this.x += this.vx / 10;
+            this.checkCollisionWithBlocksHorizontal(); // 接触判定
+            this.y += this.vy / 10;
+        };
+        Flier.prototype.checkCollisionWithBlocksHorizontal = function () {
+            // check
+            if (this.vx > 0) {
+                // right
+                var blocks = this.ss.getBlocks(this.x + this.width, this.y, this.width, this.height); // 右寄りに取得
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
+                    if (new Game.Point(this.centerx + this.width - 1, this.bottom - 1).collision(bc)) {
+                        this.right = b.x - 16;
+                        this.vx = 0;
+                        this.reverse_horizontal = !this.reverse_horizontal;
+                    }
+                }
+            }
+            else if (this.vx < 0) {
+                // left
+                var blocks = this.ss.getBlocks(this.x - this.width, this.y, this.width, this.height); // 左寄りに取得
+                for (var i = 0; i < blocks.length; i++) {
+                    var b = blocks[i];
+                    var bc = b.getCollision();
+                    if (new Game.Point(this.centerx - this.width, this.bottom - 1).collision(bc)) {
+                        this.x = b.right + 16;
+                        this.vx = 0;
+                        this.reverse_horizontal = !this.reverse_horizontal;
+                    }
+                }
+            }
+        };
+        return Flier;
+    })(Game.AbstractEnemy);
+    Game.Flier = Flier;
+    var FlierUpDown = (function (_super) {
+        __extends(FlierUpDown, _super);
+        function FlierUpDown(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.FlierFlyingVertical());
+            this.counter["y_lower"] = this.y - 52;
+            this.counter["y_upper"] = this.y - 12;
+        }
+        FlierUpDown.prototype.move = function () {
+            // 接触判定は行わない
+            this.x += this.vx / 10;
+            this.y += this.vy / 10;
+        };
+        return FlierUpDown;
+    })(Flier);
+    Game.FlierUpDown = FlierUpDown;
+    var ThreeFlierGenerator = (function (_super) {
+        __extends(ThreeFlierGenerator, _super);
+        function ThreeFlierGenerator(x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
+            this.moving = new Game.EntityStateMachine(this);
+            this.moving.push(new States.Generate3FlierState());
+        }
+        return ThreeFlierGenerator;
+    })(Game.AbstractEntity);
+    Game.ThreeFlierGenerator = ThreeFlierGenerator;
+    var States;
+    (function (States) {
+        var FlierFlyingHorizontal = (function (_super) {
+            __extends(FlierFlyingHorizontal, _super);
+            function FlierFlyingHorizontal() {
+                _super.apply(this, arguments);
+            }
+            FlierFlyingHorizontal.prototype.enter = function (sm) {
+            };
+            FlierFlyingHorizontal.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
+                if (e.counter["ac"] < 2)
+                    e.code = 147;
+                else
+                    e.code = 148;
+                e.vx = e.reverse_horizontal ? 30 : -30;
+                var players = sm.e.ss.Players.get_all();
+                this.checkCollisionWithPlayer(sm);
+            };
+            // プレイヤーとの当たり判定 をプレイヤーのupdate処理に追加する
+            // 現時点ではプレイヤーと敵双方のサイズが32*32であることしか想定していない
+            FlierFlyingHorizontal.prototype.checkCollisionWithPlayer = function (sm) {
+                var e = sm.e;
+                var players = sm.e.ss.Players.get_all();
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    // 現在のpをスコープに束縛
+                    (function (p) {
+                        p.addOnceEventHandler("update", function () {
+                            var dx = Math.abs(e.x - p.x); // プレイヤーとのx座標の差
+                            var dy = Math.abs(e.y - p.y); // プレイヤーとのy座標の差
+                            if (p.flags["isAlive"] && dx < 30 && dy < 23) {
+                                if (dx < 27 && p.vy > 0 || (p.flags["isStamping"] && p.counter["stamp_waiting"] == 5)) {
+                                    e.dispatchEvent(new Game.SpriteCollisionEvent("onstamped", p));
+                                    p.y = e.y - 12;
+                                    p.dispatchEvent(new Game.NumberEvent("onstamp", 2));
+                                    e.addOnceEventHandler("killed", function () {
+                                        p.dispatchEvent(new Game.ScoreEvent("addscore", 10));
+                                    });
+                                }
+                                else {
+                                    p.dispatchEvent(new Game.PlayerMissEvent("miss", 1));
+                                }
+                            }
+                        });
+                    })(p);
+                }
+            };
+            return FlierFlyingHorizontal;
+        })(States.AbstractState);
+        States.FlierFlyingHorizontal = FlierFlyingHorizontal;
+        var FlierFlyingVertical = (function (_super) {
+            __extends(FlierFlyingVertical, _super);
+            function FlierFlyingVertical() {
+                _super.apply(this, arguments);
+            }
+            FlierFlyingVertical.prototype.enter = function (sm) {
+                var e = sm.e;
+                e.vx = 0;
+                e.vy = -40;
+            };
+            FlierFlyingVertical.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] = (e.counter["ac"] + 1) % 4;
+                if (e.counter["ac"] < 2)
+                    e.code = 147;
+                else
+                    e.code = 148;
+                if (e.y <= e.counter["y_lower"]) {
+                    e.vy += 10;
+                    if (e.vy > 40)
+                        e.vy = 40;
+                }
+                else if (e.y >= e.counter["y_upper"]) {
+                    e.vy -= 10;
+                    if (e.vy < -40)
+                        e.vy = -40;
+                }
+                var players = sm.e.ss.Players.get_all();
+                var pt = null; // 最も近いプレイヤー
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (pt == null) {
+                        pt = p;
+                    }
+                    else if (Math.abs(p.x - e.x) < Math.abs(pt.x - e.x)) {
+                        pt = p;
+                    }
+                }
+                if (pt != null) {
+                    if (e.x + 8 >= pt.x)
+                        e.reverse_horizontal = false; // 最も近いプレイヤーに合わせて反転状態を決定
+                    else
+                        e.reverse_horizontal = true;
+                }
+                this.checkCollisionWithPlayer(sm);
+            };
+            return FlierFlyingVertical;
+        })(FlierFlyingHorizontal);
+        States.FlierFlyingVertical = FlierFlyingVertical;
+        var FlierStamped = (function (_super) {
+            __extends(FlierStamped, _super);
+            function FlierStamped() {
+                _super.apply(this, arguments);
+            }
+            FlierStamped.prototype.enter = function (sm) {
+                sm.e.counter["ac"] = 0;
+                sm.e.code = 149;
+                sm.e.flags["isAlive"] = false;
+            };
+            FlierStamped.prototype.update = function (sm) {
+                var e = sm.e;
+                e.counter["ac"] += 1;
+                e.code = 149;
+                e.vx = 0;
+                e.vy = 0;
+                if (e.counter["ac"] > 14) {
+                    e.kill();
+                }
+            };
+            return FlierStamped;
+        })(States.AbstractState);
+        States.FlierStamped = FlierStamped;
+        var Generate3FlierState = (function (_super) {
+            __extends(Generate3FlierState, _super);
+            function Generate3FlierState() {
+                _super.apply(this, arguments);
+            }
+            Generate3FlierState.prototype.enter = function (sm) {
+            };
+            Generate3FlierState.prototype.update = function (sm) {
+                var e = sm.e;
+                for (var i = 0; i < 3; i++) {
+                    var dx = 0;
+                    var dy = 0;
+                    if (i == 1) {
+                        dx = 80;
+                        dy = -40;
+                    }
+                    else if (i == 2) {
+                        dx = 140;
+                        dy = 38;
+                    }
+                    var entity = new Flier(e.x + dx, e.y + dy, e.imagemanager, e.label);
+                    entity.counter["viewx_activate"] -= 32 * (i + 1);
+                    e.ss.add(entity);
+                    entity.update();
+                }
+                e.kill();
+            };
+            return Generate3FlierState;
+        })(States.AbstractState);
+        States.Generate3FlierState = Generate3FlierState;
+    })(States = Game.States || (Game.States = {}));
+})(Game || (Game = {}));
+/// <reference path="enemy.ts"/>
+var Game;
+(function (Game) {
     var LeafShooter = (function (_super) {
         __extends(LeafShooter, _super);
         function LeafShooter(x, y, imagemanager, label) {
@@ -2215,876 +2215,6 @@ var Game;
         })(States.AbstractState);
         States.NeedleExisting = NeedleExisting;
     })(States = Game.States || (Game.States = {}));
-})(Game || (Game = {}));
-/// <reference path="entity.ts"/>
-var Game;
-(function (Game) {
-    var Player = (function (_super) {
-        __extends(Player, _super);
-        function Player(input, x, y, imagemanager, label) {
-            _super.call(this, x, y, imagemanager, label, 1, 1);
-            this.code = 100;
-            this.gk = input;
-            this.moving = new PlayerStateMachine(this);
-            this.moving.setGlobalState(new States.PlayerGlobalMove());
-            this.moving.push(new States.PlayerInterialMove());
-            this.special = new PlayerStateMachine(this);
-            this.special.push(new States.PlayerWithoutSpecialMove());
-            this.counter["able2runningLeft"] = 0;
-            this.counter["able2runningRight"] = 0;
-            this.counter["running"] = 0;
-            this.counter["jump_level"] = 0;
-            this.counter["stamp_waiting"] = 0;
-            this.counter["stamp_level"] = 0;
-            this.counter["dying"] = 0;
-            this.counter["superjump_effect"] = -1;
-            this.flags["isAlive"] = true; // まだミスをしていない状態
-            this.flags["isRunning"] = false; // 走っている状態
-            this.flags["isWalking"] = false; // 歩いている状態
-            this.flags["isJumping"] = true; // ジャンプによって空中にいる状態
-            this.flags["isStamping"] = false; // 敵を踏んだ状態
-            this.flags["isOnGround"] = false; // 地面の上にいる状態
-            this.sjump_effects = [];
-            this.reverse_horizontal = true;
-            this.z = 128;
-            this.addEventHandler("onground", this.onGround);
-            this.addEventHandler("onstamp", this.onStamp);
-            this.addEventHandler("miss", this.onMiss);
-            this.view_x = 0;
-            this.view_y = 0;
-        }
-        Object.defineProperty(Player.prototype, "alive", {
-            get: function () {
-                return this.flags["isAlive"];
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Player.prototype.onGround = function (e) {
-            this.flags["isOnGround"] = true;
-            this.flags["isJumping"] = false;
-            this.flags["isStamping"] = false;
-            this.counter["jump_level"] = 0;
-            this.counter["stamp_level"] = 0;
-            if (this.counter["superjump_effect"] >= 0)
-                this.counter["superjump_effect"] = 100;
-        };
-        Player.prototype.onStamp = function (e) {
-            var n = e.value;
-            if (n <= 0)
-                n = 1;
-            this.counter["stamp_level"] = n;
-            this.moving.push(new States.PlayerStamping());
-        };
-        Player.prototype.onMiss = function (e) {
-            this.dispatchEvent(new Game.Event("onground")); // ほぼスーパージャンプのエフェクトを消すためだけ
-            if (e.mode == 1) {
-                this.moving.replace(new States.PlayerDyingDirect());
-            }
-            else if (e.mode == 2) {
-                this.moving.replace(new States.PlayerDyingInDirect());
-            }
-        };
-        Player.prototype.update = function () {
-            if (this.flags["isAlive"]) {
-                // 入力の更新
-                this.checkInput();
-                //this.externalForce();
-                // 外力を受けない移動
-                this.moving.update();
-                this.special.update();
-                // 移動の確定
-                if (this.counter["stamp_waiting"] <= 0)
-                    this.move();
-                else
-                    this.counter["stamp_waiting"] -= 1;
-                this.fixPatternCode();
-            }
-            else {
-                this.moving.update();
-                this.x += Math.floor(this.vx / 10);
-                this.y += this.vy > -320 ? Math.floor(this.vy / 10) : -32;
-            }
-            /* やめた
-            // 画面外処理
-            if (this.x < this.view_x - this.width / 2 + 1) {
-                this.x = this.view_x - this.width / 2 + 1;
-                if (this.vx < 0) this.vx = 0;
-            }
-            else if (this.x > this.view_x + SCREEN_WIDTH + this.width / 2) {
-                this.x = this.view_x + SCREEN_WIDTH + this.width / 2;
-                if (this.vx > 0) this.vx = 0;
-            }*/
-            if (this.flags["isAlive"] && this.y > this.view_y + Game.SCREEN_HEIGHT) {
-                this.dispatchEvent(new PlayerMissEvent("miss", 2));
-            }
-        };
-        // 速度に応じて自機の座標を移動させる
-        Player.prototype.move = function () {
-            var muki_x = 0;
-            if (this.vx > 0)
-                muki_x = 1;
-            else if (this.vx < 0)
-                muki_x = -1;
-            this.x += Math.floor(this.vx / 10);
-            this.checkCollisionWithBlocksHorizontal(); // 接触判定
-            var tmp_y = this.y;
-            this.y += this.vy > -320 ? Math.floor(this.vy / 10) : -32;
-            this.checkCollisionWithBlocksVertical(); // 接触判定
-            // 補正
-            // TODO: タイル幅32が前提であるのを解消
-            if (this.vy < 0) {
-                if (Math.floor(tmp_y / 32) > Math.floor(this.y / 32)) {
-                    if (this.gk.isDown(37)) {
-                        var b1 = this.getHitBlock(this.x + this.width / 2 - 1 - 1, tmp_y);
-                        var b2 = this.getHitBlock(this.x + this.width / 2 - 1 - 1, this.y);
-                        if (b1 == null && b2 != null) {
-                            this.y = b2.y + b2.height;
-                            this.vy = 0;
-                        }
-                    }
-                    if (this.gk.isDown(39)) {
-                        var b1 = this.getHitBlock(this.x + this.width / 2 - 1 + 1, tmp_y);
-                        var b2 = this.getHitBlock(this.x + this.width / 2 - 1 + 1, this.y);
-                        if (b1 == null && b2 != null) {
-                            this.y = b2.y + b2.height;
-                            this.vy = 0;
-                        }
-                    }
-                }
-            }
-            else if (this.vy > 0) {
-                if (Math.floor((tmp_y + this.height - 1) / 32) < Math.floor((this.y + this.height - 1) / 32)) {
-                    if (this.gk.isDown(37)) {
-                        var b1 = this.getHitBlock(this.x + this.width / 2 - 1 - 1, tmp_y + this.height - 1);
-                        var b2 = this.getHitBlock(this.x + this.width / 2 - 1 - 1, this.y + this.height - 1);
-                        if (b1 == null && b2 != null) {
-                            this.y = b2.y - b2.height;
-                            this.vy = 0;
-                            //this.code = 103;
-                            this.x -= 1;
-                            this.checkCollisionWithBlocksVertical();
-                        }
-                    }
-                    if (this.gk.isDown(39)) {
-                        var b1 = this.getHitBlock(this.x + this.width / 2 - 1 + 1, tmp_y + this.height - 1);
-                        var b2 = this.getHitBlock(this.x + this.width / 2 - 1 + 1, this.y + this.height - 1);
-                        if (b1 == null && b2 != null) {
-                            this.y = b2.y - b2.height;
-                            this.vy = 0;
-                            //this.code = 103;
-                            this.x += 1;
-                            this.checkCollisionWithBlocksVertical();
-                        }
-                    }
-                }
-            }
-            /*if (this.vy > 0) { // 下降中
-                if (tmp_bottom < this.bottom) {
-                    if (this.getHitBlock(this.centerx + muki_x, tmp_bottom + 1) == null) { // 移動前 自機の足元にブロックが無い
-                        if (this.getHitBlock(this.centerx + muki_x, this.bottom + 1) != null) { // 移動後 自機の足元にブロックがある
-                            if (this.gk.isDown(37) || this.gk.isDown(39)) {
-                                //if (this.flags["isWalking"] || this.flags["isRunning"]) {
-                                this.x += muki_x; // トンネルに入れるようにする
-                                this.checkCollisionWithBlocksVertical();
-                                this.vy = 0;
-                                //_ptc = 103;
-                                this.counter["running"] = 1;
-                            }
-                        }
-                    }
-                }
-            }
-            else if (this.vy < 0) { // 上昇中
-                if (tmp_top > this.top) {
-                    if (this.getHitBlock(this.centerx + muki_x, tmp_top) == null) { // 移動前 自機の頭にブロックが無い
-                        if (this.getHitBlock(this.centerx + muki_x, this.top) != null) { // 移動後 自機の頭にブロックがある
-                            if (this.gk.isDown(37) || this.gk.isDown(39)) {
-                                //if (this.flags["isWalking"] || this.flags["isRunning"]) {
-                                this.x += muki_x; // トンネルに入れるようにする
-                                this.checkCollisionWithBlocksVertical();
-                                this.vy = 0;
-                                //_ptc = 103;
-                                this.counter["running"] = 1;
-                            }
-                        }
-                    }
-                }
-            }*/
-        };
-        Player.prototype.fixPatternCode = function () {
-            if (this.flags["isStamping"]) {
-                this.code = 109;
-            }
-            else {
-                if (this.flags["isOnGround"]) {
-                }
-                else {
-                    if (this.flags["isJumping"]) {
-                        if (this.vy <= 25)
-                            this.code = 101;
-                        else
-                            this.code = 102;
-                    }
-                    else {
-                        if (this.vx == 0 && !this.flags["isRunning"] && !this.flags["isWalking"]) {
-                            this.code = 100;
-                        }
-                        else if (Math.abs(this.vx) > 60) {
-                            this.code = 105;
-                        }
-                        else {
-                            this.code = 103;
-                        }
-                    }
-                }
-            }
-        };
-        Player.prototype.checkCollisionWithBlocksVertical = function () {
-            this.flags["isOnGround"] = false;
-            // check
-            if (this.vy < 0) {
-                var b = this.getHitBlock(this.x + this.width / 2 - 1, this.y);
-                if (b != null) {
-                    this.y = b.y + b.height;
-                    this.vy = 0;
-                }
-            }
-            else if (this.vy > 0) {
-                var b = this.getHitBlock(this.x + this.width / 2 - 1, this.y + this.height);
-                if (b != null) {
-                    this.y = b.y - this.width;
-                    this.vy = 0;
-                }
-                if (this.getHitBlock(this.x + this.width / 2 - 1, this.y + this.height + 1) != null) {
-                    this.dispatchEvent(new Game.Event("onground"));
-                }
-            }
-            else {
-                if (this.getHitBlock(this.x + this.width / 2 - 1, this.y + this.height + 1) != null) {
-                    this.dispatchEvent(new Game.Event("onground"));
-                }
-            }
-            /*var blocks = this.getBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
-            for (var i = 0; i < blocks.length; i++) {
-                var b = blocks[i];
-                //if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
-                //    this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                //    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "vertical", "center"));
-                //}
-
-                //var bc = b.getRect(); // TODO: getCollisionに書き換えても問題なく動作するように
-                //var col = new Rect(this.centerx, this.y, 0, this.height);
-
-                if (this.vy < 0) {
-                    // up
-                    if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
-                        b.y < this.bottom && b.bottom >= this.y) {
-                        //if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.bottom, bc.width, 0))) &&
-                        //    !(col.collision(new Point(bc.left, bc.top))) && !(col.collision(new Point(bc.right, bc.bottom)))) { // ブロックの右の辺と上の辺を除いた部分と判定を行う
-                        this.y = b.bottom;
-                        this.vy = 0;
-                    }
-                }
-                else if (this.vy >= 0) {
-                    // down || //
-                    //if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.top, bc.width, 0))) &&
-                    //    !(col.collision(new Point(bc.right, bc.top))) && !(col.collision(new Point(bc.left, bc.bottom)))) { // ブロックの右の辺と下の辺を除いた部分と判定を行う
-                    if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
-                        b.y <= this.bottom && b.bottom > this.y) {
-                        this.dispatchEvent(new Event("onground"));
-                        this.bottom = b.y;
-                        this.vy = 0;
-                    }
-                }
-            }*/
-        };
-        Player.prototype.checkCollisionWithBlocksHorizontal = function () {
-            // check
-            var b1 = this.getHitBlock(this.x + this.width / 2 - 1, this.y); // (x+15,y)
-            var b2 = this.getHitBlock(this.x + this.width / 2 - 1, this.y + this.height - 1); // (x+15,y+31)
-            if (b1 != null || b2 != null) {
-                if (b1 == null)
-                    b1 = b2;
-                if (this.vx > 0) {
-                    this.x = b1.x - this.width / 2;
-                    this.vx = 0;
-                }
-                else if (this.vx < 0) {
-                    this.x = b1.x + this.width / 2 + 1;
-                    this.vx = 0;
-                }
-            }
-            /*var blocks = this.getBlocks(this.x, this.y, this.width, this.height);
-            for (var i = 0; i < blocks.length; i++) {
-                var b = blocks[i];
-                //if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
-                //    this.y <= b.y + b.height && this.y + this.height >= b.y) {
-                //    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "horizontal", "center"));
-                //}
-                //var bc = b.getCollision();
-                //var col = new Rect(this.centerx, this.y, 0, this.height);
-                
-                if (this.vx > 0) {
-                    // right
-                    if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
-                        b.y <= this.bottom && b.bottom > this.y) {
-                        // rect:{(x,y)∈R^2:x∈[bc.left,bc.right),y∈[bc.top,bc.bottom]}の判定
-                        this.centerx = b.x - 1;
-                        this.vx = 0;
-                    }
-                }
-                else if (this.vx < 0) {
-                    // left
-                    if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
-                        b.y <= this.bottom && b.bottom > this.y) {
-                        //if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.top, bc.width, 0))) &&
-                        //    !(col.collision(new Point(bc.right, bc.top))) && !(col.collision(new Point(bc.left, bc.bottom)))) { // ブロックの右の辺と下の辺を除いた部分と判定を行う
-                        this.centerx = b.right;
-                        this.vx = 0;
-                    }
-                }
-            }*/
-        };
-        // 指定した座標地点(ピクセル座標)にブロックがある場合、そのブロックを返す。また画面外に出るのを阻止するための処理も挟む
-        // そうでない場合、nullを返す。
-        Player.prototype.getHitBlock = function (x, y) {
-            var b = this.ss.getBlock(x, y);
-            if (b)
-                return b;
-            if (Math.floor(x / 32) == -1)
-                return new Game.AbstractBlock(-32, Math.floor(y / 32) * 32, this.imagemanager, this.label);
-            if (Math.floor(x / 32) == 180)
-                return new Game.AbstractBlock(32 * 180, Math.floor(y / 32) * 32, this.imagemanager, this.label);
-            if (Math.floor(y / 32) == -10)
-                return new Game.AbstractBlock(Math.floor(x / 32) * 32, 32 * -10, this.imagemanager, this.label);
-            return null;
-        };
-        // SpriteSystem.getBlocks()をラップし、間に画面外に出るのを阻止するための処理を挟む
-        Player.prototype.getBlocks = function (x, y, w, h) {
-            var result = this.ss.getBlocks(x, y, w, h);
-            var additions = new Array();
-            if (x <= 0) {
-                additions.push(new Game.AbstractBlock(-32, this.y - this.y % 32, this.imagemanager, this.label));
-                additions.push(new Game.AbstractBlock(-32, this.y - this.y % 32 - 32, this.imagemanager, this.label));
-                additions.push(new Game.AbstractBlock(-32, this.y - this.y % 32 + 32, this.imagemanager, this.label));
-            }
-            if (x + w >= 32 * 180) {
-                additions.push(new Game.AbstractBlock(32 * 180, this.y - this.y % 32, this.imagemanager, this.label));
-                additions.push(new Game.AbstractBlock(32 * 180, this.y - this.y % 32 - 32, this.imagemanager, this.label));
-                additions.push(new Game.AbstractBlock(32 * 180, this.y - this.y % 32 + 32, this.imagemanager, this.label));
-            }
-            if (y <= -320) {
-                additions.push(new Game.AbstractBlock(this.x - this.x % 32, -320 - 32, this.imagemanager, this.label));
-                additions.push(new Game.AbstractBlock(this.x - this.x % 32 - 32, -320 - 32, this.imagemanager, this.label));
-                additions.push(new Game.AbstractBlock(this.x - this.x % 32 + 32, -320 - 32, this.imagemanager, this.label));
-            }
-            result = result.concat(additions);
-            return result;
-        };
-        Player.prototype.checkInput = function () {
-            //if (this.gk.isDown(37) && this.gk.isDown(39)) { } // 左右同時に押されていたらとりあえず何もしないことに
-            if (this.gk.isDown(37)) {
-                if (this.gk.isOnDown(37) && this.counter["able2runningLeft"] > 0) {
-                    this.moving.replace(new States.PlayerRunningLeft());
-                }
-                else if (!(this.moving.current_state instanceof States.PlayerRunningLeft)) {
-                    this.moving.replace(new States.PlayerWalkingLeft());
-                }
-            }
-            else if (this.gk.isDown(39)) {
-                if (this.gk.isOnDown(39) && this.counter["able2runningRight"] > 0) {
-                    this.moving.replace(new States.PlayerRunningRight());
-                }
-                else if (!(this.moving.current_state instanceof States.PlayerRunningRight)) {
-                    this.moving.replace(new States.PlayerWalkingRight());
-                }
-            }
-            if ((!this.gk.isDown(37) && !this.gk.isDown(39)) || ((this.moving.current_state instanceof States.PlayerWalkingLeft) && !this.gk.isDown(37)) || ((this.moving.current_state instanceof States.PlayerWalkingRight) && !this.gk.isDown(39)) || ((this.moving.current_state instanceof States.PlayerRunningLeft) && !this.gk.isDown(37)) || ((this.moving.current_state instanceof States.PlayerRunningRight) && !this.gk.isDown(39))) {
-                this.moving.replace(new States.PlayerInterialMove());
-            }
-            if (this.counter["able2runningLeft"] >= 8)
-                this.counter["able2runningLeft"] = 0;
-            else if (this.counter["able2runningLeft"] > 0)
-                this.counter["able2runningLeft"] += 1;
-            if (this.counter["able2runningRight"] >= 8)
-                this.counter["able2runningRight"] = 0;
-            else if (this.counter["able2runningRight"] > 0)
-                this.counter["able2runningRight"] += 1;
-            if (this.flags["isOnGround"]) {
-                if (this.gk.isDown(90) && this.gk.getCount(90) <= 5) {
-                    this.moving.push(new States.PlayerJumping());
-                }
-            }
-            if (this.gk.isOnDown(37)) {
-                this.counter["able2runningLeft"] = 1;
-            }
-            if (this.gk.isOnDown(39)) {
-                this.counter["able2runningRight"] = 1;
-            }
-        };
-        return Player;
-    })(Game.AbstractEntity);
-    Game.Player = Player;
-    var PlayerStateMachine = (function (_super) {
-        __extends(PlayerStateMachine, _super);
-        function PlayerStateMachine(e, parent) {
-            if (parent === void 0) { parent = null; }
-            _super.call(this, e, parent);
-        }
-        return PlayerStateMachine;
-    })(Game.EntityStateMachine);
-    Game.PlayerStateMachine = PlayerStateMachine;
-    var PlayerMissEvent = (function (_super) {
-        __extends(PlayerMissEvent, _super);
-        function PlayerMissEvent(type, mode) {
-            // mode 1:直接 2:間接
-            _super.call(this, type);
-            this.type = type;
-            this.mode = mode;
-        }
-        return PlayerMissEvent;
-    })(Game.Event);
-    Game.PlayerMissEvent = PlayerMissEvent;
-    var States;
-    (function (States) {
-        /*export interface IPlayerMovingState extends State { // 不要説 てか不要
-            enter(sm: PlayerStateMachine);
-            update(sm: PlayerStateMachine);
-            exit(sm: PlayerStateMachine);
-        }*/
-        // 処理中にジャンプなどに一瞬だけ状態が遷移することで、脈絡なくenterが再度呼ばれる可能性があることに注意
-        var PlayerGlobalMove = (function (_super) {
-            __extends(PlayerGlobalMove, _super);
-            function PlayerGlobalMove() {
-                _super.apply(this, arguments);
-            }
-            PlayerGlobalMove.prototype.update = function (sm) {
-                var pl = sm.e;
-                if (pl.flags["isAlive"]) {
-                    if (pl.flags["isOnGround"]) {
-                    }
-                    else {
-                        if (pl.counter["stamp_waiting"] > 0) {
-                        }
-                        else {
-                            pl.vy += 25; // 重力を受ける
-                            if (pl.vy > 160)
-                                pl.vy = 160;
-                        }
-                    }
-                }
-                if (pl.counter["superjump_effect"] >= 0) {
-                    var del = function (s) {
-                        if (s)
-                            s.kill();
-                    };
-                    var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, pl.code, pl.reverse_horizontal);
-                    pl.ss.add(effect);
-                    pl.sjump_effects.push(effect);
-                    del(pl.sjump_effects.shift());
-                    if (pl.counter["superjump_effect"] < 9) {
-                        pl.counter["superjump_effect"] += 1;
-                        if (pl.vy > 0)
-                            pl.counter["superjump_effect"] = 9;
-                    }
-                    else {
-                        if (pl.counter["superjump_effect"] >= 100) {
-                            pl.counter["superjump_effect"] = -1;
-                            while (pl.sjump_effects.length > 0) {
-                                del(pl.sjump_effects.shift());
-                            }
-                        }
-                        else if (pl.counter["superjump_effect"] >= 9) {
-                            del(pl.sjump_effects.shift());
-                            if (pl.sjump_effects.length == 0) {
-                                pl.counter["superjump_effect"] = 100;
-                            }
-                        }
-                    }
-                }
-            };
-            return PlayerGlobalMove;
-        })(States.AbstractState);
-        States.PlayerGlobalMove = PlayerGlobalMove;
-        var PlayerWalkingLeft = (function (_super) {
-            __extends(PlayerWalkingLeft, _super);
-            function PlayerWalkingLeft() {
-                _super.apply(this, arguments);
-            }
-            PlayerWalkingLeft.prototype.enter = function (sm) {
-                //console.log("walk left ");
-                sm.e.flags["isRunning"] = false;
-                sm.e.flags["isWalking"] = true;
-            };
-            PlayerWalkingLeft.prototype.update = function (sm) {
-                var pl = sm.e;
-                if (pl.counter["stamp_waiting"] > 0) {
-                    pl.vx = (pl.vx - 10 > -60) ? pl.vx - 10 : -60;
-                }
-                else {
-                    if (pl.flags["isOnGround"]) {
-                        pl.reverse_horizontal = false;
-                        pl.counter["running"]++;
-                        if (pl.counter["running"] > 3)
-                            pl.counter["running"] = 0;
-                        pl.vx = (pl.vx - 15 > -60) ? pl.vx - 15 : -60;
-                        if (pl.vx > 0)
-                            pl.code = 108;
-                        else
-                            pl.code = 103 + Math.floor(pl.counter["running"] / 2);
-                    }
-                    else {
-                        if (pl.vx > -60)
-                            pl.vx -= 10;
-                    }
-                }
-            };
-            return PlayerWalkingLeft;
-        })(States.AbstractState);
-        States.PlayerWalkingLeft = PlayerWalkingLeft;
-        var PlayerRunningLeft = (function (_super) {
-            __extends(PlayerRunningLeft, _super);
-            function PlayerRunningLeft() {
-                _super.apply(this, arguments);
-            }
-            PlayerRunningLeft.prototype.enter = function (sm) {
-                //console.log("run left ");
-                sm.e.flags["isRunning"] = true;
-                sm.e.flags["isWalking"] = false;
-            };
-            PlayerRunningLeft.prototype.update = function (sm) {
-                var pl = sm.e;
-                if (pl.counter["stamp_waiting"] > 0) {
-                    pl.vx = (pl.vx - 10 > -60) ? pl.vx - 10 : -60;
-                }
-                else {
-                    if (pl.flags["isOnGround"]) {
-                        pl.reverse_horizontal = false;
-                        pl.counter["running"]++;
-                        if (pl.counter["running"] > 3)
-                            pl.counter["running"] = 0;
-                        pl.vx = (pl.vx - 15 > -120) ? pl.vx - 15 : -120;
-                        if (pl.vx > 0)
-                            pl.code = 108;
-                        else
-                            pl.code = 105 + Math.floor(pl.counter["running"] / 2);
-                    }
-                    else {
-                        if (pl.vx > -60)
-                            pl.vx -= 10;
-                    }
-                }
-            };
-            return PlayerRunningLeft;
-        })(States.AbstractState);
-        States.PlayerRunningLeft = PlayerRunningLeft;
-        var PlayerWalkingRight = (function (_super) {
-            __extends(PlayerWalkingRight, _super);
-            function PlayerWalkingRight() {
-                _super.apply(this, arguments);
-            }
-            PlayerWalkingRight.prototype.enter = function (sm) {
-                //console.log("walk right ");
-                sm.e.flags["isRunning"] = false;
-                sm.e.flags["isWalking"] = true;
-            };
-            PlayerWalkingRight.prototype.update = function (sm) {
-                var pl = sm.e;
-                if (pl.counter["stamp_waiting"] > 0) {
-                    pl.vx = (pl.vx + 10 < 60) ? pl.vx + 10 : 60;
-                }
-                else {
-                    if (pl.flags["isOnGround"]) {
-                        pl.reverse_horizontal = true;
-                        pl.counter["running"]++;
-                        if (pl.counter["running"] > 3)
-                            pl.counter["running"] = 0;
-                        pl.vx = (pl.vx + 15 < 60) ? pl.vx + 15 : 60;
-                        if (pl.vx < 0)
-                            pl.code = 108;
-                        else
-                            pl.code = 103 + Math.floor(pl.counter["running"] / 2);
-                    }
-                    else {
-                        if (pl.vx < 60)
-                            pl.vx += 10;
-                    }
-                }
-            };
-            return PlayerWalkingRight;
-        })(States.AbstractState);
-        States.PlayerWalkingRight = PlayerWalkingRight;
-        var PlayerRunningRight = (function (_super) {
-            __extends(PlayerRunningRight, _super);
-            function PlayerRunningRight() {
-                _super.apply(this, arguments);
-            }
-            PlayerRunningRight.prototype.enter = function (sm) {
-                //console.log("run right ");
-                sm.e.flags["isRunning"] = true;
-                sm.e.flags["isWalking"] = false;
-            };
-            PlayerRunningRight.prototype.update = function (sm) {
-                var pl = sm.e;
-                if (pl.counter["stamp_waiting"] > 0) {
-                    pl.vx = (pl.vx + 10 < 60) ? pl.vx + 10 : 60;
-                }
-                else {
-                    if (pl.flags["isOnGround"]) {
-                        pl.reverse_horizontal = true;
-                        pl.counter["running"]++;
-                        if (pl.counter["running"] > 3)
-                            pl.counter["running"] = 0;
-                        pl.vx = (pl.vx + 15 < 120) ? pl.vx + 15 : 120;
-                        if (pl.vx < 0)
-                            pl.code = 108;
-                        else
-                            pl.code = 105 + Math.floor(pl.counter["running"] / 2);
-                    }
-                    else {
-                        if (pl.vx < 60)
-                            pl.vx += 10;
-                    }
-                }
-            };
-            return PlayerRunningRight;
-        })(States.AbstractState);
-        States.PlayerRunningRight = PlayerRunningRight;
-        var PlayerJumping = (function (_super) {
-            __extends(PlayerJumping, _super);
-            function PlayerJumping() {
-                _super.apply(this, arguments);
-            }
-            PlayerJumping.prototype.update = function (sm) {
-                sm.pop(); // 即座にもとのStateに戻す
-                sm.update(); // もとのStateのupdateを先に行う
-                var pl = sm.e;
-                pl.checkCollisionWithBlocksHorizontal();
-                if (pl.counter["stamp_waiting"] > 0)
-                    return; // 硬直中
-                pl.flags["isJumping"] = true;
-                pl.flags["isOnGround"] = false;
-                var speed = Math.abs(pl.vx);
-                /*// 貫通防止
-                if (pl.ss.MapBlocks.getByXYReal(pl.centerx + pl.vx / 10, pl.y - 1) != null) {
-                    pl.ss.MapBlocks.getByXYReal(pl.centerx + pl.vx / 10, pl.y - 1).dispatchEvent(new SpriteCollisionEvent("onhit", pl, "vertival"));
-                }*/
-                //if (pl.ss.MapBlocks.getByXYReal(pl.centerx + pl.vx / 10, pl.y - 1) == null || pl.ss.MapBlocks.getByXYReal(pl.centerx, pl.y - 1) == null) {
-                if (pl.getHitBlock(pl.x + pl.width / 2 - 1 + pl.vx / 10, pl.y - 1) == null) {
-                    if (pl.ss.MapBlocks.getByXYReal(pl.centerx + (pl.vx > 0 ? 1 : -1), pl.centery) != null) {
-                        pl.vy = -150;
-                        pl.counter["jump_level"] = 1;
-                    }
-                    else if (speed == 0) {
-                        pl.vy = -150;
-                        pl.counter["jump_level"] = 1;
-                    }
-                    else if (speed < 60) {
-                        pl.vy = -230;
-                        pl.counter["jump_level"] = 2;
-                    }
-                    else if (speed == 60) {
-                        pl.vy = -260;
-                        pl.counter["jump_level"] = 3;
-                    }
-                    else if (speed < 120) {
-                        pl.vy = -290;
-                        pl.counter["jump_level"] = 4;
-                    }
-                    else {
-                        pl.vy = -340;
-                        pl.counter["jump_level"] = 5;
-                        pl.counter["superjump_effect"] = 1;
-                        var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, 101, pl.reverse_horizontal);
-                        pl.ss.add(effect);
-                        if (pl.sjump_effects) {
-                            for (var i = 0; i < pl.sjump_effects.length; i++) {
-                                var ef = pl.sjump_effects[i];
-                                if (ef)
-                                    ef.kill();
-                            }
-                        }
-                        pl.sjump_effects = [null, null, null, null, null, effect];
-                    }
-                }
-                pl.checkCollisionWithBlocksVertical();
-            };
-            return PlayerJumping;
-        })(States.AbstractState);
-        States.PlayerJumping = PlayerJumping;
-        var PlayerInterialMove = (function (_super) {
-            __extends(PlayerInterialMove, _super);
-            function PlayerInterialMove() {
-                _super.apply(this, arguments);
-            }
-            PlayerInterialMove.prototype.enter = function (sm) {
-                //console.log("move interial ");
-            };
-            PlayerInterialMove.prototype.update = function (sm) {
-                var pl = sm.e;
-                if (pl.flags["isOnGround"]) {
-                    if (pl.vx < 0) {
-                        pl.reverse_horizontal = false;
-                        pl.counter["running"]++;
-                        if (pl.counter["running"] > 3)
-                            pl.counter["running"] = 0;
-                        if (pl.flags["isRunning"])
-                            pl.code = 107;
-                        else
-                            pl.code = 103 + Math.floor(pl.counter["running"] / 2);
-                    }
-                    else if (pl.vx > 0) {
-                        pl.reverse_horizontal = true;
-                        pl.counter["running"]++;
-                        if (pl.counter["running"] > 3)
-                            pl.counter["running"] = 0;
-                        if (pl.flags["isRunning"])
-                            pl.code = 107;
-                        else
-                            pl.code = 103 + Math.floor(pl.counter["running"] / 2);
-                    }
-                    // 摩擦を受ける
-                    if (pl.vx > 0) {
-                        pl.vx -= 5;
-                        if (pl.vx < 0)
-                            pl.vx = 0;
-                    }
-                    else if (pl.vx < 0) {
-                        pl.vx += 5;
-                        if (pl.vx > 0)
-                            pl.vx = 0;
-                    }
-                    if (pl.vx == 0) {
-                        pl.flags["isRunning"] = false;
-                        pl.flags["isWalking"] = false;
-                        pl.code = 100;
-                    }
-                }
-                else {
-                }
-            };
-            return PlayerInterialMove;
-        })(States.AbstractState);
-        States.PlayerInterialMove = PlayerInterialMove;
-        var PlayerDyingDirect = (function (_super) {
-            __extends(PlayerDyingDirect, _super);
-            function PlayerDyingDirect() {
-                _super.apply(this, arguments);
-            }
-            PlayerDyingDirect.prototype.enter = function (sm) {
-                //console.log("dying");
-                var pl = sm.e;
-                pl.flags["isAlive"] = false;
-                pl.counter["dying"] = 0;
-            };
-            PlayerDyingDirect.prototype.update = function (sm) {
-                var pl = sm.e;
-                if (pl.counter["dying"] == 0) {
-                    pl.vx = 0;
-                    pl.vy = -280; // 跳ね上がる
-                }
-                pl.vy += 25; // 重力を受ける
-                if (pl.vy > 100)
-                    pl.vy = 100;
-                if (pl.counter["dying"] < 18)
-                    pl.counter["dying"] += 1;
-                pl.code = 110 + pl.counter["dying"] % 4;
-                if (pl.y > pl.view_y + Game.SCREEN_HEIGHT + pl.height) {
-                    pl.kill();
-                    pl.dispatchEvent(new Game.Event("ondie"));
-                }
-            };
-            return PlayerDyingDirect;
-        })(States.AbstractState);
-        States.PlayerDyingDirect = PlayerDyingDirect;
-        var PlayerDyingInDirect = (function (_super) {
-            __extends(PlayerDyingInDirect, _super);
-            function PlayerDyingInDirect() {
-                _super.apply(this, arguments);
-            }
-            PlayerDyingInDirect.prototype.enter = function (sm) {
-                //console.log("dying");
-                var pl = sm.e;
-                pl.flags["isAlive"] = false;
-                pl.counter["dying"] = 0;
-            };
-            PlayerDyingInDirect.prototype.update = function (sm) {
-                var pl = sm.e;
-                if (pl.counter["dying"] == 0) {
-                    pl.vx = 0;
-                }
-                pl.vy = 0; // その場で回転する
-                if (pl.counter["dying"] < 18)
-                    pl.counter["dying"] += 1;
-                pl.code = 110 + pl.counter["dying"] % 4;
-                if (pl.counter["dying"] >= 18)
-                    pl.vy = 80;
-                if (pl.y > pl.view_y + Game.SCREEN_HEIGHT + pl.height) {
-                    pl.kill();
-                    pl.dispatchEvent(new Game.Event("ondie"));
-                }
-            };
-            return PlayerDyingInDirect;
-        })(States.AbstractState);
-        States.PlayerDyingInDirect = PlayerDyingInDirect;
-        var PlayerStamping = (function (_super) {
-            __extends(PlayerStamping, _super);
-            function PlayerStamping() {
-                _super.apply(this, arguments);
-            }
-            PlayerStamping.prototype.enter = function (sm) {
-                //console.log("stamping");
-                var pl = sm.e;
-                pl.code = 109;
-                pl.flags["isStamping"] = true;
-                pl.counter["stamp_waiting"] = 5;
-                if (pl.counter["stamp_level"] == 1) {
-                    pl.vy = -160;
-                }
-                else if (pl.counter["stamp_level"] == 2) {
-                    pl.vy = -220;
-                }
-                else {
-                    pl.vy = -160;
-                }
-                if (pl.counter["superjump_effect"] >= 0)
-                    pl.counter["superjump_effect"] = 100;
-                sm.pop(); // update時ではなくenter直後にもとのstateに戻す
-            };
-            PlayerStamping.prototype.update = function (sm) {
-                /*sm.pop();
-                sm.update();*/
-            };
-            return PlayerStamping;
-        })(States.AbstractState);
-        States.PlayerStamping = PlayerStamping;
-        var PlayerWithoutSpecialMove = (function (_super) {
-            __extends(PlayerWithoutSpecialMove, _super);
-            function PlayerWithoutSpecialMove() {
-                _super.apply(this, arguments);
-            }
-            PlayerWithoutSpecialMove.prototype.enter = function (sm) {
-            };
-            PlayerWithoutSpecialMove.prototype.update = function (sm) {
-            };
-            return PlayerWithoutSpecialMove;
-        })(States.AbstractState);
-        States.PlayerWithoutSpecialMove = PlayerWithoutSpecialMove;
-    })(States = Game.States || (Game.States = {}));
-    var PlayerSuperJumpEffect = (function (_super) {
-        __extends(PlayerSuperJumpEffect, _super);
-        function PlayerSuperJumpEffect(x, y, imagemanager, label, code, reverse_horizontal) {
-            _super.call(this, x, y, imagemanager, label, 100, 1, 1);
-            this.code = code;
-            this.z = 129;
-            this.reverse_horizontal = reverse_horizontal;
-        }
-        PlayerSuperJumpEffect.prototype.update = function () {
-        };
-        return PlayerSuperJumpEffect;
-    })(Game.Sprite);
-    Game.PlayerSuperJumpEffect = PlayerSuperJumpEffect;
 })(Game || (Game = {}));
 /// <reference path="enemy.ts"/>
 var Game;
@@ -3999,6 +3129,876 @@ var Game;
         return MapGenerator;
     })();
     Game.MapGenerator = MapGenerator;
+})(Game || (Game = {}));
+/// <reference path="entity.ts"/>
+var Game;
+(function (Game) {
+    var Player = (function (_super) {
+        __extends(Player, _super);
+        function Player(input, x, y, imagemanager, label) {
+            _super.call(this, x, y, imagemanager, label, 1, 1);
+            this.code = 100;
+            this.gk = input;
+            this.moving = new PlayerStateMachine(this);
+            this.moving.setGlobalState(new States.PlayerGlobalMove());
+            this.moving.push(new States.PlayerInterialMove());
+            this.special = new PlayerStateMachine(this);
+            this.special.push(new States.PlayerWithoutSpecialMove());
+            this.counter["able2runningLeft"] = 0;
+            this.counter["able2runningRight"] = 0;
+            this.counter["running"] = 0;
+            this.counter["jump_level"] = 0;
+            this.counter["stamp_waiting"] = 0;
+            this.counter["stamp_level"] = 0;
+            this.counter["dying"] = 0;
+            this.counter["superjump_effect"] = -1;
+            this.flags["isAlive"] = true; // まだミスをしていない状態
+            this.flags["isRunning"] = false; // 走っている状態
+            this.flags["isWalking"] = false; // 歩いている状態
+            this.flags["isJumping"] = true; // ジャンプによって空中にいる状態
+            this.flags["isStamping"] = false; // 敵を踏んだ状態
+            this.flags["isOnGround"] = false; // 地面の上にいる状態
+            this.sjump_effects = [];
+            this.reverse_horizontal = true;
+            this.z = 128;
+            this.addEventHandler("onground", this.onGround);
+            this.addEventHandler("onstamp", this.onStamp);
+            this.addEventHandler("miss", this.onMiss);
+            this.view_x = 0;
+            this.view_y = 0;
+        }
+        Object.defineProperty(Player.prototype, "alive", {
+            get: function () {
+                return this.flags["isAlive"];
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Player.prototype.onGround = function (e) {
+            this.flags["isOnGround"] = true;
+            this.flags["isJumping"] = false;
+            this.flags["isStamping"] = false;
+            this.counter["jump_level"] = 0;
+            this.counter["stamp_level"] = 0;
+            if (this.counter["superjump_effect"] >= 0)
+                this.counter["superjump_effect"] = 100;
+        };
+        Player.prototype.onStamp = function (e) {
+            var n = e.value;
+            if (n <= 0)
+                n = 1;
+            this.counter["stamp_level"] = n;
+            this.moving.push(new States.PlayerStamping());
+        };
+        Player.prototype.onMiss = function (e) {
+            this.dispatchEvent(new Game.Event("onground")); // ほぼスーパージャンプのエフェクトを消すためだけ
+            if (e.mode == 1) {
+                this.moving.replace(new States.PlayerDyingDirect());
+            }
+            else if (e.mode == 2) {
+                this.moving.replace(new States.PlayerDyingInDirect());
+            }
+        };
+        Player.prototype.update = function () {
+            if (this.flags["isAlive"]) {
+                // 入力の更新
+                this.checkInput();
+                //this.externalForce();
+                // 外力を受けない移動
+                this.moving.update();
+                this.special.update();
+                // 移動の確定
+                if (this.counter["stamp_waiting"] <= 0)
+                    this.move();
+                else
+                    this.counter["stamp_waiting"] -= 1;
+                this.fixPatternCode();
+            }
+            else {
+                this.moving.update();
+                this.x += Math.floor(this.vx / 10);
+                this.y += this.vy > -320 ? Math.floor(this.vy / 10) : -32;
+            }
+            /* やめた
+            // 画面外処理
+            if (this.x < this.view_x - this.width / 2 + 1) {
+                this.x = this.view_x - this.width / 2 + 1;
+                if (this.vx < 0) this.vx = 0;
+            }
+            else if (this.x > this.view_x + SCREEN_WIDTH + this.width / 2) {
+                this.x = this.view_x + SCREEN_WIDTH + this.width / 2;
+                if (this.vx > 0) this.vx = 0;
+            }*/
+            if (this.flags["isAlive"] && this.y > this.view_y + Game.SCREEN_HEIGHT) {
+                this.dispatchEvent(new PlayerMissEvent("miss", 2));
+            }
+        };
+        // 速度に応じて自機の座標を移動させる
+        Player.prototype.move = function () {
+            var muki_x = 0;
+            if (this.vx > 0)
+                muki_x = 1;
+            else if (this.vx < 0)
+                muki_x = -1;
+            this.x += Math.floor(this.vx / 10);
+            this.checkCollisionWithBlocksHorizontal(); // 接触判定
+            var tmp_y = this.y;
+            this.y += this.vy > -320 ? Math.floor(this.vy / 10) : -32;
+            this.checkCollisionWithBlocksVertical(); // 接触判定
+            // 補正
+            // TODO: タイル幅32が前提であるのを解消
+            if (this.vy < 0) {
+                if (Math.floor(tmp_y / 32) > Math.floor(this.y / 32)) {
+                    if (this.gk.isDown(37)) {
+                        var b1 = this.getHitBlock(this.x + this.width / 2 - 1 - 1, tmp_y);
+                        var b2 = this.getHitBlock(this.x + this.width / 2 - 1 - 1, this.y);
+                        if (b1 == null && b2 != null) {
+                            this.y = b2.y + b2.height;
+                            this.vy = 0;
+                        }
+                    }
+                    if (this.gk.isDown(39)) {
+                        var b1 = this.getHitBlock(this.x + this.width / 2 - 1 + 1, tmp_y);
+                        var b2 = this.getHitBlock(this.x + this.width / 2 - 1 + 1, this.y);
+                        if (b1 == null && b2 != null) {
+                            this.y = b2.y + b2.height;
+                            this.vy = 0;
+                        }
+                    }
+                }
+            }
+            else if (this.vy > 0) {
+                if (Math.floor((tmp_y + this.height - 1) / 32) < Math.floor((this.y + this.height - 1) / 32)) {
+                    if (this.gk.isDown(37)) {
+                        var b1 = this.getHitBlock(this.x + this.width / 2 - 1 - 1, tmp_y + this.height - 1);
+                        var b2 = this.getHitBlock(this.x + this.width / 2 - 1 - 1, this.y + this.height - 1);
+                        if (b1 == null && b2 != null) {
+                            this.y = b2.y - b2.height;
+                            this.vy = 0;
+                            //this.code = 103;
+                            this.x -= 1;
+                            this.checkCollisionWithBlocksVertical();
+                        }
+                    }
+                    if (this.gk.isDown(39)) {
+                        var b1 = this.getHitBlock(this.x + this.width / 2 - 1 + 1, tmp_y + this.height - 1);
+                        var b2 = this.getHitBlock(this.x + this.width / 2 - 1 + 1, this.y + this.height - 1);
+                        if (b1 == null && b2 != null) {
+                            this.y = b2.y - b2.height;
+                            this.vy = 0;
+                            //this.code = 103;
+                            this.x += 1;
+                            this.checkCollisionWithBlocksVertical();
+                        }
+                    }
+                }
+            }
+            /*if (this.vy > 0) { // 下降中
+                if (tmp_bottom < this.bottom) {
+                    if (this.getHitBlock(this.centerx + muki_x, tmp_bottom + 1) == null) { // 移動前 自機の足元にブロックが無い
+                        if (this.getHitBlock(this.centerx + muki_x, this.bottom + 1) != null) { // 移動後 自機の足元にブロックがある
+                            if (this.gk.isDown(37) || this.gk.isDown(39)) {
+                                //if (this.flags["isWalking"] || this.flags["isRunning"]) {
+                                this.x += muki_x; // トンネルに入れるようにする
+                                this.checkCollisionWithBlocksVertical();
+                                this.vy = 0;
+                                //_ptc = 103;
+                                this.counter["running"] = 1;
+                            }
+                        }
+                    }
+                }
+            }
+            else if (this.vy < 0) { // 上昇中
+                if (tmp_top > this.top) {
+                    if (this.getHitBlock(this.centerx + muki_x, tmp_top) == null) { // 移動前 自機の頭にブロックが無い
+                        if (this.getHitBlock(this.centerx + muki_x, this.top) != null) { // 移動後 自機の頭にブロックがある
+                            if (this.gk.isDown(37) || this.gk.isDown(39)) {
+                                //if (this.flags["isWalking"] || this.flags["isRunning"]) {
+                                this.x += muki_x; // トンネルに入れるようにする
+                                this.checkCollisionWithBlocksVertical();
+                                this.vy = 0;
+                                //_ptc = 103;
+                                this.counter["running"] = 1;
+                            }
+                        }
+                    }
+                }
+            }*/
+        };
+        Player.prototype.fixPatternCode = function () {
+            if (this.flags["isStamping"]) {
+                this.code = 109;
+            }
+            else {
+                if (this.flags["isOnGround"]) {
+                }
+                else {
+                    if (this.flags["isJumping"]) {
+                        if (this.vy <= 25)
+                            this.code = 101;
+                        else
+                            this.code = 102;
+                    }
+                    else {
+                        if (this.vx == 0 && !this.flags["isRunning"] && !this.flags["isWalking"]) {
+                            this.code = 100;
+                        }
+                        else if (Math.abs(this.vx) > 60) {
+                            this.code = 105;
+                        }
+                        else {
+                            this.code = 103;
+                        }
+                    }
+                }
+            }
+        };
+        Player.prototype.checkCollisionWithBlocksVertical = function () {
+            this.flags["isOnGround"] = false;
+            // check
+            if (this.vy < 0) {
+                var b = this.getHitBlock(this.x + this.width / 2 - 1, this.y);
+                if (b != null) {
+                    this.y = b.y + b.height;
+                    this.vy = 0;
+                }
+            }
+            else if (this.vy > 0) {
+                var b = this.getHitBlock(this.x + this.width / 2 - 1, this.y + this.height);
+                if (b != null) {
+                    this.y = b.y - this.width;
+                    this.vy = 0;
+                }
+                if (this.getHitBlock(this.x + this.width / 2 - 1, this.y + this.height + 1) != null) {
+                    this.dispatchEvent(new Game.Event("onground"));
+                }
+            }
+            else {
+                if (this.getHitBlock(this.x + this.width / 2 - 1, this.y + this.height + 1) != null) {
+                    this.dispatchEvent(new Game.Event("onground"));
+                }
+            }
+            /*var blocks = this.getBlocks(this.x, this.y, this.width, this.height + 1); // 足元+1ピクセルも含めて取得
+            for (var i = 0; i < blocks.length; i++) {
+                var b = blocks[i];
+                //if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
+                //    this.y <= b.y + b.height && this.y + this.height >= b.y) {
+                //    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "vertical", "center"));
+                //}
+
+                //var bc = b.getRect(); // TODO: getCollisionに書き換えても問題なく動作するように
+                //var col = new Rect(this.centerx, this.y, 0, this.height);
+
+                if (this.vy < 0) {
+                    // up
+                    if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                        b.y < this.bottom && b.bottom >= this.y) {
+                        //if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.bottom, bc.width, 0))) &&
+                        //    !(col.collision(new Point(bc.left, bc.top))) && !(col.collision(new Point(bc.right, bc.bottom)))) { // ブロックの右の辺と上の辺を除いた部分と判定を行う
+                        this.y = b.bottom;
+                        this.vy = 0;
+                    }
+                }
+                else if (this.vy >= 0) {
+                    // down || //
+                    //if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.top, bc.width, 0))) &&
+                    //    !(col.collision(new Point(bc.right, bc.top))) && !(col.collision(new Point(bc.left, bc.bottom)))) { // ブロックの右の辺と下の辺を除いた部分と判定を行う
+                    if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                        b.y <= this.bottom && b.bottom > this.y) {
+                        this.dispatchEvent(new Event("onground"));
+                        this.bottom = b.y;
+                        this.vy = 0;
+                    }
+                }
+            }*/
+        };
+        Player.prototype.checkCollisionWithBlocksHorizontal = function () {
+            // check
+            var b1 = this.getHitBlock(this.x + this.width / 2 - 1, this.y); // (x+15,y)
+            var b2 = this.getHitBlock(this.x + this.width / 2 - 1, this.y + this.height - 1); // (x+15,y+31)
+            if (b1 != null || b2 != null) {
+                if (b1 == null)
+                    b1 = b2;
+                if (this.vx > 0) {
+                    this.x = b1.x - this.width / 2;
+                    this.vx = 0;
+                }
+                else if (this.vx < 0) {
+                    this.x = b1.x + this.width / 2 + 1;
+                    this.vx = 0;
+                }
+            }
+            /*var blocks = this.getBlocks(this.x, this.y, this.width, this.height);
+            for (var i = 0; i < blocks.length; i++) {
+                var b = blocks[i];
+                //if (this.x <= b.x + b.width && this.x + this.width >= b.x &&
+                //    this.y <= b.y + b.height && this.y + this.height >= b.y) {
+                //    b.dispatchEvent(new SpriteCollisionEvent("onhit", this, "horizontal", "center"));
+                //}
+                //var bc = b.getCollision();
+                //var col = new Rect(this.centerx, this.y, 0, this.height);
+                
+                if (this.vx > 0) {
+                    // right
+                    if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                        b.y <= this.bottom && b.bottom > this.y) {
+                        // rect:{(x,y)∈R^2:x∈[bc.left,bc.right),y∈[bc.top,bc.bottom]}の判定
+                        this.centerx = b.x - 1;
+                        this.vx = 0;
+                    }
+                }
+                else if (this.vx < 0) {
+                    // left
+                    if (b.x <= this.centerx && b.right > this.centerx && // spriteのx中心点との判定
+                        b.y <= this.bottom && b.bottom > this.y) {
+                        //if (((col.collision(bc, true)) || col.collision(new Rect(bc.left, bc.top, 0, bc.height)) || col.collision(new Rect(bc.left, bc.top, bc.width, 0))) &&
+                        //    !(col.collision(new Point(bc.right, bc.top))) && !(col.collision(new Point(bc.left, bc.bottom)))) { // ブロックの右の辺と下の辺を除いた部分と判定を行う
+                        this.centerx = b.right;
+                        this.vx = 0;
+                    }
+                }
+            }*/
+        };
+        // 指定した座標地点(ピクセル座標)にブロックがある場合、そのブロックを返す。また画面外に出るのを阻止するための処理も挟む
+        // そうでない場合、nullを返す。
+        Player.prototype.getHitBlock = function (x, y) {
+            var b = this.ss.getBlock(x, y);
+            if (b)
+                return b;
+            if (Math.floor(x / 32) == -1)
+                return new Game.AbstractBlock(-32, Math.floor(y / 32) * 32, this.imagemanager, this.label);
+            if (Math.floor(x / 32) == 180)
+                return new Game.AbstractBlock(32 * 180, Math.floor(y / 32) * 32, this.imagemanager, this.label);
+            if (Math.floor(y / 32) == -10)
+                return new Game.AbstractBlock(Math.floor(x / 32) * 32, 32 * -10, this.imagemanager, this.label);
+            return null;
+        };
+        // SpriteSystem.getBlocks()をラップし、間に画面外に出るのを阻止するための処理を挟む
+        Player.prototype.getBlocks = function (x, y, w, h) {
+            var result = this.ss.getBlocks(x, y, w, h);
+            var additions = new Array();
+            if (x <= 0) {
+                additions.push(new Game.AbstractBlock(-32, this.y - this.y % 32, this.imagemanager, this.label));
+                additions.push(new Game.AbstractBlock(-32, this.y - this.y % 32 - 32, this.imagemanager, this.label));
+                additions.push(new Game.AbstractBlock(-32, this.y - this.y % 32 + 32, this.imagemanager, this.label));
+            }
+            if (x + w >= 32 * 180) {
+                additions.push(new Game.AbstractBlock(32 * 180, this.y - this.y % 32, this.imagemanager, this.label));
+                additions.push(new Game.AbstractBlock(32 * 180, this.y - this.y % 32 - 32, this.imagemanager, this.label));
+                additions.push(new Game.AbstractBlock(32 * 180, this.y - this.y % 32 + 32, this.imagemanager, this.label));
+            }
+            if (y <= -320) {
+                additions.push(new Game.AbstractBlock(this.x - this.x % 32, -320 - 32, this.imagemanager, this.label));
+                additions.push(new Game.AbstractBlock(this.x - this.x % 32 - 32, -320 - 32, this.imagemanager, this.label));
+                additions.push(new Game.AbstractBlock(this.x - this.x % 32 + 32, -320 - 32, this.imagemanager, this.label));
+            }
+            result = result.concat(additions);
+            return result;
+        };
+        Player.prototype.checkInput = function () {
+            //if (this.gk.isDown(37) && this.gk.isDown(39)) { } // 左右同時に押されていたらとりあえず何もしないことに
+            if (this.gk.isDown(37)) {
+                if (this.gk.isOnDown(37) && this.counter["able2runningLeft"] > 0) {
+                    this.moving.replace(new States.PlayerRunningLeft());
+                }
+                else if (!(this.moving.current_state instanceof States.PlayerRunningLeft)) {
+                    this.moving.replace(new States.PlayerWalkingLeft());
+                }
+            }
+            else if (this.gk.isDown(39)) {
+                if (this.gk.isOnDown(39) && this.counter["able2runningRight"] > 0) {
+                    this.moving.replace(new States.PlayerRunningRight());
+                }
+                else if (!(this.moving.current_state instanceof States.PlayerRunningRight)) {
+                    this.moving.replace(new States.PlayerWalkingRight());
+                }
+            }
+            if ((!this.gk.isDown(37) && !this.gk.isDown(39)) || ((this.moving.current_state instanceof States.PlayerWalkingLeft) && !this.gk.isDown(37)) || ((this.moving.current_state instanceof States.PlayerWalkingRight) && !this.gk.isDown(39)) || ((this.moving.current_state instanceof States.PlayerRunningLeft) && !this.gk.isDown(37)) || ((this.moving.current_state instanceof States.PlayerRunningRight) && !this.gk.isDown(39))) {
+                this.moving.replace(new States.PlayerInterialMove());
+            }
+            if (this.counter["able2runningLeft"] >= 8)
+                this.counter["able2runningLeft"] = 0;
+            else if (this.counter["able2runningLeft"] > 0)
+                this.counter["able2runningLeft"] += 1;
+            if (this.counter["able2runningRight"] >= 8)
+                this.counter["able2runningRight"] = 0;
+            else if (this.counter["able2runningRight"] > 0)
+                this.counter["able2runningRight"] += 1;
+            if (this.flags["isOnGround"]) {
+                if (this.gk.isDown(90) && this.gk.getCount(90) <= 5) {
+                    this.moving.push(new States.PlayerJumping());
+                }
+            }
+            if (this.gk.isOnDown(37)) {
+                this.counter["able2runningLeft"] = 1;
+            }
+            if (this.gk.isOnDown(39)) {
+                this.counter["able2runningRight"] = 1;
+            }
+        };
+        return Player;
+    })(Game.AbstractEntity);
+    Game.Player = Player;
+    var PlayerStateMachine = (function (_super) {
+        __extends(PlayerStateMachine, _super);
+        function PlayerStateMachine(e, parent) {
+            if (parent === void 0) { parent = null; }
+            _super.call(this, e, parent);
+        }
+        return PlayerStateMachine;
+    })(Game.EntityStateMachine);
+    Game.PlayerStateMachine = PlayerStateMachine;
+    var PlayerMissEvent = (function (_super) {
+        __extends(PlayerMissEvent, _super);
+        function PlayerMissEvent(type, mode) {
+            // mode 1:直接 2:間接
+            _super.call(this, type);
+            this.type = type;
+            this.mode = mode;
+        }
+        return PlayerMissEvent;
+    })(Game.Event);
+    Game.PlayerMissEvent = PlayerMissEvent;
+    var States;
+    (function (States) {
+        /*export interface IPlayerMovingState extends State { // 不要説 てか不要
+            enter(sm: PlayerStateMachine);
+            update(sm: PlayerStateMachine);
+            exit(sm: PlayerStateMachine);
+        }*/
+        // 処理中にジャンプなどに一瞬だけ状態が遷移することで、脈絡なくenterが再度呼ばれる可能性があることに注意
+        var PlayerGlobalMove = (function (_super) {
+            __extends(PlayerGlobalMove, _super);
+            function PlayerGlobalMove() {
+                _super.apply(this, arguments);
+            }
+            PlayerGlobalMove.prototype.update = function (sm) {
+                var pl = sm.e;
+                if (pl.flags["isAlive"]) {
+                    if (pl.flags["isOnGround"]) {
+                    }
+                    else {
+                        if (pl.counter["stamp_waiting"] > 0) {
+                        }
+                        else {
+                            pl.vy += 25; // 重力を受ける
+                            if (pl.vy > 160)
+                                pl.vy = 160;
+                        }
+                    }
+                }
+                if (pl.counter["superjump_effect"] >= 0) {
+                    var del = function (s) {
+                        if (s)
+                            s.kill();
+                    };
+                    var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, pl.code, pl.reverse_horizontal);
+                    pl.ss.add(effect);
+                    pl.sjump_effects.push(effect);
+                    del(pl.sjump_effects.shift());
+                    if (pl.counter["superjump_effect"] < 9) {
+                        pl.counter["superjump_effect"] += 1;
+                        if (pl.vy > 0)
+                            pl.counter["superjump_effect"] = 9;
+                    }
+                    else {
+                        if (pl.counter["superjump_effect"] >= 100) {
+                            pl.counter["superjump_effect"] = -1;
+                            while (pl.sjump_effects.length > 0) {
+                                del(pl.sjump_effects.shift());
+                            }
+                        }
+                        else if (pl.counter["superjump_effect"] >= 9) {
+                            del(pl.sjump_effects.shift());
+                            if (pl.sjump_effects.length == 0) {
+                                pl.counter["superjump_effect"] = 100;
+                            }
+                        }
+                    }
+                }
+            };
+            return PlayerGlobalMove;
+        })(States.AbstractState);
+        States.PlayerGlobalMove = PlayerGlobalMove;
+        var PlayerWalkingLeft = (function (_super) {
+            __extends(PlayerWalkingLeft, _super);
+            function PlayerWalkingLeft() {
+                _super.apply(this, arguments);
+            }
+            PlayerWalkingLeft.prototype.enter = function (sm) {
+                //console.log("walk left ");
+                sm.e.flags["isRunning"] = false;
+                sm.e.flags["isWalking"] = true;
+            };
+            PlayerWalkingLeft.prototype.update = function (sm) {
+                var pl = sm.e;
+                if (pl.counter["stamp_waiting"] > 0) {
+                    pl.vx = (pl.vx - 10 > -60) ? pl.vx - 10 : -60;
+                }
+                else {
+                    if (pl.flags["isOnGround"]) {
+                        pl.reverse_horizontal = false;
+                        pl.counter["running"]++;
+                        if (pl.counter["running"] > 3)
+                            pl.counter["running"] = 0;
+                        pl.vx = (pl.vx - 15 > -60) ? pl.vx - 15 : -60;
+                        if (pl.vx > 0)
+                            pl.code = 108;
+                        else
+                            pl.code = 103 + Math.floor(pl.counter["running"] / 2);
+                    }
+                    else {
+                        if (pl.vx > -60)
+                            pl.vx -= 10;
+                    }
+                }
+            };
+            return PlayerWalkingLeft;
+        })(States.AbstractState);
+        States.PlayerWalkingLeft = PlayerWalkingLeft;
+        var PlayerRunningLeft = (function (_super) {
+            __extends(PlayerRunningLeft, _super);
+            function PlayerRunningLeft() {
+                _super.apply(this, arguments);
+            }
+            PlayerRunningLeft.prototype.enter = function (sm) {
+                //console.log("run left ");
+                sm.e.flags["isRunning"] = true;
+                sm.e.flags["isWalking"] = false;
+            };
+            PlayerRunningLeft.prototype.update = function (sm) {
+                var pl = sm.e;
+                if (pl.counter["stamp_waiting"] > 0) {
+                    pl.vx = (pl.vx - 10 > -60) ? pl.vx - 10 : -60;
+                }
+                else {
+                    if (pl.flags["isOnGround"]) {
+                        pl.reverse_horizontal = false;
+                        pl.counter["running"]++;
+                        if (pl.counter["running"] > 3)
+                            pl.counter["running"] = 0;
+                        pl.vx = (pl.vx - 15 > -120) ? pl.vx - 15 : -120;
+                        if (pl.vx > 0)
+                            pl.code = 108;
+                        else
+                            pl.code = 105 + Math.floor(pl.counter["running"] / 2);
+                    }
+                    else {
+                        if (pl.vx > -60)
+                            pl.vx -= 10;
+                    }
+                }
+            };
+            return PlayerRunningLeft;
+        })(States.AbstractState);
+        States.PlayerRunningLeft = PlayerRunningLeft;
+        var PlayerWalkingRight = (function (_super) {
+            __extends(PlayerWalkingRight, _super);
+            function PlayerWalkingRight() {
+                _super.apply(this, arguments);
+            }
+            PlayerWalkingRight.prototype.enter = function (sm) {
+                //console.log("walk right ");
+                sm.e.flags["isRunning"] = false;
+                sm.e.flags["isWalking"] = true;
+            };
+            PlayerWalkingRight.prototype.update = function (sm) {
+                var pl = sm.e;
+                if (pl.counter["stamp_waiting"] > 0) {
+                    pl.vx = (pl.vx + 10 < 60) ? pl.vx + 10 : 60;
+                }
+                else {
+                    if (pl.flags["isOnGround"]) {
+                        pl.reverse_horizontal = true;
+                        pl.counter["running"]++;
+                        if (pl.counter["running"] > 3)
+                            pl.counter["running"] = 0;
+                        pl.vx = (pl.vx + 15 < 60) ? pl.vx + 15 : 60;
+                        if (pl.vx < 0)
+                            pl.code = 108;
+                        else
+                            pl.code = 103 + Math.floor(pl.counter["running"] / 2);
+                    }
+                    else {
+                        if (pl.vx < 60)
+                            pl.vx += 10;
+                    }
+                }
+            };
+            return PlayerWalkingRight;
+        })(States.AbstractState);
+        States.PlayerWalkingRight = PlayerWalkingRight;
+        var PlayerRunningRight = (function (_super) {
+            __extends(PlayerRunningRight, _super);
+            function PlayerRunningRight() {
+                _super.apply(this, arguments);
+            }
+            PlayerRunningRight.prototype.enter = function (sm) {
+                //console.log("run right ");
+                sm.e.flags["isRunning"] = true;
+                sm.e.flags["isWalking"] = false;
+            };
+            PlayerRunningRight.prototype.update = function (sm) {
+                var pl = sm.e;
+                if (pl.counter["stamp_waiting"] > 0) {
+                    pl.vx = (pl.vx + 10 < 60) ? pl.vx + 10 : 60;
+                }
+                else {
+                    if (pl.flags["isOnGround"]) {
+                        pl.reverse_horizontal = true;
+                        pl.counter["running"]++;
+                        if (pl.counter["running"] > 3)
+                            pl.counter["running"] = 0;
+                        pl.vx = (pl.vx + 15 < 120) ? pl.vx + 15 : 120;
+                        if (pl.vx < 0)
+                            pl.code = 108;
+                        else
+                            pl.code = 105 + Math.floor(pl.counter["running"] / 2);
+                    }
+                    else {
+                        if (pl.vx < 60)
+                            pl.vx += 10;
+                    }
+                }
+            };
+            return PlayerRunningRight;
+        })(States.AbstractState);
+        States.PlayerRunningRight = PlayerRunningRight;
+        var PlayerJumping = (function (_super) {
+            __extends(PlayerJumping, _super);
+            function PlayerJumping() {
+                _super.apply(this, arguments);
+            }
+            PlayerJumping.prototype.update = function (sm) {
+                sm.pop(); // 即座にもとのStateに戻す
+                sm.update(); // もとのStateのupdateを先に行う
+                var pl = sm.e;
+                pl.checkCollisionWithBlocksHorizontal();
+                if (pl.counter["stamp_waiting"] > 0)
+                    return; // 硬直中
+                pl.flags["isJumping"] = true;
+                pl.flags["isOnGround"] = false;
+                var speed = Math.abs(pl.vx);
+                /*// 貫通防止
+                if (pl.ss.MapBlocks.getByXYReal(pl.centerx + pl.vx / 10, pl.y - 1) != null) {
+                    pl.ss.MapBlocks.getByXYReal(pl.centerx + pl.vx / 10, pl.y - 1).dispatchEvent(new SpriteCollisionEvent("onhit", pl, "vertival"));
+                }*/
+                //if (pl.ss.MapBlocks.getByXYReal(pl.centerx + pl.vx / 10, pl.y - 1) == null || pl.ss.MapBlocks.getByXYReal(pl.centerx, pl.y - 1) == null) {
+                if (pl.getHitBlock(pl.x + pl.width / 2 - 1 + pl.vx / 10, pl.y - 1) == null) {
+                    if (pl.ss.MapBlocks.getByXYReal(pl.centerx + (pl.vx > 0 ? 1 : -1), pl.centery) != null) {
+                        pl.vy = -150;
+                        pl.counter["jump_level"] = 1;
+                    }
+                    else if (speed == 0) {
+                        pl.vy = -150;
+                        pl.counter["jump_level"] = 1;
+                    }
+                    else if (speed < 60) {
+                        pl.vy = -230;
+                        pl.counter["jump_level"] = 2;
+                    }
+                    else if (speed == 60) {
+                        pl.vy = -260;
+                        pl.counter["jump_level"] = 3;
+                    }
+                    else if (speed < 120) {
+                        pl.vy = -290;
+                        pl.counter["jump_level"] = 4;
+                    }
+                    else {
+                        pl.vy = -340;
+                        pl.counter["jump_level"] = 5;
+                        pl.counter["superjump_effect"] = 1;
+                        var effect = new PlayerSuperJumpEffect(pl.x, pl.y, pl.imagemanager, pl.label, 101, pl.reverse_horizontal);
+                        pl.ss.add(effect);
+                        if (pl.sjump_effects) {
+                            for (var i = 0; i < pl.sjump_effects.length; i++) {
+                                var ef = pl.sjump_effects[i];
+                                if (ef)
+                                    ef.kill();
+                            }
+                        }
+                        pl.sjump_effects = [null, null, null, null, null, effect];
+                    }
+                }
+                pl.checkCollisionWithBlocksVertical();
+            };
+            return PlayerJumping;
+        })(States.AbstractState);
+        States.PlayerJumping = PlayerJumping;
+        var PlayerInterialMove = (function (_super) {
+            __extends(PlayerInterialMove, _super);
+            function PlayerInterialMove() {
+                _super.apply(this, arguments);
+            }
+            PlayerInterialMove.prototype.enter = function (sm) {
+                //console.log("move interial ");
+            };
+            PlayerInterialMove.prototype.update = function (sm) {
+                var pl = sm.e;
+                if (pl.flags["isOnGround"]) {
+                    if (pl.vx < 0) {
+                        pl.reverse_horizontal = false;
+                        pl.counter["running"]++;
+                        if (pl.counter["running"] > 3)
+                            pl.counter["running"] = 0;
+                        if (pl.flags["isRunning"])
+                            pl.code = 107;
+                        else
+                            pl.code = 103 + Math.floor(pl.counter["running"] / 2);
+                    }
+                    else if (pl.vx > 0) {
+                        pl.reverse_horizontal = true;
+                        pl.counter["running"]++;
+                        if (pl.counter["running"] > 3)
+                            pl.counter["running"] = 0;
+                        if (pl.flags["isRunning"])
+                            pl.code = 107;
+                        else
+                            pl.code = 103 + Math.floor(pl.counter["running"] / 2);
+                    }
+                    // 摩擦を受ける
+                    if (pl.vx > 0) {
+                        pl.vx -= 5;
+                        if (pl.vx < 0)
+                            pl.vx = 0;
+                    }
+                    else if (pl.vx < 0) {
+                        pl.vx += 5;
+                        if (pl.vx > 0)
+                            pl.vx = 0;
+                    }
+                    if (pl.vx == 0) {
+                        pl.flags["isRunning"] = false;
+                        pl.flags["isWalking"] = false;
+                        pl.code = 100;
+                    }
+                }
+                else {
+                }
+            };
+            return PlayerInterialMove;
+        })(States.AbstractState);
+        States.PlayerInterialMove = PlayerInterialMove;
+        var PlayerDyingDirect = (function (_super) {
+            __extends(PlayerDyingDirect, _super);
+            function PlayerDyingDirect() {
+                _super.apply(this, arguments);
+            }
+            PlayerDyingDirect.prototype.enter = function (sm) {
+                //console.log("dying");
+                var pl = sm.e;
+                pl.flags["isAlive"] = false;
+                pl.counter["dying"] = 0;
+            };
+            PlayerDyingDirect.prototype.update = function (sm) {
+                var pl = sm.e;
+                if (pl.counter["dying"] == 0) {
+                    pl.vx = 0;
+                    pl.vy = -280; // 跳ね上がる
+                }
+                pl.vy += 25; // 重力を受ける
+                if (pl.vy > 100)
+                    pl.vy = 100;
+                if (pl.counter["dying"] < 18)
+                    pl.counter["dying"] += 1;
+                pl.code = 110 + pl.counter["dying"] % 4;
+                if (pl.y > pl.view_y + Game.SCREEN_HEIGHT + pl.height) {
+                    pl.kill();
+                    pl.dispatchEvent(new Game.Event("ondie"));
+                }
+            };
+            return PlayerDyingDirect;
+        })(States.AbstractState);
+        States.PlayerDyingDirect = PlayerDyingDirect;
+        var PlayerDyingInDirect = (function (_super) {
+            __extends(PlayerDyingInDirect, _super);
+            function PlayerDyingInDirect() {
+                _super.apply(this, arguments);
+            }
+            PlayerDyingInDirect.prototype.enter = function (sm) {
+                //console.log("dying");
+                var pl = sm.e;
+                pl.flags["isAlive"] = false;
+                pl.counter["dying"] = 0;
+            };
+            PlayerDyingInDirect.prototype.update = function (sm) {
+                var pl = sm.e;
+                if (pl.counter["dying"] == 0) {
+                    pl.vx = 0;
+                }
+                pl.vy = 0; // その場で回転する
+                if (pl.counter["dying"] < 18)
+                    pl.counter["dying"] += 1;
+                pl.code = 110 + pl.counter["dying"] % 4;
+                if (pl.counter["dying"] >= 18)
+                    pl.vy = 80;
+                if (pl.y > pl.view_y + Game.SCREEN_HEIGHT + pl.height) {
+                    pl.kill();
+                    pl.dispatchEvent(new Game.Event("ondie"));
+                }
+            };
+            return PlayerDyingInDirect;
+        })(States.AbstractState);
+        States.PlayerDyingInDirect = PlayerDyingInDirect;
+        var PlayerStamping = (function (_super) {
+            __extends(PlayerStamping, _super);
+            function PlayerStamping() {
+                _super.apply(this, arguments);
+            }
+            PlayerStamping.prototype.enter = function (sm) {
+                //console.log("stamping");
+                var pl = sm.e;
+                pl.code = 109;
+                pl.flags["isStamping"] = true;
+                pl.counter["stamp_waiting"] = 5;
+                if (pl.counter["stamp_level"] == 1) {
+                    pl.vy = -160;
+                }
+                else if (pl.counter["stamp_level"] == 2) {
+                    pl.vy = -220;
+                }
+                else {
+                    pl.vy = -160;
+                }
+                if (pl.counter["superjump_effect"] >= 0)
+                    pl.counter["superjump_effect"] = 100;
+                sm.pop(); // update時ではなくenter直後にもとのstateに戻す
+            };
+            PlayerStamping.prototype.update = function (sm) {
+                /*sm.pop();
+                sm.update();*/
+            };
+            return PlayerStamping;
+        })(States.AbstractState);
+        States.PlayerStamping = PlayerStamping;
+        var PlayerWithoutSpecialMove = (function (_super) {
+            __extends(PlayerWithoutSpecialMove, _super);
+            function PlayerWithoutSpecialMove() {
+                _super.apply(this, arguments);
+            }
+            PlayerWithoutSpecialMove.prototype.enter = function (sm) {
+            };
+            PlayerWithoutSpecialMove.prototype.update = function (sm) {
+            };
+            return PlayerWithoutSpecialMove;
+        })(States.AbstractState);
+        States.PlayerWithoutSpecialMove = PlayerWithoutSpecialMove;
+    })(States = Game.States || (Game.States = {}));
+    var PlayerSuperJumpEffect = (function (_super) {
+        __extends(PlayerSuperJumpEffect, _super);
+        function PlayerSuperJumpEffect(x, y, imagemanager, label, code, reverse_horizontal) {
+            _super.call(this, x, y, imagemanager, label, 100, 1, 1);
+            this.code = code;
+            this.z = 129;
+            this.reverse_horizontal = reverse_horizontal;
+        }
+        PlayerSuperJumpEffect.prototype.update = function () {
+        };
+        return PlayerSuperJumpEffect;
+    })(Game.Sprite);
+    Game.PlayerSuperJumpEffect = PlayerSuperJumpEffect;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {

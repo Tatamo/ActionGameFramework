@@ -3,10 +3,10 @@ module Game {
     // アセットの取り扱いと重い依存性を一手に引き受けるクラス
     export class AssetsManagerManager {
         public loader: Loader;
-        public image: ImageManager;
+        //public image: ImageManager;
         constructor() {
-            this.image = new ImageManager();
-            this.loader = new Loader([this.image.loader]);
+            //this.image = new ImageManager();
+            this.loader = new Loader();
         }
         /*// ロードする画像の登録
         public regist_image(label: string, path: string) {
@@ -22,97 +22,50 @@ module Game {
             this.loader.load();
         }
     }
-
-    export enum PreloadStates {
-        UNLOAD = 0,
-        LOADING = 1,
-        NOTHING2LOAD = 2,
+    export class LoadingCompleteEvent extends Event{
+        constructor(type: string, item: any) {
+            super(type);
+        }
     }
-    export interface ILoader{
-        state: PreloadStates;
-        count: number;
+    export interface ILoader {
+        count_all: number;
         count_loadeds: number;
-        load(cb?: () => void);
-    }
-    // 複数のLoaderを束ねたかのように振舞うローダー ただしアセットの登録は行えない
-    // Loaderインターフェースに定義されたメソッドのみを持つ
-    export class Loader implements ILoader{
-        private loaders: Array<ILoader>;
-        constructor(list: Array<ILoader>) {
-            this.loaders = list;
-        }
-        get state() {
-            var f = false;
-            for (var i = 0; i < this.loaders.length; i++) {
-                if (this.loaders[i].state == PreloadStates.LOADING) return PreloadStates.LOADING;
-                if (this.loaders[i].state == PreloadStates.UNLOAD) f = true;
-            }
-            if (f) return PreloadStates.UNLOAD;
-            else return PreloadStates.NOTHING2LOAD;
-        }
-        get count() {
-            var c = 0;
-            for (var i = 0; i < this.loaders.length; i++) {
-                c += this.loaders[i].count;
-            }
-            return c;
-        }
-        get count_loadeds() {
-            var c = 0;
-            for (var i = 0; i < this.loaders.length; i++) {
-                c += this.loaders[i].count_loadeds;
-            }
-            return c;
-        }
-        load(cb?: () => void) {
-            if (this.state == PreloadStates.NOTHING2LOAD) {
-                cb();
-                return;
-            }
-            if (this.state == PreloadStates.LOADING) throw new Error("loading is now processing");
-            var i = 0;
-            var callback = () => {
-                if (++i < this.loaders.length) { // 一つのローダーがすべての読み込みを完了したら、次のローダーの読み込みを行う
-                    this.loaders[i].load(callback);
-                }
-                else { // すべての読み込みが終わるとコールバックを実行する
-                    cb();
-                }
-            }
-            if (i < this.loaders.length) {
-                this.loaders[i].load(callback);
-            }
-            else cb();
-        }
+        push(l: string, p: string, cb?: (file: any, label: string) => void);
+        load();
     }
     // UNDONE:画像以外のロード
-    export class AbstractLoader implements ILoader {
+    // TODO:新しいEventを定義して読み込んだファイルの情報を渡せるように
+    export class Loader extends EventDispatcher implements ILoader {
         protected _unloadeds: Array<{ label: string; path: string; callback?: (file: any, label: string) => void; }>; // ロードするべきリソース
-        protected _isloading: boolean;
-        get state() {
-            if (this._unloadeds.length == 0) { // unloadedsに何も入ってない
-                return PreloadStates.NOTHING2LOAD;
-            }
-            if (this._isloading) return PreloadStates.LOADING;
-            return PreloadStates.UNLOAD;
-        }
+        private _is_load_started: boolean;
+        private _is_load_completed: boolean;
         private _count: number;
+        get is_load_started(): boolean {
+            return this._is_load_started;
+        }
+        get is_load_completed(): boolean {
+            return this._is_load_completed;
+        }
+        get is_loading(): boolean {
+            return (this._is_load_started && !this._is_load_completed);
+        }
         // ロードするべき総数
-        get count() {
-            if (this.state == PreloadStates.UNLOAD) return this._unloadeds.length;
-            else return this._count;
+        get count_all() {
+            if (!this.is_load_started) return this._unloadeds.length; // ロード開始前
+            else return this._count; // ロード開始後
         }
         // いくつロード完了しているか
         get count_loadeds() {
-            if (this.state == PreloadStates.UNLOAD) return 0;
-            else if (this.state == PreloadStates.LOADING) return this.count - this._unloadeds.length;
-            else return this.count;
+            if (!this._is_load_started) return 0; // ロード前
+            else if (!this.is_load_completed) return this.count_all - this._unloadeds.length; // ロード中
+            else return this.count_all; // ロード後
         }
         constructor() {
+            super();
             this._unloadeds = [];
-            this._isloading = false;
+            this._is_load_started = false;
+            this._is_load_completed = false;
             this._count = 0;
-
         }
         // 画像の名前とパスをキューに追加します
         // push(label,path,callback?)
@@ -127,46 +80,33 @@ module Game {
 
         
         // キューに追加された画像をすべて読み込みます
-        public load(cb?: () => void) {
+        public load() {
             //if (this.state == PreloadStates.NOTHING2LOAD) throw new Error("there is nothing to load");
-            if (this.state == PreloadStates.NOTHING2LOAD) {
-                cb();
+            if (this._unloadeds.length == 0) { // 読み込むものがない
+                console.log("there is nothing to load. loading cancelled.");
                 return;
             }
-            if (this.state == PreloadStates.LOADING) throw new Error("loading is now processing");
+            if (this.is_load_started) throw new Error("loading is now processing");
             this._count = this._unloadeds.length;
-            this._isloading = true;
-            this.__load(cb);
+            this._is_load_started = true;
+            this.dispatchEvent(new Event("load_start"));
+            this._load();
         }
 
         // 再帰的 そとからよぶな ぶちころがすぞ
-        protected __load(cb: () => void) {
+        protected _load() {
             if (this._unloadeds.length > 0) {
-                this._load();
+                // TODO: Image以外の場合分け
+                this._loadImage();
             }
             else {
                 // 読み込み完了
-                this._isloading = false;
-                if (cb) cb();
+                this._is_load_completed = false;
+                this.dispatchEvent(new Event("load_complete"));
             }
         }
-        // 再帰的 そとからよぶな ぶちころがすぞ
-        // to be overridden
-        // 処理終了時にthis.__load(cb)を呼ぶこと
-        protected _load(cb?: () => void) {
-            /*var tmp = this._unloadeds.shift();
-
-            var img = new Image();
-            img.onload = () => {
-                console.log(img);
-                //this._asset.add(tmp.label, img, ResourceType.IMAGE); 下のコールバックで追加させる
-                this.__load(cb);
-            }
-            img.src = tmp.path;*/
-        }
-    }
-    export class ImageLoader extends AbstractLoader {
-        _load(cb?) {
+        // 処理終了時にthis._load()を呼ぶこと
+        protected _loadImage(cb?: () => void) {
             var tmp = this._unloadeds.shift();
 
             var img = new Image();
@@ -174,21 +114,29 @@ module Game {
                 //console.log(img);
                 //this._asset.add(tmp.label, img, ResourceType.IMAGE); 下のコールバックで追加させる
                 if (tmp.callback) tmp.callback(img, tmp.label);
-                this.__load(cb);
+                this.dispatchEvent(new Event("load_progress"));
+                this._load();
             }
             img.src = tmp.path;
         }
     }
+
+    export class ImageManager {
+        getwide(a, b, c, d) {
+            return document.createElement("canvas");
+        }
+    }
+    /*
     // ロードした画像の取得
     // TODO:良い名前に変える
     // TODO:切り出した画像のキャッシュ
     export class ImageManager {
         private images: Registrar<PatternImageGenerator>;
         public loader: ILoader; // 外側にはLoaderインターフェースのみを出す
-        private _loader: ImageLoader;
+        private _loader: Loader;
         constructor() {
             this.images = new Registrar<PatternImageGenerator>();
-            this._loader = new ImageLoader();
+            this._loader = new Loader();
             this.loader = this._loader;
         }
         get(name: string);
@@ -298,5 +246,5 @@ module Game {
                 return canvas;
             }
         }
-    }
+    }*/
 }
