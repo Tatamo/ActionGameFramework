@@ -62,7 +62,7 @@ module Game {
 			this.canvas_buffer.style.left = "0";
 			this.canvas_buffer.style.top = "0";*/
         }
-        protected copy(share_canvas: boolean = false) {
+        /*protected copy(share_canvas: boolean = false) {
             // TODO: share_canvas=trueのときの処理を実装
             if (share_canvas) { // 未実装
                 //return new Surface(this);
@@ -70,7 +70,7 @@ module Game {
             else {
                 return (new Surface(this.width, this.height)).drawImage(this.canvas, 0, 0);
             }
-        }
+        }*/
         clear() {
             var ctx = this.context;
             ctx.save();

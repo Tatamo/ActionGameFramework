@@ -1,75 +1,4 @@
 declare module Game {
-    class Dictionary<T> implements WeakMap<any, T> {
-        private datalist;
-        constructor();
-        clear(): void;
-        set(key: number, value: T): any;
-        set(key: string, value: T): any;
-        delete(key: string): boolean;
-        delete(key: number): boolean;
-        get(key: string): T;
-        get(key: number): T;
-        getkey(value: T): string;
-        has(key: string): boolean;
-        has(key: number): boolean;
-        private checkType(key);
-    }
-    class Registrar<T> extends Dictionary<T> {
-        set(key: string, value: T): any;
-        set(key: number, value: T): any;
-    }
-    class AbstractDataGroup<T> {
-        private datalist;
-        sortmethod: (x: T, y: T) => number;
-        constructor();
-        clear(): void;
-        getArray(): T[];
-        getCount(): number;
-        add(value: T): void;
-        sort(): void;
-        del(value: T): void;
-    }
-}
-declare module Game {
-    class AssetsManagerManager {
-        loader: Loader;
-        constructor();
-        load(): void;
-    }
-    class LoadingCompleteEvent extends Event {
-        constructor(type: string, item: any);
-    }
-    interface ILoader {
-        count_all: number;
-        count_loadeds: number;
-        push(l: string, p: string, cb?: (file: any, label: string) => void): any;
-        load(): any;
-    }
-    class Loader extends EventDispatcher implements ILoader {
-        protected _unloadeds: Array<{
-            label: string;
-            path: string;
-            callback?: (file: any, label: string) => void;
-        }>;
-        private _is_load_started;
-        private _is_load_completed;
-        private _count;
-        is_load_started: boolean;
-        is_load_completed: boolean;
-        is_loading: boolean;
-        count_all: number;
-        count_loadeds: number;
-        constructor();
-        push(l: string, p: string, cb?: (file: any, label: string) => void): void;
-        load(): void;
-        protected _load(): void;
-        protected _loadImage(cb?: () => void): void;
-    }
-    class ImageManager {
-        getwide(a: any, b: any, c: any, d: any): HTMLCanvasElement;
-    }
-}
-declare module Game {
     class Config {
         rawmap: Array<string>;
         map: Array<string>;
@@ -86,39 +15,6 @@ declare module Game {
         });
         initconfig(): void;
         initmap(map: Array<string>): void;
-    }
-}
-declare module Game {
-    interface IEventDispatcher {
-        addEventHandler(type: string, handler: (e: Event) => void): any;
-        addOnceEventHandler(type: string, handler: (e: Event) => void): any;
-        removeEventHandler(type: string, handler: (e: Event) => void): any;
-        clearEventHandler(type: string): any;
-        dispatchEvent(e: Event): any;
-    }
-    class EventDispatcher implements IEventDispatcher {
-        private _handlers;
-        private _oncehandlers;
-        constructor();
-        addEventHandler(type: string, handler: (e: Event) => void): void;
-        addOnceEventHandler(type: string, handler: (e: Event) => void): void;
-        removeEventHandler(type: string, handler: (e: Event) => void): void;
-        clearEventHandler(type: string): void;
-        dispatchEvent(e: Event): void;
-    }
-    class Event {
-        type: string;
-        constructor(type: string);
-    }
-    class NumberEvent extends Event {
-        type: string;
-        value: number;
-        constructor(type: string, value: number);
-    }
-    class StringEvent extends Event {
-        type: string;
-        value: string;
-        constructor(type: string, value: string);
     }
 }
 declare module Game {
@@ -162,6 +58,236 @@ declare module Game {
     }
 }
 declare module Game {
+    class Collision {
+        constructor();
+        collision(target: IShape, exclude_bounds?: boolean): boolean;
+        protected colPointWithPoint(p1: Point, p2: Point, exclude_bounds?: boolean): boolean;
+        protected colPointWithRect(p: Point, r: Rect, exclude_bounds?: boolean): boolean;
+        protected colPointWithCircle(p: Point, c: Circle, exclude_bounds?: boolean): boolean;
+        protected colRectWithRect(r1: Rect, r2: Rect, exclude_bounds?: boolean): boolean;
+        protected colRectWithCircle(r: Rect, c: Circle, exclude_bounds?: boolean): boolean;
+        protected colCircleWithCircle(c1: Circle, c2: Circle, exclude_bounds?: boolean): boolean;
+    }
+}
+declare module Game {
+    interface IShape extends Collision {
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+        centerx: number;
+        centery: number;
+        width: number;
+        height: number;
+        getParams(): any;
+        collision(target: IShape, exclude_bounds?: boolean): any;
+    }
+    class AbstractShape extends Collision implements IShape {
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+        centerx: number;
+        centery: number;
+        width: number;
+        height: number;
+        constructor();
+        getParams(): void;
+    }
+}
+declare module Game {
+    class Circle extends AbstractShape {
+        x: number;
+        y: number;
+        r: number;
+        width: number;
+        height: number;
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+        centerx: number;
+        centery: number;
+        constructor(x: number, y: number, r: number, base?: Circle);
+        getParams(): Array<number>;
+    }
+}
+declare module Game {
+    class Point extends AbstractShape {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+        centerx: number;
+        centery: number;
+        constructor(x: number, y: number, base?: Point);
+        getParams(): Array<number>;
+    }
+}
+declare module Game {
+    class Rect extends AbstractShape {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        left: number;
+        right: number;
+        top: number;
+        bottom: number;
+        centerx: number;
+        centery: number;
+        constructor(x: number, y: number, w: number, h: number, base?: Rect);
+        getParams(): Array<number>;
+    }
+}
+declare module Game {
+    class Dictionary<T> implements WeakMap<any, T> {
+        private datalist;
+        constructor();
+        clear(): void;
+        set(key: number, value: T): any;
+        set(key: string, value: T): any;
+        delete(key: string): boolean;
+        delete(key: number): boolean;
+        get(key: string): T;
+        get(key: number): T;
+        getkey(value: T): string;
+        has(key: string): boolean;
+        has(key: number): boolean;
+        private checkType(key);
+    }
+    class Registrar<T> extends Dictionary<T> {
+        set(key: string, value: T): any;
+        set(key: number, value: T): any;
+    }
+    class AbstractDataGroup<T> {
+        private datalist;
+        sortmethod: (x: T, y: T) => number;
+        constructor();
+        clear(): void;
+        getArray(): T[];
+        getCount(): number;
+        add(value: T): void;
+        sort(): void;
+        del(value: T): void;
+    }
+}
+declare module Game {
+    interface IEventDispatcher {
+        addEventHandler(type: string, handler: (e: Event) => void): any;
+        addOnceEventHandler(type: string, handler: (e: Event) => void): any;
+        removeEventHandler(type: string, handler: (e: Event) => void): any;
+        clearEventHandler(type: string): any;
+        dispatchEvent(e: Event): any;
+    }
+    class EventDispatcher implements IEventDispatcher {
+        private _handlers;
+        private _oncehandlers;
+        constructor();
+        addEventHandler(type: string, handler: (e: Event) => void): void;
+        addOnceEventHandler(type: string, handler: (e: Event) => void): void;
+        removeEventHandler(type: string, handler: (e: Event) => void): void;
+        clearEventHandler(type: string): void;
+        dispatchEvent(e: Event): void;
+    }
+    class Event {
+        type: string;
+        constructor(type: string);
+    }
+    class NumberEvent extends Event {
+        type: string;
+        value: number;
+        constructor(type: string, value: number);
+    }
+    class StringEvent extends Event {
+        type: string;
+        value: string;
+        constructor(type: string, value: string);
+    }
+}
+declare module Game {
+    class GameKey {
+        keys: {
+            [key: number]: number;
+        };
+        releasedkeys: {
+            [key: number]: number;
+        };
+        private keepreleasedtime;
+        constructor();
+        setEvent(el: HTMLElement): void;
+        init(): void;
+        update(): void;
+        KeyDown(key: number): void;
+        KeyUp(key: number): void;
+        isDown(key: number): boolean;
+        isOnDown(key: number): boolean;
+        getCount(key: number): number;
+    }
+}
+declare module Game {
+    class AssetsManagerManager {
+        loader: Loader;
+        constructor();
+        load(): void;
+    }
+    class LoadedItemEvent extends Event {
+        item: {
+            type: string;
+            label: string;
+            data: any;
+            path: string;
+        };
+        constructor(type: string, item: {
+            type: string;
+            label: string;
+            data: any;
+            path: string;
+        });
+    }
+    class LoadingProgressEvent extends Event {
+        load_count: number;
+        load_cout_remain: number;
+        constructor(type: string, load_count: number, load_cout_remain: number);
+    }
+    interface ILoader {
+        count_all: number;
+        count_loadeds: number;
+        push(l: string, p: string, cb?: (file: any, label: string) => void): any;
+        load(): any;
+    }
+    class Assets {
+        constructor();
+    }
+    class Loader extends EventDispatcher implements ILoader {
+        protected _unloadeds: Array<{
+            label: string;
+            path: string;
+            callback?: (file: any, label: string) => void;
+        }>;
+        private _is_load_started;
+        private _is_load_completed;
+        private _count;
+        is_load_started: boolean;
+        is_load_completed: boolean;
+        is_loading: boolean;
+        count_all: number;
+        count_loadeds: number;
+        constructor();
+        push(l: string, p: string, cb?: (file: any, label: string) => void): void;
+        load(): void;
+        protected _load(): void;
+        protected _loadImage(cb?: () => void): void;
+    }
+    class ImageManager {
+        getwide(a: any, b: any, c: any, d: any): HTMLCanvasElement;
+    }
+}
+declare module Game {
     interface ISurface {
     }
     class Surface {
@@ -175,7 +301,6 @@ declare module Game {
         constructor(width: number, height: number);
         constructor(surface: Surface);
         constructor(image: HTMLElement);
-        protected copy(share_canvas?: boolean): Surface;
         clear(): Surface;
         crop(x: number, y: number, width: number, height: number): Surface;
         setGlobalCompositeOperation(blend?: string): Surface;
@@ -211,26 +336,6 @@ declare module Game {
         constructor(imagemanager: ImageManager, label: string, code?: number, dx?: number, dy?: number);
         private reverseVertical();
         private reverseHorizontal();
-    }
-}
-declare module Game {
-    class GameKey {
-        keys: {
-            [key: number]: number;
-        };
-        releasedkeys: {
-            [key: number]: number;
-        };
-        private keepreleasedtime;
-        constructor();
-        setEvent(el: HTMLElement): void;
-        init(): void;
-        update(): void;
-        KeyDown(key: number): void;
-        KeyUp(key: number): void;
-        isDown(key: number): boolean;
-        isOnDown(key: number): boolean;
-        getCount(key: number): number;
     }
 }
 declare module Game {
@@ -379,93 +484,6 @@ declare module Game {
         start(state?: IState): void;
         stop(): void;
         loop(): void;
-    }
-}
-declare module Game {
-    class Collision {
-        constructor();
-        collision(target: IShape, exclude_bounds?: boolean): boolean;
-        protected colPointWithPoint(p1: Point, p2: Point, exclude_bounds?: boolean): boolean;
-        protected colPointWithRect(p: Point, r: Rect, exclude_bounds?: boolean): boolean;
-        protected colPointWithCircle(p: Point, c: Circle, exclude_bounds?: boolean): boolean;
-        protected colRectWithRect(r1: Rect, r2: Rect, exclude_bounds?: boolean): boolean;
-        protected colRectWithCircle(r: Rect, c: Circle, exclude_bounds?: boolean): boolean;
-        protected colCircleWithCircle(c1: Circle, c2: Circle, exclude_bounds?: boolean): boolean;
-    }
-}
-declare module Game {
-    interface IShape extends Collision {
-        left: number;
-        right: number;
-        top: number;
-        bottom: number;
-        centerx: number;
-        centery: number;
-        width: number;
-        height: number;
-        getParams(): any;
-        collision(target: IShape, exclude_bounds?: boolean): any;
-    }
-    class AbstractShape extends Collision implements IShape {
-        left: number;
-        right: number;
-        top: number;
-        bottom: number;
-        centerx: number;
-        centery: number;
-        width: number;
-        height: number;
-        constructor();
-        getParams(): void;
-    }
-}
-declare module Game {
-    class Circle extends AbstractShape {
-        x: number;
-        y: number;
-        r: number;
-        width: number;
-        height: number;
-        left: number;
-        right: number;
-        top: number;
-        bottom: number;
-        centerx: number;
-        centery: number;
-        constructor(x: number, y: number, r: number, base?: Circle);
-        getParams(): Array<number>;
-    }
-}
-declare module Game {
-    class Point extends AbstractShape {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-        left: number;
-        right: number;
-        top: number;
-        bottom: number;
-        centerx: number;
-        centery: number;
-        constructor(x: number, y: number, base?: Point);
-        getParams(): Array<number>;
-    }
-}
-declare module Game {
-    class Rect extends AbstractShape {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-        left: number;
-        right: number;
-        top: number;
-        bottom: number;
-        centerx: number;
-        centery: number;
-        constructor(x: number, y: number, w: number, h: number, base?: Rect);
-        getParams(): Array<number>;
     }
 }
 declare module Game {

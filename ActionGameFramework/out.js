@@ -19,281 +19,6 @@ window.onload = function () {
     //s.invertColor().setGlobalCompositeOperation("lighter").drawSurface(tmp).setGlobalCompositeOperation();
     s.drawImage(s.changeRGBBrightness(127, 255, 255), 128, 64);
 };
-var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
-var Game;
-(function (Game) {
-    // WeakMap同様の操作が可能で、numberとstringのキーを持つデータ構造です
-    var Dictionary = (function () {
-        function Dictionary() {
-            this.datalist = {};
-        }
-        // 中身を初期化しますよ
-        Dictionary.prototype.clear = function () {
-            this.datalist = {};
-        };
-        Dictionary.prototype.set = function (key, value) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            this.checkType(key);
-            /*if (this.datalist[key] != undefined) {
-                throw new Error("State \"" + key + "\"is already defined.");
-            }*/
-            this.datalist[key] = value;
-            return this;
-        };
-        Dictionary.prototype.delete = function (key) {
-            this.checkType(key);
-            return delete this.datalist[key];
-        };
-        Dictionary.prototype.get = function (key) {
-            this.checkType(key);
-            return this.datalist[key];
-        };
-        // オブジェクトが存在する場合、登録されているキーを返します
-        Dictionary.prototype.getkey = function (value) {
-            var result;
-            for (var key in this.datalist) {
-                if (this.datalist[key] == value) {
-                    result = key;
-                    break;
-                }
-            }
-            return result;
-        };
-        Dictionary.prototype.has = function (key) {
-            this.checkType(key);
-            if (this.datalist[key] != undefined)
-                return true;
-            else
-                return false;
-        };
-        Dictionary.prototype.checkType = function (key) {
-            if (typeof key != "number" && typeof key != "string") {
-                throw new Error("key is neither string nor number");
-            }
-        };
-        return Dictionary;
-    })();
-    Game.Dictionary = Dictionary;
-    // 一度登録すると値を変えられないDictionaryです(削除は可能)
-    var Registrar = (function (_super) {
-        __extends(Registrar, _super);
-        function Registrar() {
-            _super.apply(this, arguments);
-        }
-        Registrar.prototype.set = function (key, value) {
-            if (this.has(key)) {
-                throw new Error("\"" + key + "\"is already defined.");
-            }
-            _super.prototype.set.call(this, key, value);
-        };
-        return Registrar;
-    })(Dictionary);
-    Game.Registrar = Registrar;
-    // 順番を持つデータ構造です
-    var AbstractDataGroup = (function () {
-        function AbstractDataGroup() {
-            this.datalist = new Array();
-        }
-        // 中身を初期化しますよ
-        AbstractDataGroup.prototype.clear = function () {
-            this.datalist = new Array();
-        };
-        // 登録されているSpriteのリストを得ます
-        AbstractDataGroup.prototype.getArray = function () {
-            return this.datalist.slice(0);
-        };
-        // Spriteの個数を取得します
-        AbstractDataGroup.prototype.getCount = function () {
-            return this.datalist.length;
-        };
-        // Spriteを新しく追加します
-        AbstractDataGroup.prototype.add = function (value) {
-            this.datalist.push(value);
-            this.sort();
-        };
-        // Spriteを並び替えます
-        AbstractDataGroup.prototype.sort = function () {
-            if (this.sortmethod)
-                this.datalist.sort(this.sortmethod);
-        };
-        // Spriteを消去します
-        AbstractDataGroup.prototype.del = function (value) {
-            var index = 0;
-            var flag = false;
-            for (index = 0; index < this.datalist.length; index += 1) {
-                if (this.datalist[index] == value) {
-                    break;
-                }
-            }
-            if (!flag)
-                throw new Error("the object to be deleted not found.");
-            this.datalist.splice(index, 1);
-        };
-        return AbstractDataGroup;
-    })();
-    Game.AbstractDataGroup = AbstractDataGroup;
-})(Game || (Game = {}));
-/// <reference path="datadictionary.ts"/>
-var Game;
-(function (Game) {
-    // アセットの取り扱いと重い依存性を一手に引き受けるクラス
-    var AssetsManagerManager = (function () {
-        //public image: ImageManager;
-        function AssetsManagerManager() {
-            //this.image = new ImageManager();
-            this.loader = new Loader();
-        }
-        /*// ロードする画像の登録
-        public regist_image(label: string, path: string) {
-            this.image.regist_image(label, path);
-        }
-        // ロードするパターン画像の登録
-        public regist_pattern(label: string, path: string, c_width: number, c_height: number) {
-            this.image.regist_pattern(label, path,c_width,c_height);
-        }*/
-        // すべてロードする
-        // 撤廃してloader.load()を呼ばせればいいか?
-        AssetsManagerManager.prototype.load = function () {
-            this.loader.load();
-        };
-        return AssetsManagerManager;
-    })();
-    Game.AssetsManagerManager = AssetsManagerManager;
-    var LoadingCompleteEvent = (function (_super) {
-        __extends(LoadingCompleteEvent, _super);
-        function LoadingCompleteEvent(type, item) {
-            _super.call(this, type);
-        }
-        return LoadingCompleteEvent;
-    })(Game.Event);
-    Game.LoadingCompleteEvent = LoadingCompleteEvent;
-    // UNDONE:画像以外のロード
-    // TODO:新しいEventを定義して読み込んだファイルの情報を渡せるように
-    var Loader = (function (_super) {
-        __extends(Loader, _super);
-        function Loader() {
-            _super.call(this);
-            this._unloadeds = [];
-            this._is_load_started = false;
-            this._is_load_completed = false;
-            this._count = 0;
-        }
-        Object.defineProperty(Loader.prototype, "is_load_started", {
-            get: function () {
-                return this._is_load_started;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Loader.prototype, "is_load_completed", {
-            get: function () {
-                return this._is_load_completed;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Loader.prototype, "is_loading", {
-            get: function () {
-                return (this._is_load_started && !this._is_load_completed);
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Loader.prototype, "count_all", {
-            // ロードするべき総数
-            get: function () {
-                if (!this.is_load_started)
-                    return this._unloadeds.length; // ロード開始前
-                else
-                    return this._count; // ロード開始後
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Loader.prototype, "count_loadeds", {
-            // いくつロード完了しているか
-            get: function () {
-                if (!this._is_load_started)
-                    return 0; // ロード前
-                else if (!this.is_load_completed)
-                    return this.count_all - this._unloadeds.length; // ロード中
-                else
-                    return this.count_all; // ロード後
-            },
-            enumerable: true,
-            configurable: true
-        });
-        // 画像の名前とパスをキューに追加します
-        // push(label,path,callback?)
-        Loader.prototype.push = function (l, p, cb) {
-            //push(l: string, p: string) {
-            // UNDONE:重複keyの検出
-            //if(this.has(key)) throw new Error("\"" + key + "\"is already defined.");
-            this._unloadeds.push({ label: l, path: p, callback: cb });
-        };
-        // TODO: 1-(unloadeds.length/count)の取得
-        // キューに追加された画像をすべて読み込みます
-        Loader.prototype.load = function () {
-            //if (this.state == PreloadStates.NOTHING2LOAD) throw new Error("there is nothing to load");
-            if (this._unloadeds.length == 0) {
-                console.log("there is nothing to load. loading cancelled.");
-                return;
-            }
-            if (this.is_load_started)
-                throw new Error("loading is now processing");
-            this._count = this._unloadeds.length;
-            this._is_load_started = true;
-            this.dispatchEvent(new Game.Event("load_start"));
-            this._load();
-        };
-        // 再帰的 そとからよぶな ぶちころがすぞ
-        Loader.prototype._load = function () {
-            if (this._unloadeds.length > 0) {
-                // TODO: Image以外の場合分け
-                this._loadImage();
-            }
-            else {
-                // 読み込み完了
-                this._is_load_completed = false;
-                this.dispatchEvent(new Game.Event("load_complete"));
-            }
-        };
-        // 処理終了時にthis._load()を呼ぶこと
-        Loader.prototype._loadImage = function (cb) {
-            var _this = this;
-            var tmp = this._unloadeds.shift();
-            var img = new Image();
-            img.onload = function () {
-                //console.log(img);
-                //this._asset.add(tmp.label, img, ResourceType.IMAGE); 下のコールバックで追加させる
-                if (tmp.callback)
-                    tmp.callback(img, tmp.label);
-                _this.dispatchEvent(new Game.Event("load_progress"));
-                _this._load();
-            };
-            img.src = tmp.path;
-        };
-        return Loader;
-    })(Game.EventDispatcher);
-    Game.Loader = Loader;
-    var ImageManager = (function () {
-        function ImageManager() {
-        }
-        ImageManager.prototype.getwide = function (a, b, c, d) {
-            return document.createElement("canvas");
-        };
-        return ImageManager;
-    })();
-    Game.ImageManager = ImageManager;
-})(Game || (Game = {}));
 var Game;
 (function (Game) {
     // 読み込まれたマップの管理
@@ -329,104 +54,6 @@ var Game;
         return Config;
     })();
     Game.Config = Config;
-})(Game || (Game = {}));
-var Game;
-(function (Game) {
-    // TODO:thisのバインド関係の改善
-    var EventDispatcher = (function () {
-        function EventDispatcher() {
-            this._handlers = {};
-            this._oncehandlers = {};
-        }
-        // イベントハンドラの追加
-        EventDispatcher.prototype.addEventHandler = function (type, handler) {
-            if (!this._handlers[type]) {
-                this._handlers[type] = [handler];
-            }
-            else {
-                this._handlers[type].push(handler);
-            }
-        };
-        // 一度呼ばれると消えるイベントハンドラの追加
-        EventDispatcher.prototype.addOnceEventHandler = function (type, handler) {
-            if (!this._oncehandlers[type]) {
-                this._oncehandlers[type] = [handler];
-            }
-            else {
-                this._oncehandlers[type].push(handler);
-            }
-        };
-        // イベントハンドラの削除
-        EventDispatcher.prototype.removeEventHandler = function (type, handler) {
-            if (!this._handlers[type] && !this._oncehandlers[type]) {
-                return;
-            }
-            if (this._handlers[type]) {
-                for (var i = this._handlers[type].length; i >= 0; i--) {
-                    if (this._handlers[type][i] == handler) {
-                        this._handlers[type].splice(i, 1);
-                    }
-                }
-            }
-            if (this._oncehandlers[type]) {
-                for (var i = this._oncehandlers[type].length; i >= 0; i--) {
-                    if (this._oncehandlers[type][i] == handler) {
-                        this._oncehandlers[type].splice(i, 1);
-                    }
-                }
-            }
-        };
-        // すべてのイベントハンドラを削除
-        EventDispatcher.prototype.clearEventHandler = function (type) {
-            this._handlers[type] = [];
-            this._oncehandlers[type] = [];
-        };
-        // イベントの発火 ちなみに揮発性のイベントのほうが後に呼ばれる
-        EventDispatcher.prototype.dispatchEvent = function (e) {
-            if (!this._handlers[e.type] && !this._oncehandlers[e.type])
-                return;
-            if (this._handlers[e.type]) {
-                for (var i = 0; i < this._handlers[e.type].length; i++) {
-                    this._handlers[e.type][i].bind(this)(e);
-                }
-            }
-            // イベントハンドラを呼ぶのと同時に破棄することで、2度以上呼ばれることを防ぐ
-            if (this._oncehandlers[e.type]) {
-                while (this._oncehandlers[e.type].length > 0) {
-                    this._oncehandlers[e.type].shift().bind(this)(e);
-                }
-            }
-        };
-        return EventDispatcher;
-    })();
-    Game.EventDispatcher = EventDispatcher;
-    var Event = (function () {
-        function Event(type) {
-            this.type = type;
-        }
-        return Event;
-    })();
-    Game.Event = Event;
-    var NumberEvent = (function (_super) {
-        __extends(NumberEvent, _super);
-        function NumberEvent(type, value) {
-            _super.call(this, type);
-            this.type = type;
-            this.value = value;
-        }
-        return NumberEvent;
-    })(Event);
-    Game.NumberEvent = NumberEvent;
-    var StringEvent = (function (_super) {
-        __extends(StringEvent, _super);
-        function StringEvent(type, value) {
-            _super.call(this, type);
-            this.type = type;
-            this.value = value;
-        }
-        return StringEvent;
-    })(Event);
-    Game.StringEvent = StringEvent;
 })(Game || (Game = {}));
 var Game;
 (function (Game) {
@@ -983,6 +610,906 @@ var Game;
     })();
     Game.Color = Color;
 })(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var Collision = (function () {
+        function Collision() {
+        }
+        Collision.prototype.collision = function (target, exclude_bounds) {
+            if (exclude_bounds === void 0) { exclude_bounds = false; }
+            var base = this; // 自身がShapeクラスに継承されていることを前提とする
+            var flag_failed = false;
+            if (base instanceof Game.Point) {
+                if (target instanceof Game.Point) {
+                    return this.colPointWithPoint(base, target, exclude_bounds);
+                }
+                else if (target instanceof Game.Rect) {
+                    return this.colPointWithRect(base, target, exclude_bounds);
+                }
+                else if (target instanceof Game.Circle) {
+                    return this.colPointWithCircle(base, target, exclude_bounds);
+                }
+                else {
+                    flag_failed = true;
+                }
+            }
+            else if (base instanceof Game.Rect) {
+                if (target instanceof Game.Point) {
+                    return this.colPointWithRect(target, base, exclude_bounds);
+                }
+                else if (target instanceof Game.Rect) {
+                    return this.colRectWithRect(base, target, exclude_bounds);
+                }
+                else if (target instanceof Game.Circle) {
+                    return this.colRectWithCircle(base, target, exclude_bounds);
+                }
+                else {
+                    flag_failed = true;
+                }
+            }
+            else if (base instanceof Game.Circle) {
+                if (target instanceof Game.Point) {
+                    return this.colPointWithCircle(target, base, exclude_bounds);
+                }
+                else if (target instanceof Game.Rect) {
+                    return this.colRectWithCircle(target, base, exclude_bounds);
+                }
+                else if (target instanceof Game.Circle) {
+                    return this.colCircleWithCircle(base, target, exclude_bounds);
+                }
+                else {
+                    flag_failed = true;
+                }
+            }
+            else {
+                flag_failed = true;
+            }
+            if (flag_failed)
+                throw new Error("incorrect or not supported collision type");
+            return false;
+        };
+        Collision.prototype.colPointWithPoint = function (p1, p2, exclude_bounds) {
+            if (exclude_bounds === void 0) { exclude_bounds = false; }
+            if (exclude_bounds) {
+                if (p1.x == p2.x && p1.y == p2.y) {
+                    return true;
+                }
+            }
+            else {
+                if (p1.x == p2.x && p1.y == p2.y) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        Collision.prototype.colPointWithRect = function (p, r, exclude_bounds) {
+            if (exclude_bounds === void 0) { exclude_bounds = false; }
+            if (exclude_bounds) {
+                if (r.left < p.x && p.x < r.right && r.top < p.y && p.y < r.bottom) {
+                    return true;
+                }
+            }
+            else {
+                if (r.left <= p.x && p.x <= r.right && r.top <= p.y && p.y <= r.bottom) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        Collision.prototype.colPointWithCircle = function (p, c, exclude_bounds) {
+            if (exclude_bounds === void 0) { exclude_bounds = false; }
+            if (exclude_bounds) {
+                if ((p.x - c.x) * (p.x - c.x) + (p.y - c.y) * (p.y - c.y) < c.r * c.r) {
+                    return true;
+                }
+            }
+            else {
+                if ((p.x - c.x) * (p.x - c.x) + (p.y - c.y) * (p.y - c.y) <= c.r * c.r) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        Collision.prototype.colRectWithRect = function (r1, r2, exclude_bounds) {
+            if (exclude_bounds === void 0) { exclude_bounds = false; }
+            if (exclude_bounds) {
+                if (r1.left < r2.right && r2.left < r1.right && r1.top < r2.bottom && r2.top < r1.bottom) {
+                    return true;
+                }
+            }
+            else {
+                if (r1.left <= r2.right && r2.left <= r1.right && r1.top <= r2.bottom && r2.top <= r1.bottom) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        Collision.prototype.colRectWithCircle = function (r, c, exclude_bounds) {
+            if (exclude_bounds === void 0) { exclude_bounds = false; }
+            if (exclude_bounds) {
+            }
+            else {
+            }
+            return false;
+        };
+        Collision.prototype.colCircleWithCircle = function (c1, c2, exclude_bounds) {
+            if (exclude_bounds === void 0) { exclude_bounds = false; }
+            if (exclude_bounds) {
+                if ((c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y) < (c1.r + c2.r) * (c1.r + c2.r)) {
+                    return false;
+                }
+            }
+            else {
+                if ((c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y) <= (c1.r + c2.r) * (c1.r + c2.r)) {
+                    return false;
+                }
+            }
+            return false;
+        };
+        return Collision;
+    })();
+    Game.Collision = Collision;
+})(Game || (Game = {}));
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+/// <reference path="collision.ts"/>
+var Game;
+(function (Game) {
+    var AbstractShape = (function (_super) {
+        __extends(AbstractShape, _super);
+        function AbstractShape() {
+            _super.call(this);
+        }
+        AbstractShape.prototype.getParams = function () {
+        };
+        return AbstractShape;
+    })(Game.Collision);
+    Game.AbstractShape = AbstractShape;
+})(Game || (Game = {}));
+/// <reference path="shape.ts"/>
+var Game;
+(function (Game) {
+    var Circle = (function (_super) {
+        __extends(Circle, _super);
+        function Circle(x, y, r, base) {
+            if (base === void 0) { base = null; }
+            _super.call(this);
+            this.x = x;
+            this.y = y;
+            this.r = r;
+            if (base) {
+                this.x += base.x;
+                this.y += base.y;
+                this.r += base.r;
+            }
+        }
+        Object.defineProperty(Circle.prototype, "width", {
+            get: function () {
+                return this.r * 2;
+            },
+            set: function (v) {
+                this.r = v / 2;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Circle.prototype, "height", {
+            get: function () {
+                return this.r * 2;
+            },
+            set: function (v) {
+                this.r = v / 2;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Circle.prototype, "left", {
+            get: function () {
+                return this.x - this.r;
+            },
+            set: function (v) {
+                this.x = v + this.r;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Circle.prototype, "right", {
+            get: function () {
+                return this.x + this.r;
+            },
+            set: function (v) {
+                this.x = v - this.r;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Circle.prototype, "top", {
+            get: function () {
+                return this.y - this.r;
+            },
+            set: function (v) {
+                this.y = v + this.r;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Circle.prototype, "bottom", {
+            get: function () {
+                return this.y + this.r;
+            },
+            set: function (v) {
+                this.y = v - this.r;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Circle.prototype, "centerx", {
+            get: function () {
+                return this.x;
+            },
+            set: function (v) {
+                this.x = v;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Circle.prototype, "centery", {
+            get: function () {
+                return this.y;
+            },
+            set: function (v) {
+                this.y = v;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Circle.prototype.getParams = function () {
+            return [this.x, this.y, this.r];
+        };
+        return Circle;
+    })(Game.AbstractShape);
+    Game.Circle = Circle;
+})(Game || (Game = {}));
+/// <reference path="shape.ts"/>
+var Game;
+(function (Game) {
+    var Point = (function (_super) {
+        __extends(Point, _super);
+        function Point(x, y, base) {
+            if (base === void 0) { base = null; }
+            _super.call(this);
+            this.x = x;
+            this.y = y;
+            if (base) {
+                this.x += base.x;
+                this.y += base.y;
+            }
+        }
+        Object.defineProperty(Point.prototype, "width", {
+            get: function () {
+                return 0;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Point.prototype, "height", {
+            get: function () {
+                return 0;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Point.prototype, "left", {
+            get: function () {
+                return this.x;
+            },
+            set: function (v) {
+                this.x = v;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Point.prototype, "right", {
+            get: function () {
+                return this.x;
+            },
+            set: function (v) {
+                this.x = v;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Point.prototype, "top", {
+            get: function () {
+                return this.y;
+            },
+            set: function (v) {
+                this.y = v;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Point.prototype, "bottom", {
+            get: function () {
+                return this.y;
+            },
+            set: function (v) {
+                this.y = v;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Point.prototype, "centerx", {
+            get: function () {
+                return this.x;
+            },
+            set: function (v) {
+                this.x = v;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Point.prototype, "centery", {
+            get: function () {
+                return this.y;
+            },
+            set: function (v) {
+                this.y = v;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Point.prototype.getParams = function () {
+            return [this.x, this.y];
+        };
+        return Point;
+    })(Game.AbstractShape);
+    Game.Point = Point;
+})(Game || (Game = {}));
+/// <reference path="shape.ts"/>
+var Game;
+(function (Game) {
+    var Rect = (function (_super) {
+        __extends(Rect, _super);
+        function Rect(x, y, w, h, base) {
+            if (base === void 0) { base = null; }
+            _super.call(this);
+            this.x = x;
+            this.y = y;
+            this.width = w;
+            this.height = h;
+            if (base) {
+                this.x += base.x;
+                this.y += base.y;
+                this.width += base.width;
+                this.height += base.height;
+            }
+        }
+        Object.defineProperty(Rect.prototype, "left", {
+            get: function () {
+                return this.x;
+            },
+            set: function (v) {
+                this.x = v;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Rect.prototype, "right", {
+            get: function () {
+                return this.x + this.width;
+            },
+            set: function (v) {
+                this.x = v - this.width;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Rect.prototype, "top", {
+            get: function () {
+                return this.y;
+            },
+            set: function (v) {
+                this.y = v;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Rect.prototype, "bottom", {
+            get: function () {
+                return this.y + this.height;
+            },
+            set: function (v) {
+                this.y = v - this.height;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Rect.prototype, "centerx", {
+            get: function () {
+                return this.x + this.width / 2;
+            },
+            set: function (v) {
+                this.x = v - this.width / 2;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Rect.prototype, "centery", {
+            get: function () {
+                return this.y + this.height / 2;
+            },
+            set: function (v) {
+                this.y = v - this.height / 2;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Rect.prototype.getParams = function () {
+            return [this.x, this.y, this.width, this.height];
+        };
+        return Rect;
+    })(Game.AbstractShape);
+    Game.Rect = Rect;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    // WeakMap同様の操作が可能で、numberとstringのキーを持つデータ構造です
+    var Dictionary = (function () {
+        function Dictionary() {
+            this.datalist = {};
+        }
+        // 中身を初期化しますよ
+        Dictionary.prototype.clear = function () {
+            this.datalist = {};
+        };
+        Dictionary.prototype.set = function (key, value) {
+            var args = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
+            }
+            this.checkType(key);
+            /*if (this.datalist[key] != undefined) {
+                throw new Error("State \"" + key + "\"is already defined.");
+            }*/
+            this.datalist[key] = value;
+            return this;
+        };
+        Dictionary.prototype.delete = function (key) {
+            this.checkType(key);
+            return delete this.datalist[key];
+        };
+        Dictionary.prototype.get = function (key) {
+            this.checkType(key);
+            return this.datalist[key];
+        };
+        // オブジェクトが存在する場合、登録されているキーを返します
+        Dictionary.prototype.getkey = function (value) {
+            var result;
+            for (var key in this.datalist) {
+                if (this.datalist[key] == value) {
+                    result = key;
+                    break;
+                }
+            }
+            return result;
+        };
+        Dictionary.prototype.has = function (key) {
+            this.checkType(key);
+            if (this.datalist[key] != undefined)
+                return true;
+            else
+                return false;
+        };
+        Dictionary.prototype.checkType = function (key) {
+            if (typeof key != "number" && typeof key != "string") {
+                throw new Error("key is neither string nor number");
+            }
+        };
+        return Dictionary;
+    })();
+    Game.Dictionary = Dictionary;
+    // 一度登録すると値を変えられないDictionaryです(削除は可能)
+    var Registrar = (function (_super) {
+        __extends(Registrar, _super);
+        function Registrar() {
+            _super.apply(this, arguments);
+        }
+        Registrar.prototype.set = function (key, value) {
+            if (this.has(key)) {
+                throw new Error("\"" + key + "\"is already defined.");
+            }
+            _super.prototype.set.call(this, key, value);
+        };
+        return Registrar;
+    })(Dictionary);
+    Game.Registrar = Registrar;
+    // 順番を持つデータ構造です
+    var AbstractDataGroup = (function () {
+        function AbstractDataGroup() {
+            this.datalist = new Array();
+        }
+        // 中身を初期化しますよ
+        AbstractDataGroup.prototype.clear = function () {
+            this.datalist = new Array();
+        };
+        // 登録されているSpriteのリストを得ます
+        AbstractDataGroup.prototype.getArray = function () {
+            return this.datalist.slice(0);
+        };
+        // Spriteの個数を取得します
+        AbstractDataGroup.prototype.getCount = function () {
+            return this.datalist.length;
+        };
+        // Spriteを新しく追加します
+        AbstractDataGroup.prototype.add = function (value) {
+            this.datalist.push(value);
+            this.sort();
+        };
+        // Spriteを並び替えます
+        AbstractDataGroup.prototype.sort = function () {
+            if (this.sortmethod)
+                this.datalist.sort(this.sortmethod);
+        };
+        // Spriteを消去します
+        AbstractDataGroup.prototype.del = function (value) {
+            var index = 0;
+            var flag = false;
+            for (index = 0; index < this.datalist.length; index += 1) {
+                if (this.datalist[index] == value) {
+                    break;
+                }
+            }
+            if (!flag)
+                throw new Error("the object to be deleted not found.");
+            this.datalist.splice(index, 1);
+        };
+        return AbstractDataGroup;
+    })();
+    Game.AbstractDataGroup = AbstractDataGroup;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    // TODO:thisのバインド関係の改善
+    var EventDispatcher = (function () {
+        function EventDispatcher() {
+            this._handlers = {};
+            this._oncehandlers = {};
+        }
+        // イベントハンドラの追加
+        EventDispatcher.prototype.addEventHandler = function (type, handler) {
+            if (!this._handlers[type]) {
+                this._handlers[type] = [handler];
+            }
+            else {
+                this._handlers[type].push(handler);
+            }
+        };
+        // 一度呼ばれると消えるイベントハンドラの追加
+        EventDispatcher.prototype.addOnceEventHandler = function (type, handler) {
+            if (!this._oncehandlers[type]) {
+                this._oncehandlers[type] = [handler];
+            }
+            else {
+                this._oncehandlers[type].push(handler);
+            }
+        };
+        // イベントハンドラの削除
+        EventDispatcher.prototype.removeEventHandler = function (type, handler) {
+            if (!this._handlers[type] && !this._oncehandlers[type]) {
+                return;
+            }
+            if (this._handlers[type]) {
+                for (var i = this._handlers[type].length; i >= 0; i--) {
+                    if (this._handlers[type][i] == handler) {
+                        this._handlers[type].splice(i, 1);
+                    }
+                }
+            }
+            if (this._oncehandlers[type]) {
+                for (var i = this._oncehandlers[type].length; i >= 0; i--) {
+                    if (this._oncehandlers[type][i] == handler) {
+                        this._oncehandlers[type].splice(i, 1);
+                    }
+                }
+            }
+        };
+        // すべてのイベントハンドラを削除
+        EventDispatcher.prototype.clearEventHandler = function (type) {
+            this._handlers[type] = [];
+            this._oncehandlers[type] = [];
+        };
+        // イベントの発火 ちなみに揮発性のイベントのほうが後に呼ばれる
+        EventDispatcher.prototype.dispatchEvent = function (e) {
+            if (!this._handlers[e.type] && !this._oncehandlers[e.type])
+                return;
+            if (this._handlers[e.type]) {
+                for (var i = 0; i < this._handlers[e.type].length; i++) {
+                    this._handlers[e.type][i].bind(this)(e);
+                }
+            }
+            // イベントハンドラを呼ぶのと同時に破棄することで、2度以上呼ばれることを防ぐ
+            if (this._oncehandlers[e.type]) {
+                while (this._oncehandlers[e.type].length > 0) {
+                    this._oncehandlers[e.type].shift().bind(this)(e);
+                }
+            }
+        };
+        return EventDispatcher;
+    })();
+    Game.EventDispatcher = EventDispatcher;
+    var Event = (function () {
+        function Event(type) {
+            this.type = type;
+        }
+        return Event;
+    })();
+    Game.Event = Event;
+    var NumberEvent = (function (_super) {
+        __extends(NumberEvent, _super);
+        function NumberEvent(type, value) {
+            _super.call(this, type);
+            this.type = type;
+            this.value = value;
+        }
+        return NumberEvent;
+    })(Event);
+    Game.NumberEvent = NumberEvent;
+    var StringEvent = (function (_super) {
+        __extends(StringEvent, _super);
+        function StringEvent(type, value) {
+            _super.call(this, type);
+            this.type = type;
+            this.value = value;
+        }
+        return StringEvent;
+    })(Event);
+    Game.StringEvent = StringEvent;
+})(Game || (Game = {}));
+var Game;
+(function (Game) {
+    var GameKey = (function () {
+        function GameKey() {
+            this.keepreleasedtime = 64;
+            this.init();
+        }
+        // キー入力を受け付けるイベントハンドラを登録する
+        GameKey.prototype.setEvent = function (el) {
+            var _this = this;
+            //console.log(el);
+            el.addEventListener("keydown", function (e) {
+                _this.KeyDown(e.keyCode);
+            });
+            el.addEventListener("keyup", function (e) {
+                _this.KeyUp(e.keyCode);
+            });
+        };
+        GameKey.prototype.init = function () {
+            this.keys = {};
+            this.releasedkeys = {};
+        };
+        GameKey.prototype.update = function () {
+            for (var key in this.keys) {
+                this.keys[key] += 1;
+            }
+            var rks = {};
+            for (var key in this.releasedkeys) {
+                if (this.releasedkeys[key] + 1 <= this.keepreleasedtime) {
+                    rks[key] = this.releasedkeys[key] + 1;
+                }
+            }
+            this.releasedkeys = rks;
+        };
+        GameKey.prototype.KeyDown = function (key) {
+            //console.log(key);
+            if (!(key in this.keys)) {
+                this.keys[key] = 0;
+            }
+        };
+        GameKey.prototype.KeyUp = function (key) {
+            if (key in this.keys) {
+                delete this.keys[key];
+            }
+            this.releasedkeys[key] = 0;
+        };
+        // 押されているかどうかの判定をします
+        GameKey.prototype.isDown = function (key) {
+            if (key in this.keys)
+                return true;
+            return false;
+        };
+        // 押された瞬間かどうかの判定をします
+        GameKey.prototype.isOnDown = function (key) {
+            if (key in this.keys && this.keys[key] == 1)
+                return true;
+            return false;
+        };
+        // 押された時間を取得します 押されていない場合は-1
+        GameKey.prototype.getCount = function (key) {
+            if (key in this.keys) {
+                return this.keys[key];
+            }
+            return -1;
+        };
+        return GameKey;
+    })();
+    Game.GameKey = GameKey;
+})(Game || (Game = {}));
+/// <reference path="datadictionary.ts"/>
+var Game;
+(function (Game) {
+    // アセットの取り扱いと重い依存性を一手に引き受けるクラス
+    var AssetsManagerManager = (function () {
+        //public image: ImageManager;
+        function AssetsManagerManager() {
+            //this.image = new ImageManager();
+            this.loader = new Loader();
+        }
+        /*// ロードする画像の登録
+        public regist_image(label: string, path: string) {
+            this.image.regist_image(label, path);
+        }
+        // ロードするパターン画像の登録
+        public regist_pattern(label: string, path: string, c_width: number, c_height: number) {
+            this.image.regist_pattern(label, path,c_width,c_height);
+        }*/
+        // すべてロードする
+        // 撤廃してloader.load()を呼ばせればいいか?
+        AssetsManagerManager.prototype.load = function () {
+            this.loader.load();
+        };
+        return AssetsManagerManager;
+    })();
+    Game.AssetsManagerManager = AssetsManagerManager;
+    var LoadedItemEvent = (function (_super) {
+        __extends(LoadedItemEvent, _super);
+        function LoadedItemEvent(type, item) {
+            _super.call(this, type);
+            this.item = item;
+        }
+        return LoadedItemEvent;
+    })(Game.Event);
+    Game.LoadedItemEvent = LoadedItemEvent;
+    var LoadingProgressEvent = (function (_super) {
+        __extends(LoadingProgressEvent, _super);
+        function LoadingProgressEvent(type, load_count, load_cout_remain) {
+            _super.call(this, type);
+            this.load_count = load_count;
+            this.load_cout_remain = load_cout_remain;
+        }
+        return LoadingProgressEvent;
+    })(Game.Event);
+    Game.LoadingProgressEvent = LoadingProgressEvent;
+    var Assets = (function () {
+        function Assets() {
+        }
+        return Assets;
+    })();
+    Game.Assets = Assets;
+    // UNDONE:画像以外のロード
+    // TODO:新しいEventを定義して読み込んだファイルの情報を渡せるように
+    var Loader = (function (_super) {
+        __extends(Loader, _super);
+        function Loader() {
+            _super.call(this);
+            this._unloadeds = [];
+            this._is_load_started = false;
+            this._is_load_completed = false;
+            this._count = 0;
+        }
+        Object.defineProperty(Loader.prototype, "is_load_started", {
+            get: function () {
+                return this._is_load_started;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Loader.prototype, "is_load_completed", {
+            get: function () {
+                return this._is_load_completed;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Loader.prototype, "is_loading", {
+            get: function () {
+                return (this._is_load_started && !this._is_load_completed);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Loader.prototype, "count_all", {
+            // ロードするべき総数
+            get: function () {
+                if (!this.is_load_started)
+                    return this._unloadeds.length; // ロード開始前
+                else
+                    return this._count; // ロード開始後
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Loader.prototype, "count_loadeds", {
+            // いくつロード完了しているか
+            get: function () {
+                if (!this._is_load_started)
+                    return 0; // ロード前
+                else if (!this.is_load_completed)
+                    return this.count_all - this._unloadeds.length; // ロード中
+                else
+                    return this.count_all; // ロード後
+            },
+            enumerable: true,
+            configurable: true
+        });
+        // 画像の名前とパスをキューに追加します
+        // push(label,path,callback?)
+        Loader.prototype.push = function (l, p, cb) {
+            //push(l: string, p: string) {
+            // UNDONE:重複keyの検出
+            //if(this.has(key)) throw new Error("\"" + key + "\"is already defined.");
+            this._unloadeds.push({ label: l, path: p, callback: cb });
+        };
+        // TODO: 1-(unloadeds.length/count)の取得
+        // キューに追加された画像をすべて読み込みます
+        Loader.prototype.load = function () {
+            //if (this.state == PreloadStates.NOTHING2LOAD) throw new Error("there is nothing to load");
+            if (this._unloadeds.length == 0) {
+                console.log("there is nothing to load. loading cancelled.");
+                return;
+            }
+            if (this.is_load_started)
+                throw new Error("loading already started");
+            this._count = this._unloadeds.length;
+            this._is_load_started = true;
+            this.dispatchEvent(new Game.Event("load_start"));
+            this._load();
+        };
+        // 再帰的 そとからよぶな ぶちころがすぞ
+        Loader.prototype._load = function () {
+            if (this._unloadeds.length > 0) {
+                // TODO: Image以外の場合分け
+                this._loadImage();
+            }
+            else {
+                // 読み込み完了
+                this._is_load_completed = true;
+                this.dispatchEvent(new Game.Event("load_complete"));
+            }
+        };
+        // 処理終了時にthis._load()を呼ぶこと
+        Loader.prototype._loadImage = function (cb) {
+            var _this = this;
+            var tmp = this._unloadeds.shift();
+            var img = new Image();
+            img.onload = function () {
+                //console.log(img);
+                //this._asset.add(tmp.label, img, ResourceType.IMAGE); 下のコールバックで追加させる
+                if (tmp.callback)
+                    tmp.callback(img, tmp.label);
+                _this.dispatchEvent(new LoadingProgressEvent("load_progress", _this.count_loadeds, _this._unloadeds.length));
+                _this.dispatchEvent(new LoadedItemEvent("item_loaded", { type: "image", label: tmp.label, data: img, path: tmp.path }));
+                _this._load();
+            };
+            img.src = tmp.path;
+        };
+        return Loader;
+    })(Game.EventDispatcher);
+    Game.Loader = Loader;
+    var ImageManager = (function () {
+        function ImageManager() {
+        }
+        ImageManager.prototype.getwide = function (a, b, c, d) {
+            return document.createElement("canvas");
+        };
+        return ImageManager;
+    })();
+    Game.ImageManager = ImageManager;
+})(Game || (Game = {}));
 /// <reference path="color.ts"/>
 var Game;
 (function (Game) {
@@ -1051,15 +1578,15 @@ var Game;
             enumerable: true,
             configurable: true
         });
-        Surface.prototype.copy = function (share_canvas) {
-            if (share_canvas === void 0) { share_canvas = false; }
+        /*protected copy(share_canvas: boolean = false) {
             // TODO: share_canvas=trueのときの処理を実装
-            if (share_canvas) {
+            if (share_canvas) { // 未実装
+                //return new Surface(this);
             }
             else {
                 return (new Surface(this.width, this.height)).drawImage(this.canvas, 0, 0);
             }
-        };
+        }*/
         Surface.prototype.clear = function () {
             var ctx = this.context;
             ctx.save();
@@ -1491,75 +2018,6 @@ var Game;
     })(Surface);
     Game.PatternSurface = PatternSurface;
 })(Game || (Game = {}));
-var Game;
-(function (Game) {
-    var GameKey = (function () {
-        function GameKey() {
-            this.keepreleasedtime = 64;
-            this.init();
-        }
-        // キー入力を受け付けるイベントハンドラを登録する
-        GameKey.prototype.setEvent = function (el) {
-            var _this = this;
-            //console.log(el);
-            el.addEventListener("keydown", function (e) {
-                _this.KeyDown(e.keyCode);
-            });
-            el.addEventListener("keyup", function (e) {
-                _this.KeyUp(e.keyCode);
-            });
-        };
-        GameKey.prototype.init = function () {
-            this.keys = {};
-            this.releasedkeys = {};
-        };
-        GameKey.prototype.update = function () {
-            for (var key in this.keys) {
-                this.keys[key] += 1;
-            }
-            var rks = {};
-            for (var key in this.releasedkeys) {
-                if (this.releasedkeys[key] + 1 <= this.keepreleasedtime) {
-                    rks[key] = this.releasedkeys[key] + 1;
-                }
-            }
-            this.releasedkeys = rks;
-        };
-        GameKey.prototype.KeyDown = function (key) {
-            //console.log(key);
-            if (!(key in this.keys)) {
-                this.keys[key] = 0;
-            }
-        };
-        GameKey.prototype.KeyUp = function (key) {
-            if (key in this.keys) {
-                delete this.keys[key];
-            }
-            this.releasedkeys[key] = 0;
-        };
-        // 押されているかどうかの判定をします
-        GameKey.prototype.isDown = function (key) {
-            if (key in this.keys)
-                return true;
-            return false;
-        };
-        // 押された瞬間かどうかの判定をします
-        GameKey.prototype.isOnDown = function (key) {
-            if (key in this.keys && this.keys[key] == 1)
-                return true;
-            return false;
-        };
-        // 押された時間を取得します 押されていない場合は-1
-        GameKey.prototype.getCount = function (key) {
-            if (key in this.keys) {
-                return this.keys[key];
-            }
-            return -1;
-        };
-        return GameKey;
-    })();
-    Game.GameKey = GameKey;
-})(Game || (Game = {}));
 /// <reference path="graphics/surface.ts"/>
 var Game;
 (function (Game) {
@@ -1978,445 +2436,5 @@ var Game;
         return Core;
     })(Game.EventDispatcher);
     Game.Core = Core;
-})(Game || (Game = {}));
-var Game;
-(function (Game) {
-    var Collision = (function () {
-        function Collision() {
-        }
-        Collision.prototype.collision = function (target, exclude_bounds) {
-            if (exclude_bounds === void 0) { exclude_bounds = false; }
-            var base = this; // 自身がShapeクラスに継承されていることを前提とする
-            var flag_failed = false;
-            if (base instanceof Game.Point) {
-                if (target instanceof Game.Point) {
-                    return this.colPointWithPoint(base, target, exclude_bounds);
-                }
-                else if (target instanceof Game.Rect) {
-                    return this.colPointWithRect(base, target, exclude_bounds);
-                }
-                else if (target instanceof Game.Circle) {
-                    return this.colPointWithCircle(base, target, exclude_bounds);
-                }
-                else {
-                    flag_failed = true;
-                }
-            }
-            else if (base instanceof Game.Rect) {
-                if (target instanceof Game.Point) {
-                    return this.colPointWithRect(target, base, exclude_bounds);
-                }
-                else if (target instanceof Game.Rect) {
-                    return this.colRectWithRect(base, target, exclude_bounds);
-                }
-                else if (target instanceof Game.Circle) {
-                    return this.colRectWithCircle(base, target, exclude_bounds);
-                }
-                else {
-                    flag_failed = true;
-                }
-            }
-            else if (base instanceof Game.Circle) {
-                if (target instanceof Game.Point) {
-                    return this.colPointWithCircle(target, base, exclude_bounds);
-                }
-                else if (target instanceof Game.Rect) {
-                    return this.colRectWithCircle(target, base, exclude_bounds);
-                }
-                else if (target instanceof Game.Circle) {
-                    return this.colCircleWithCircle(base, target, exclude_bounds);
-                }
-                else {
-                    flag_failed = true;
-                }
-            }
-            else {
-                flag_failed = true;
-            }
-            if (flag_failed)
-                throw new Error("incorrect or not supported collision type");
-            return false;
-        };
-        Collision.prototype.colPointWithPoint = function (p1, p2, exclude_bounds) {
-            if (exclude_bounds === void 0) { exclude_bounds = false; }
-            if (exclude_bounds) {
-                if (p1.x == p2.x && p1.y == p2.y) {
-                    return true;
-                }
-            }
-            else {
-                if (p1.x == p2.x && p1.y == p2.y) {
-                    return true;
-                }
-            }
-            return false;
-        };
-        Collision.prototype.colPointWithRect = function (p, r, exclude_bounds) {
-            if (exclude_bounds === void 0) { exclude_bounds = false; }
-            if (exclude_bounds) {
-                if (r.left < p.x && p.x < r.right && r.top < p.y && p.y < r.bottom) {
-                    return true;
-                }
-            }
-            else {
-                if (r.left <= p.x && p.x <= r.right && r.top <= p.y && p.y <= r.bottom) {
-                    return true;
-                }
-            }
-            return false;
-        };
-        Collision.prototype.colPointWithCircle = function (p, c, exclude_bounds) {
-            if (exclude_bounds === void 0) { exclude_bounds = false; }
-            if (exclude_bounds) {
-                if ((p.x - c.x) * (p.x - c.x) + (p.y - c.y) * (p.y - c.y) < c.r * c.r) {
-                    return true;
-                }
-            }
-            else {
-                if ((p.x - c.x) * (p.x - c.x) + (p.y - c.y) * (p.y - c.y) <= c.r * c.r) {
-                    return true;
-                }
-            }
-            return false;
-        };
-        Collision.prototype.colRectWithRect = function (r1, r2, exclude_bounds) {
-            if (exclude_bounds === void 0) { exclude_bounds = false; }
-            if (exclude_bounds) {
-                if (r1.left < r2.right && r2.left < r1.right && r1.top < r2.bottom && r2.top < r1.bottom) {
-                    return true;
-                }
-            }
-            else {
-                if (r1.left <= r2.right && r2.left <= r1.right && r1.top <= r2.bottom && r2.top <= r1.bottom) {
-                    return true;
-                }
-            }
-            return false;
-        };
-        Collision.prototype.colRectWithCircle = function (r, c, exclude_bounds) {
-            if (exclude_bounds === void 0) { exclude_bounds = false; }
-            if (exclude_bounds) {
-            }
-            else {
-            }
-            return false;
-        };
-        Collision.prototype.colCircleWithCircle = function (c1, c2, exclude_bounds) {
-            if (exclude_bounds === void 0) { exclude_bounds = false; }
-            if (exclude_bounds) {
-                if ((c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y) < (c1.r + c2.r) * (c1.r + c2.r)) {
-                    return false;
-                }
-            }
-            else {
-                if ((c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y) <= (c1.r + c2.r) * (c1.r + c2.r)) {
-                    return false;
-                }
-            }
-            return false;
-        };
-        return Collision;
-    })();
-    Game.Collision = Collision;
-})(Game || (Game = {}));
-/// <reference path="collision.ts"/>
-var Game;
-(function (Game) {
-    var AbstractShape = (function (_super) {
-        __extends(AbstractShape, _super);
-        function AbstractShape() {
-            _super.call(this);
-        }
-        AbstractShape.prototype.getParams = function () {
-        };
-        return AbstractShape;
-    })(Game.Collision);
-    Game.AbstractShape = AbstractShape;
-})(Game || (Game = {}));
-/// <reference path="shape.ts"/>
-var Game;
-(function (Game) {
-    var Circle = (function (_super) {
-        __extends(Circle, _super);
-        function Circle(x, y, r, base) {
-            if (base === void 0) { base = null; }
-            _super.call(this);
-            this.x = x;
-            this.y = y;
-            this.r = r;
-            if (base) {
-                this.x += base.x;
-                this.y += base.y;
-                this.r += base.r;
-            }
-        }
-        Object.defineProperty(Circle.prototype, "width", {
-            get: function () {
-                return this.r * 2;
-            },
-            set: function (v) {
-                this.r = v / 2;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Circle.prototype, "height", {
-            get: function () {
-                return this.r * 2;
-            },
-            set: function (v) {
-                this.r = v / 2;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Circle.prototype, "left", {
-            get: function () {
-                return this.x - this.r;
-            },
-            set: function (v) {
-                this.x = v + this.r;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Circle.prototype, "right", {
-            get: function () {
-                return this.x + this.r;
-            },
-            set: function (v) {
-                this.x = v - this.r;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Circle.prototype, "top", {
-            get: function () {
-                return this.y - this.r;
-            },
-            set: function (v) {
-                this.y = v + this.r;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Circle.prototype, "bottom", {
-            get: function () {
-                return this.y + this.r;
-            },
-            set: function (v) {
-                this.y = v - this.r;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Circle.prototype, "centerx", {
-            get: function () {
-                return this.x;
-            },
-            set: function (v) {
-                this.x = v;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Circle.prototype, "centery", {
-            get: function () {
-                return this.y;
-            },
-            set: function (v) {
-                this.y = v;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Circle.prototype.getParams = function () {
-            return [this.x, this.y, this.r];
-        };
-        return Circle;
-    })(Game.AbstractShape);
-    Game.Circle = Circle;
-})(Game || (Game = {}));
-/// <reference path="shape.ts"/>
-var Game;
-(function (Game) {
-    var Point = (function (_super) {
-        __extends(Point, _super);
-        function Point(x, y, base) {
-            if (base === void 0) { base = null; }
-            _super.call(this);
-            this.x = x;
-            this.y = y;
-            if (base) {
-                this.x += base.x;
-                this.y += base.y;
-            }
-        }
-        Object.defineProperty(Point.prototype, "width", {
-            get: function () {
-                return 0;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Point.prototype, "height", {
-            get: function () {
-                return 0;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Point.prototype, "left", {
-            get: function () {
-                return this.x;
-            },
-            set: function (v) {
-                this.x = v;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Point.prototype, "right", {
-            get: function () {
-                return this.x;
-            },
-            set: function (v) {
-                this.x = v;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Point.prototype, "top", {
-            get: function () {
-                return this.y;
-            },
-            set: function (v) {
-                this.y = v;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Point.prototype, "bottom", {
-            get: function () {
-                return this.y;
-            },
-            set: function (v) {
-                this.y = v;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Point.prototype, "centerx", {
-            get: function () {
-                return this.x;
-            },
-            set: function (v) {
-                this.x = v;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Point.prototype, "centery", {
-            get: function () {
-                return this.y;
-            },
-            set: function (v) {
-                this.y = v;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Point.prototype.getParams = function () {
-            return [this.x, this.y];
-        };
-        return Point;
-    })(Game.AbstractShape);
-    Game.Point = Point;
-})(Game || (Game = {}));
-/// <reference path="shape.ts"/>
-var Game;
-(function (Game) {
-    var Rect = (function (_super) {
-        __extends(Rect, _super);
-        function Rect(x, y, w, h, base) {
-            if (base === void 0) { base = null; }
-            _super.call(this);
-            this.x = x;
-            this.y = y;
-            this.width = w;
-            this.height = h;
-            if (base) {
-                this.x += base.x;
-                this.y += base.y;
-                this.width += base.width;
-                this.height += base.height;
-            }
-        }
-        Object.defineProperty(Rect.prototype, "left", {
-            get: function () {
-                return this.x;
-            },
-            set: function (v) {
-                this.x = v;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Rect.prototype, "right", {
-            get: function () {
-                return this.x + this.width;
-            },
-            set: function (v) {
-                this.x = v - this.width;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Rect.prototype, "top", {
-            get: function () {
-                return this.y;
-            },
-            set: function (v) {
-                this.y = v;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Rect.prototype, "bottom", {
-            get: function () {
-                return this.y + this.height;
-            },
-            set: function (v) {
-                this.y = v - this.height;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Rect.prototype, "centerx", {
-            get: function () {
-                return this.x + this.width / 2;
-            },
-            set: function (v) {
-                this.x = v - this.width / 2;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Rect.prototype, "centery", {
-            get: function () {
-                return this.y + this.height / 2;
-            },
-            set: function (v) {
-                this.y = v - this.height / 2;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Rect.prototype.getParams = function () {
-            return [this.x, this.y, this.width, this.height];
-        };
-        return Rect;
-    })(Game.AbstractShape);
-    Game.Rect = Rect;
 })(Game || (Game = {}));
 //# sourceMappingURL=out.js.map

@@ -22,8 +22,13 @@ module Game {
             this.loader.load();
         }
     }
-    export class LoadingCompleteEvent extends Event{
-        constructor(type: string, item: any) {
+    export class LoadedItemEvent extends Event {
+        constructor(type: string, public item: { type: string; label: string; data: any; path: string }) {
+            super(type);
+        }
+    }
+    export class LoadingProgressEvent extends Event {
+        constructor(type: string, public load_count: number, public load_cout_remain: number) {
             super(type);
         }
     }
@@ -32,6 +37,10 @@ module Game {
         count_loadeds: number;
         push(l: string, p: string, cb?: (file: any, label: string) => void);
         load();
+    }
+    export class Assets {
+        constructor() {
+        }
     }
     // UNDONE:画像以外のロード
     // TODO:新しいEventを定義して読み込んだファイルの情報を渡せるように
@@ -86,7 +95,7 @@ module Game {
                 console.log("there is nothing to load. loading cancelled.");
                 return;
             }
-            if (this.is_load_started) throw new Error("loading is now processing");
+            if (this.is_load_started) throw new Error("loading already started");
             this._count = this._unloadeds.length;
             this._is_load_started = true;
             this.dispatchEvent(new Event("load_start"));
@@ -101,7 +110,7 @@ module Game {
             }
             else {
                 // 読み込み完了
-                this._is_load_completed = false;
+                this._is_load_completed = true;
                 this.dispatchEvent(new Event("load_complete"));
             }
         }
@@ -114,7 +123,8 @@ module Game {
                 //console.log(img);
                 //this._asset.add(tmp.label, img, ResourceType.IMAGE); 下のコールバックで追加させる
                 if (tmp.callback) tmp.callback(img, tmp.label);
-                this.dispatchEvent(new Event("load_progress"));
+                this.dispatchEvent(new LoadingProgressEvent("load_progress", this.count_loadeds, this._unloadeds.length));
+                this.dispatchEvent(new LoadedItemEvent("item_loaded", { type: "image", label: tmp.label, data: img, path: tmp.path }));
                 this._load();
             }
             img.src = tmp.path;
